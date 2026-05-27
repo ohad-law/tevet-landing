@@ -1,0 +1,191 @@
+'use client'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
+
+const CASE_STATUSES = [
+  'תיק נכנס', 'עריכת כתב תביעה', 'מעקב מספר הליך בנט',
+  'מסירה אישית/דואר ישראל', 'הודעה על המצאה', 'תצהיר גילוי מסמכים',
+  'תצהיר עדות ראשית', 'הוכחות', 'סיכומים', 'פסק דין', 'ארכיון',
+]
+
+type Client = { id: string; full_name: string }
+
+type Props = { clients: Client[] }
+
+export default function CaseForm({ clients }: Props) {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+
+    const data = Object.fromEntries(new FormData(e.currentTarget))
+    const res = await fetch('/api/crm/cases', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+
+    if (!res.ok) {
+      const err = await res.json()
+      setError(err.error ?? 'שגיאה ביצירת תיק')
+      setLoading(false)
+      return
+    }
+
+    const { id } = await res.json()
+    router.push(`/crm/cases/${id}`)
+  }
+
+  return (
+    <div className="space-y-6 max-w-2xl" style={{ fontFamily: 'Assistant, sans-serif' }}>
+      <div className="flex items-center gap-2 text-sm text-slate-400">
+        <Link href="/crm/cases" className="hover:text-slate-600 transition flex items-center gap-1">
+          <ArrowRight size={14} />
+          תיקים
+        </Link>
+        <span>/</span>
+        <span className="text-slate-600 font-medium">תיק חדש</span>
+      </div>
+
+      <div>
+        <h1 className="text-2xl font-bold text-slate-800">פתיחת תיק חדש</h1>
+      </div>
+
+      <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>
+        )}
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">שם התיק *</label>
+            <input
+              name="case_name"
+              required
+              type="text"
+              placeholder="למשל: כהן נ׳ מפעלים בע״מ"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">מספר תיק</label>
+            <input
+              name="case_number"
+              type="text"
+              placeholder="מספר תיק בית משפט"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">סוג תיק</label>
+            <input
+              name="case_type"
+              type="text"
+              placeholder="פיטורים, שכר, תאונה..."
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">לקוח</label>
+            <select
+              name="client_id"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition bg-slate-50 focus:bg-white"
+            >
+              <option value="">— בחר לקוח —</option>
+              {clients.map(c => (
+                <option key={c.id} value={c.id}>{c.full_name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">סטטוס</label>
+            <select
+              name="status"
+              defaultValue="תיק נכנס"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition bg-slate-50 focus:bg-white"
+            >
+              {CASE_STATUSES.map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">בית משפט</label>
+            <input
+              name="court_name"
+              type="text"
+              placeholder="שם בית המשפט"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">תאריך פתיחה</label>
+            <input
+              name="open_date"
+              type="date"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition bg-slate-50 focus:bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">שכ״ט (תיאור)</label>
+            <input
+              name="fee"
+              type="text"
+              placeholder="למשל: 15% מהפיצוי"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">ערך תיק (₪)</label>
+            <input
+              name="value"
+              type="number"
+              placeholder="0"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
+            />
+          </div>
+
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">הערות</label>
+            <textarea
+              name="notes"
+              rows={3}
+              placeholder="הערות נוספות..."
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white resize-none"
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-3 pt-2">
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            {loading ? 'שומר...' : 'פתח תיק'}
+          </button>
+          <Link
+            href="/crm/cases"
+            className="text-sm text-slate-500 px-4 py-2.5 rounded-xl hover:bg-slate-100 transition"
+          >
+            ביטול
+          </Link>
+        </div>
+      </form>
+    </div>
+  )
+}
