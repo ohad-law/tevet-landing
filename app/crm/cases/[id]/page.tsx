@@ -164,7 +164,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
             {c.value ? `₪${Number(c.value).toLocaleString()}` : '—'}
           </span>
         </InfoCard>
-        <InfoCard icon={<Banknote size={15} />} label="שכ\"ט">
+        <InfoCard icon={<Banknote size={15} />} label={'שכ"ט'}>
           <div>
             <span className="text-sm font-medium text-slate-800">
               {c.fee_amount ? `₪${Number(c.fee_amount).toLocaleString()}` : '—'}
