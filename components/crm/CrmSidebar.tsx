@@ -3,15 +3,26 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import {
+  LayoutDashboard,
+  FolderOpen,
+  Users,
+  CheckSquare,
+  CalendarDays,
+  UserPlus,
+  Wallet,
+  LogOut,
+  Scale,
+} from 'lucide-react'
 
 const navItems = [
-  { href: '/crm/dashboard', label: 'לוח בקרה', icon: '📊' },
-  { href: '/crm/cases', label: 'תיקים', icon: '⚖️' },
-  { href: '/crm/clients', label: 'לקוחות', icon: '👥' },
-  { href: '/crm/tasks', label: 'משימות', icon: '✅' },
-  { href: '/crm/hearings', label: 'דיונים', icon: '📅' },
-  { href: '/crm/leads', label: 'לידים', icon: '🎯' },
-  { href: '/crm/finances', label: 'פיננסים', icon: '💰' },
+  { href: '/crm/dashboard', label: 'לוח בקרה', icon: LayoutDashboard },
+  { href: '/crm/cases', label: 'תיקים', icon: FolderOpen },
+  { href: '/crm/clients', label: 'לקוחות', icon: Users },
+  { href: '/crm/tasks', label: 'משימות', icon: CheckSquare },
+  { href: '/crm/hearings', label: 'דיונים', icon: CalendarDays },
+  { href: '/crm/leads', label: 'לידים', icon: UserPlus },
+  { href: '/crm/finances', label: 'פיננסים', icon: Wallet },
 ]
 
 export default function CrmSidebar({ userEmail }: { userEmail: string }) {
@@ -26,52 +37,52 @@ export default function CrmSidebar({ userEmail }: { userEmail: string }) {
   }
 
   return (
-    <aside className="w-64 bg-slate-900 min-h-screen flex flex-col border-l border-slate-800 shrink-0">
+    <aside className="w-60 bg-[#0f172a] min-h-screen flex flex-col border-l border-white/5 shrink-0">
       {/* Logo */}
-      <div className="h-16 flex items-center gap-3 px-5 border-b border-slate-800">
-        <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-lg shadow-lg shadow-blue-900/30">
-          ⚖️
+      <div className="h-16 flex items-center gap-3 px-5 border-b border-white/5">
+        <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center shrink-0 shadow-lg shadow-blue-900/40">
+          <Scale size={17} className="text-white" />
         </div>
         <div>
-          <p className="text-white font-bold text-sm leading-none">משרד טבת</p>
-          <p className="text-slate-400 text-xs mt-0.5">מערכת ניהול</p>
+          <p className="text-white font-bold text-sm leading-tight tracking-tight">משרד טבת</p>
+          <p className="text-slate-500 text-xs">מערכת ניהול</p>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-3 space-y-1">
-        {navItems.map(item => {
-          const isActive = pathname.startsWith(item.href)
+      <nav className="flex-1 py-4 px-3 space-y-0.5">
+        {navItems.map(({ href, label, icon: Icon }) => {
+          const isActive = pathname === href || pathname.startsWith(href + '/')
           return (
             <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              key={href}
+              href={href}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
-                  : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
               }`}
             >
-              <span className="text-base">{item.icon}</span>
-              {item.label}
+              <Icon size={16} className="shrink-0" />
+              {label}
             </Link>
           )
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="p-3 border-t border-slate-800">
-        <div className="flex items-center gap-3 p-2 rounded-xl bg-slate-800/50">
+      {/* User + Logout */}
+      <div className="p-3 border-t border-white/5">
+        <div className="flex items-center gap-3 px-2 py-2 rounded-lg">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0">
             {userEmail.charAt(0).toUpperCase()}
           </div>
-          <p className="text-slate-300 text-xs truncate flex-1">{userEmail}</p>
+          <p className="text-slate-400 text-xs truncate flex-1">{userEmail}</p>
           <button
             onClick={handleLogout}
-            className="text-slate-500 hover:text-red-400 transition text-xs shrink-0"
             title="התנתק"
+            className="text-slate-600 hover:text-slate-300 transition-colors shrink-0"
           >
-            ↩
+            <LogOut size={15} />
           </button>
         </div>
       </div>
