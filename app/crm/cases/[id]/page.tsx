@@ -6,17 +6,12 @@ import {
   Calendar,
   User,
   Hash,
-  Scale,
-  Clock,
-  CheckSquare,
   AlertCircle,
   Banknote,
-  FileText,
-  MapPin,
 } from 'lucide-react'
 import CaseStatusSelect from '@/components/crm/CaseStatusSelect'
 import CaseTasksSection from '@/components/crm/CaseTasksSection'
-import CaseHearingAdder from '@/components/crm/CaseHearingAdder'
+import CaseHearingsSection from '@/components/crm/CaseHearingsSection'
 import CaseNotesSection from '@/components/crm/CaseNotesSection'
 
 export const revalidate = 0
@@ -73,8 +68,6 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
   const currentStatusIndex = STATUS_ORDER.indexOf(c.status)
   const openTasks = (tasks ?? []).filter(t => t.status !== 'הושלמה')
   const overdueTasks = openTasks.filter(t => t.due_date && t.due_date < today)
-  const upcomingHearings = (hearings ?? []).filter(h => h.date >= today)
-  const pastHearings = (hearings ?? []).filter(h => h.date < today)
 
   return (
     <div className="space-y-6" style={{ fontFamily: 'Assistant, sans-serif' }}>
@@ -220,55 +213,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
       {/* Two columns: Hearings + Tasks */}
       <div className="grid lg:grid-cols-2 gap-5">
 
-        {/* Hearings */}
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Calendar size={15} className="text-slate-400" />
-              <h2 className="font-semibold text-slate-800 text-sm">דיונים</h2>
-              <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">{(hearings ?? []).length}</span>
-            </div>
-            <CaseHearingAdder caseId={id} />
-          </div>
-
-          {upcomingHearings.length === 0 && pastHearings.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-8">אין דיונים רשומים</p>
-          ) : (
-            <div className="divide-y divide-slate-50">
-              {upcomingHearings.map(h => (
-                <div key={h.id} className={`px-5 py-3 flex items-start justify-between gap-3 ${h.date === today ? 'bg-blue-50/30' : ''}`}>
-                  <div>
-                    <p className="text-sm font-medium text-slate-800">{h.description || 'דיון'}</p>
-                    {h.location && (
-                      <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
-                        <MapPin size={11} /> {h.location}
-                      </p>
-                    )}
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className={`text-xs font-bold font-mono ${h.date === today ? 'text-blue-600' : 'text-slate-700'}`}>
-                      {h.date === today ? 'היום' : h.date}
-                    </p>
-                    {h.time && <p className="text-xs text-slate-400">{h.time}</p>}
-                  </div>
-                </div>
-              ))}
-              {pastHearings.length > 0 && (
-                <details className="group">
-                  <summary className="px-5 py-3 text-xs text-slate-400 cursor-pointer hover:text-slate-600">
-                    דיונים שעברו ({pastHearings.length})
-                  </summary>
-                  {pastHearings.map(h => (
-                    <div key={h.id} className="px-5 py-2.5 flex items-center justify-between opacity-50 border-t border-slate-50">
-                      <p className="text-xs text-slate-600">{h.description || 'דיון'}</p>
-                      <p className="text-xs font-mono text-slate-400">{h.date}</p>
-                    </div>
-                  ))}
-                </details>
-              )}
-            </div>
-          )}
-        </div>
+        <CaseHearingsSection caseId={id} initialHearings={hearings ?? []} today={today} />
 
         {/* Tasks */}
         <CaseTasksSection caseId={id} initialTasks={tasks ?? []} today={today} />

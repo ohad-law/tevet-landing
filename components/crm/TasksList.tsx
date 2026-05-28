@@ -1,6 +1,6 @@
 'use client'
 import { useState, useMemo, useTransition } from 'react'
-import { Search, X, Check, ChevronDown } from 'lucide-react'
+import { Search, X, Check, ChevronDown, Trash2 } from 'lucide-react'
 
 type Task = {
   id: string
@@ -39,6 +39,11 @@ export default function TasksList({ initialTasks, caseMap, today }: Props) {
   const overdue = filtered.filter(t => t.due_date && t.due_date < today)
   const upcoming = filtered.filter(t => !t.due_date || t.due_date >= today)
 
+  async function deleteTask(id: string) {
+    startTransition(() => setTasks(prev => prev.filter(t => t.id !== id)))
+    await fetch(`/api/crm/tasks/${id}`, { method: 'DELETE' })
+  }
+
   async function toggleTask(id: string, currentStatus: string) {
     const newStatus = currentStatus === 'הושלמה' ? 'פתוחה' : 'הושלמה'
     startTransition(() => {
@@ -67,7 +72,7 @@ export default function TasksList({ initialTasks, caseMap, today }: Props) {
     const isOverdue = task.due_date && task.due_date < today && task.status !== 'הושלמה'
     const isDone = task.status === 'הושלמה'
     return (
-      <div className={`flex items-center gap-3 px-5 py-3.5 border-b border-slate-50 last:border-0 ${
+      <div className={`group flex items-center gap-3 px-5 py-3.5 border-b border-slate-50 last:border-0 ${
         isOverdue ? 'bg-red-50/40' : faded ? 'opacity-50' : ''
       }`}>
         <button
@@ -102,6 +107,13 @@ export default function TasksList({ initialTasks, caseMap, today }: Props) {
               {task.priority}
             </span>
           )}
+          <button
+            onClick={() => deleteTask(task.id)}
+            className="text-slate-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100"
+            title="מחק משימה"
+          >
+            <Trash2 size={13} />
+          </button>
         </div>
       </div>
     )
