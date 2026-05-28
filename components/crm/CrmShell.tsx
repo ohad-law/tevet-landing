@@ -6,9 +6,10 @@ import CrmSidebar from './CrmSidebar'
 type Props = {
   userEmail: string
   children: React.ReactNode
+  badges?: Record<string, number>
 }
 
-export default function CrmShell({ userEmail, children }: Props) {
+export default function CrmShell({ userEmail, children, badges = {} }: Props) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -28,7 +29,7 @@ export default function CrmShell({ userEmail, children }: Props) {
         lg:static lg:translate-x-0 lg:h-auto lg:z-auto
         ${open ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
       `}>
-        <CrmSidebar userEmail={userEmail} onClose={() => setOpen(false)} />
+        <CrmSidebar userEmail={userEmail} onClose={() => setOpen(false)} badges={badges} />
       </div>
 
       {/* Main content */}

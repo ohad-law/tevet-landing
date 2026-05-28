@@ -29,7 +29,7 @@ const navItems = [
   { href: '/crm/attendance', label: 'נוכחות', icon: ClockIcon },
 ]
 
-export default function CrmSidebar({ userEmail, onClose }: { userEmail: string; onClose?: () => void }) {
+export default function CrmSidebar({ userEmail, onClose, badges = {} }: { userEmail: string; onClose?: () => void; badges?: Record<string, number> }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -87,7 +87,14 @@ export default function CrmSidebar({ userEmail, onClose }: { userEmail: string; 
               }`}
             >
               <Icon size={16} className="shrink-0" />
-              {label}
+              <span className="flex-1">{label}</span>
+              {(badges[href] ?? 0) > 0 && (
+                <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none ${
+                  isActive ? 'bg-white/20 text-white' : 'bg-red-500 text-white'
+                }`}>
+                  {badges[href]! > 99 ? '99+' : badges[href]}
+                </span>
+              )}
             </Link>
           )
         })}
