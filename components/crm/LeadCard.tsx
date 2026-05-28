@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Phone, MessageCircle, ChevronDown } from 'lucide-react'
+import { Phone, MessageCircle, ChevronDown, UserPlus } from 'lucide-react'
 
 type Lead = {
   id: string
@@ -35,6 +35,8 @@ export default function LeadCard({ lead, table }: Props) {
   const [status, setStatus] = useState(lead.status)
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [converting, setConverting] = useState(false)
+  const [converted, setConverted] = useState(false)
   const router = useRouter()
 
   async function changeStatus(newStatus: string) {
@@ -49,6 +51,28 @@ export default function LeadCard({ lead, table }: Props) {
     })
     setSaving(false)
     router.refresh()
+  }
+
+  async function convertToClient() {
+    if (!lead.full_name) return
+    setConverting(true)
+    const res = await fetch('/api/crm/leads/convert', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        lead_id: lead.id,
+        table,
+        full_name: lead.full_name,
+        phone: lead.phone,
+        email: lead.email,
+      }),
+    })
+    if (res.ok) {
+      setStatus('הפך ללקוח')
+      setConverted(true)
+      router.refresh()
+    }
+    setConverting(false)
   }
 
   const whatsappUrl = lead.phone
@@ -100,10 +124,22 @@ export default function LeadCard({ lead, table }: Props) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
         <span className="text-xs text-slate-400 font-mono">
           {new Date(lead.created_at).toLocaleDateString('he-IL')}
         </span>
+
+        {status !== 'הפך ללקוח' && !converted && lead.full_name && (
+          <button
+            onClick={convertToClient}
+            disabled={converting}
+            title="המר ללקוח"
+            className="flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-medium hover:bg-emerald-100 transition disabled:opacity-50"
+          >
+            <UserPlus size={11} />
+            {converting ? '...' : 'הפוך ללקוח'}
+          </button>
+        )}
 
         <div className="relative">
           <button

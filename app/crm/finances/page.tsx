@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import FinanceAdder from '@/components/crm/FinanceAdder'
+import IncomeList from '@/components/crm/IncomeList'
+import ExportCsvButton from '@/components/crm/ExportCsvButton'
 
 export const revalidate = 0
 
@@ -25,9 +27,25 @@ export default async function FinancesPage() {
   const monthExpenses = (expenses ?? []).filter(e => e.date >= firstOfMonth).reduce((s, e) => s + (e.amount ?? 0), 0)
   const profit = monthIncome - monthExpenses
 
+  const incomeExportData = (income ?? []).map(i => ({
+    תאריך: i.date,
+    תיאור: i.description ?? '',
+    סכום: i.amount,
+    סטטוס: i.status,
+    'מספר חשבונית': i.invoice_number ?? '',
+    'אמצעי תשלום': i.payment_method ?? '',
+  }))
+
+  const expensesExportData = (expenses ?? []).map(e => ({
+    תאריך: e.date,
+    תיאור: e.description,
+    סכום: e.amount,
+    קטגוריה: e.category ?? '',
+  }))
+
   return (
     <div className="space-y-6" style={{ fontFamily: 'Assistant, sans-serif' }}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">פיננסים</h1>
           <p className="text-slate-500 text-sm mt-0.5">הכנסות, הוצאות ומאזן</p>
@@ -63,40 +81,26 @@ export default async function FinancesPage() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Recent Income */}
+        {/* Income — interactive list with mark-as-paid */}
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="font-bold text-slate-800">הכנסות אחרונות</h2>
-            <span className="text-xs text-slate-400">{(income ?? []).length} סה"כ</span>
+            <h2 className="font-bold text-slate-800">הכנסות</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400">{(income ?? []).length} סה"כ</span>
+              <ExportCsvButton data={incomeExportData} filename="הכנסות" label="CSV" />
+            </div>
           </div>
-          <div className="divide-y divide-slate-50">
-            {(income ?? []).slice(0, 20).map(i => (
-              <div key={i.id} className="px-5 py-3 flex items-center justify-between">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-800 truncate">{i.description || 'הכנסה'}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">{i.date}</p>
-                </div>
-                <div className="text-right shrink-0 mr-3">
-                  <p className="font-semibold text-slate-800">₪{Number(i.amount ?? 0).toLocaleString()}</p>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    i.status === 'שולם' ? 'bg-green-100 text-green-700' :
-                    i.status === 'ממתין' ? 'bg-amber-100 text-amber-700' :
-                    'bg-slate-100 text-slate-500'
-                  }`}>{i.status}</span>
-                </div>
-              </div>
-            ))}
-            {(income?.length ?? 0) === 0 && (
-              <p className="text-slate-400 text-sm p-6 text-center">אין הכנסות רשומות עדיין</p>
-            )}
-          </div>
+          <IncomeList initialIncome={income ?? []} />
         </div>
 
         {/* Expenses */}
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="font-bold text-slate-800">הוצאות אחרונות</h2>
-            <span className="text-xs text-slate-400">{(expenses ?? []).length} סה"כ</span>
+            <h2 className="font-bold text-slate-800">הוצאות</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400">{(expenses ?? []).length} סה"כ</span>
+              <ExportCsvButton data={expensesExportData} filename="הוצאות" label="CSV" />
+            </div>
           </div>
           <div className="divide-y divide-slate-50">
             {(expenses ?? []).slice(0, 20).map(e => (
