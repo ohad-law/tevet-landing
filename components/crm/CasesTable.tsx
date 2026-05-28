@@ -12,6 +12,7 @@ type Case = {
   status: string
   assigned_to: string | null
   value: number | null
+  defendant_name?: string | null
 }
 
 const STATUS_COLOR: Record<string, string> = {
@@ -37,6 +38,7 @@ export default function CasesTable({ cases, clientMap }: Props) {
   const [search, setSearch] = useState('')
   const [view, setView] = useState<'active' | 'archive' | 'all'>('active')
   const [typeFilter, setTypeFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
 
   const caseTypes = useMemo(() => {
     const types = new Set(cases.map(c => c.case_type).filter(Boolean) as string[])
@@ -46,20 +48,28 @@ export default function CasesTable({ cases, clientMap }: Props) {
   const active = useMemo(() => cases.filter(c => c.status !== 'ארכיון' && c.status !== 'פסק דין'), [cases])
   const archived = useMemo(() => cases.filter(c => c.status === 'ארכיון' || c.status === 'פסק דין'), [cases])
 
+  const activeStatuses = useMemo(() => {
+    const pool = view === 'active' ? active : view === 'archive' ? archived : cases
+    const statuses = new Set(pool.map(c => c.status).filter(Boolean))
+    return Array.from(statuses)
+  }, [cases, active, archived, view])
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     const pool = view === 'active' ? active : view === 'archive' ? archived : cases
     return pool.filter(c => {
       if (typeFilter && c.case_type !== typeFilter) return false
+      if (statusFilter && c.status !== statusFilter) return false
       if (!q) return true
       const clientName = (clientMap[c.client_id ?? ''] ?? '').toLowerCase()
       return (
         c.case_name?.toLowerCase().includes(q) ||
         (c.case_number ?? '').toLowerCase().includes(q) ||
-        clientName.includes(q)
+        clientName.includes(q) ||
+        (c.defendant_name ?? '').toLowerCase().includes(q)
       )
     })
-  }, [cases, active, archived, search, view, typeFilter, clientMap])
+  }, [cases, active, archived, search, view, typeFilter, statusFilter, clientMap])
 
   return (
     <div className="space-y-4">
@@ -88,7 +98,7 @@ export default function CasesTable({ cases, clientMap }: Props) {
           ] as const).map(tab => (
             <button
               key={tab.key}
-              onClick={() => setView(tab.key)}
+              onClick={() => { setView(tab.key); setStatusFilter('') }}
               className={`text-xs px-3 py-1 rounded-md font-medium transition ${
                 view === tab.key
                   ? 'bg-white text-slate-800 shadow-sm'
@@ -109,6 +119,19 @@ export default function CasesTable({ cases, clientMap }: Props) {
             <option value="">כל הסוגים</option>
             {caseTypes.map(t => (
               <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        )}
+
+        {activeStatuses.length > 1 && (
+          <select
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+            className="text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-600 outline-none focus:border-blue-400"
+          >
+            <option value="">כל השלבים</option>
+            {activeStatuses.map(s => (
+              <option key={s} value={s}>{s}</option>
             ))}
           </select>
         )}

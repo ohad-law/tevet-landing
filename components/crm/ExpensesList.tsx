@@ -1,52 +1,55 @@
 'use client'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, Clock, Trash2, Pencil, X } from 'lucide-react'
+import { Trash2, Pencil, X } from 'lucide-react'
 
-type Income = {
+type Expense = {
   id: string
   amount: number
   date: string
-  description: string | null
-  status: string
+  description: string
+  category: string | null
 }
 
-export default function IncomeList({ initialIncome }: { initialIncome: Income[] }) {
-  const [income, setIncome] = useState(initialIncome)
+export default function ExpensesList({ initialExpenses }: { initialExpenses: Expense[] }) {
+  const [expenses, setExpenses] = useState(initialExpenses)
   const [showAll, setShowAll] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
   const [editDesc, setEditDesc] = useState('')
   const [editAmount, setEditAmount] = useState('')
   const [editDate, setEditDate] = useState('')
+  const [editCategory, setEditCategory] = useState('')
   const [editSaving, setEditSaving] = useState(false)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
-  function startEdit(i: Income) {
-    setEditId(i.id)
-    setEditDesc(i.description ?? '')
-    setEditAmount(String(i.amount))
-    setEditDate(i.date)
+  function startEdit(e: Expense) {
+    setEditId(e.id)
+    setEditDesc(e.description)
+    setEditAmount(String(e.amount))
+    setEditDate(e.date)
+    setEditCategory(e.category ?? '')
   }
 
   async function saveEdit() {
     if (!editId) return
     setEditSaving(true)
-    const res = await fetch(`/api/crm/income/${editId}`, {
+    const res = await fetch(`/api/crm/expenses/${editId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        description: editDesc.trim() || null,
+        description: editDesc.trim(),
         amount: parseFloat(editAmount) || 0,
         date: editDate,
+        category: editCategory.trim() || null,
       }),
     })
     if (res.ok) {
       startTransition(() =>
-        setIncome(prev => prev.map(i =>
-          i.id === editId
-            ? { ...i, description: editDesc.trim() || null, amount: parseFloat(editAmount) || 0, date: editDate }
-            : i
+        setExpenses(prev => prev.map(e =>
+          e.id === editId
+            ? { ...e, description: editDesc.trim(), amount: parseFloat(editAmount) || 0, date: editDate, category: editCategory.trim() || null }
+            : e
         ))
       )
       setEditId(null)
@@ -55,90 +58,75 @@ export default function IncomeList({ initialIncome }: { initialIncome: Income[] 
     setEditSaving(false)
   }
 
-  async function deleteIncome(id: string) {
-    startTransition(() => setIncome(prev => prev.filter(i => i.id !== id)))
-    await fetch(`/api/crm/income/${id}`, { method: 'DELETE' })
+  async function deleteExpense(id: string) {
+    startTransition(() => setExpenses(prev => prev.filter(e => e.id !== id)))
+    await fetch(`/api/crm/expenses/${id}`, { method: 'DELETE' })
     router.refresh()
   }
 
-  async function toggleStatus(id: string, current: string) {
-    const next = current === 'שולם' ? 'ממתין' : 'שולם'
-    startTransition(() =>
-      setIncome(prev => prev.map(i => i.id === id ? { ...i, status: next } : i))
-    )
-    await fetch(`/api/crm/income/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: next }),
-    })
-    router.refresh()
-  }
-
-  const visible = showAll ? income : income.slice(0, 20)
+  const visible = showAll ? expenses : expenses.slice(0, 20)
 
   return (
     <div className="divide-y divide-slate-50">
-      {visible.map(i => (
-        <div key={i.id}>
-          <div className={`group px-5 py-3 flex items-center justify-between ${editId === i.id ? 'bg-blue-50/30' : ''}`}>
+      {visible.map(e => (
+        <div key={e.id}>
+          <div className={`group px-5 py-3 flex items-center justify-between ${editId === e.id ? 'bg-blue-50/30' : ''}`}>
             <div className="min-w-0">
-              <p className="text-sm font-medium text-slate-800 truncate">{i.description || 'הכנסה'}</p>
-              <p className="text-xs text-slate-400 mt-0.5">{i.date}</p>
+              <p className="text-sm font-medium text-slate-800 truncate">{e.description}</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-xs text-slate-400">{e.date}</p>
+                {e.category && (
+                  <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">{e.category}</span>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-3 shrink-0 mr-3">
-              <p className="font-semibold text-slate-800">₪{Number(i.amount ?? 0).toLocaleString()}</p>
+            <div className="flex items-center gap-2 shrink-0 mr-3">
+              <p className="font-semibold text-red-600">₪{Number(e.amount ?? 0).toLocaleString()}</p>
               <button
-                onClick={() => toggleStatus(i.id, i.status)}
-                className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium transition ${
-                  i.status === 'שולם'
-                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                    : i.status === 'ממתין'
-                    ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                    : 'bg-slate-100 text-slate-500'
-                }`}
-                title={i.status === 'שולם' ? 'סמן כממתין' : 'סמן כשולם'}
-              >
-                {i.status === 'שולם' ? <Check size={11} /> : <Clock size={11} />}
-                {i.status}
-              </button>
-              <button
-                onClick={() => editId === i.id ? setEditId(null) : startEdit(i)}
+                onClick={() => editId === e.id ? setEditId(null) : startEdit(e)}
                 className="text-slate-300 hover:text-blue-500 transition opacity-0 group-hover:opacity-100"
                 title="ערוך"
               >
                 <Pencil size={13} />
               </button>
               <button
-                onClick={() => deleteIncome(i.id)}
+                onClick={() => deleteExpense(e.id)}
                 className="text-slate-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100"
-                title="מחק הכנסה"
+                title="מחק הוצאה"
               >
                 <Trash2 size={13} />
               </button>
             </div>
           </div>
-          {editId === i.id && (
+          {editId === e.id && (
             <div className="px-5 pb-3 pt-1 bg-blue-50/30 border-b border-slate-100 flex flex-wrap gap-2 items-center">
               <input
                 autoFocus
                 type="text"
                 value={editDesc}
-                onChange={e => setEditDesc(e.target.value)}
+                onChange={ev => setEditDesc(ev.target.value)}
                 placeholder="תיאור"
                 className="flex-1 min-w-32 px-3 py-1.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-white"
               />
               <input
                 type="number"
                 value={editAmount}
-                onChange={e => setEditAmount(e.target.value)}
+                onChange={ev => setEditAmount(ev.target.value)}
                 placeholder="סכום"
                 className="w-28 px-3 py-1.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition bg-white"
               />
               <input
                 type="date"
                 value={editDate}
-                onChange={e => setEditDate(e.target.value)}
+                onChange={ev => setEditDate(ev.target.value)}
                 className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-blue-400 transition bg-white"
+              />
+              <input
+                type="text"
+                value={editCategory}
+                onChange={ev => setEditCategory(ev.target.value)}
+                placeholder="קטגוריה"
+                className="w-28 px-3 py-1.5 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-white"
               />
               <button
                 onClick={saveEdit}
@@ -157,15 +145,15 @@ export default function IncomeList({ initialIncome }: { initialIncome: Income[] 
           )}
         </div>
       ))}
-      {income.length === 0 && (
-        <p className="text-slate-400 text-sm p-6 text-center">אין הכנסות רשומות עדיין</p>
+      {expenses.length === 0 && (
+        <p className="text-slate-400 text-sm p-6 text-center">אין הוצאות רשומות עדיין</p>
       )}
-      {income.length > 20 && (
+      {expenses.length > 20 && (
         <button
           onClick={() => setShowAll(v => !v)}
           className="w-full py-2.5 text-xs text-blue-600 hover:text-blue-700 font-medium transition text-center border-t border-slate-50"
         >
-          {showAll ? 'הצג פחות' : `הצג את כל ${income.length} הרשומות`}
+          {showAll ? 'הצג פחות' : `הצג את כל ${expenses.length} הרשומות`}
         </button>
       )}
     </div>

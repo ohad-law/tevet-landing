@@ -9,7 +9,7 @@ export default async function CaseEditPage({ params }: { params: Promise<{ id: s
   const supabase = await createClient()
 
   const [{ data: c }, { data: clients }] = await Promise.all([
-    supabase.from('cases').select('id, case_name, case_number, case_type, status, client_id, court_name, open_date, fee, notes, value, assigned_to').eq('id', id).single(),
+    supabase.from('cases').select('id, case_name, case_number, case_type, status, client_id, court_name, open_date, fee, fee_amount, notes, value, assigned_to, net_hamishpat_number, target_close_date, defendant_name, parties, case_description').eq('id', id).single(),
     supabase.from('clients').select('id, full_name').order('full_name'),
   ])
 

@@ -1,7 +1,7 @@
 'use client'
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Clock, Plus, X } from 'lucide-react'
+import { Clock, Plus, X, Trash2 } from 'lucide-react'
 
 type TimelineEvent = {
   id: string
@@ -30,7 +30,13 @@ export default function CaseNotesSection({ caseId, initialTimeline }: Props) {
   const [description, setDescription] = useState('')
   const [eventType, setEventType] = useState('הערה')
   const [submitting, setSubmitting] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const router = useRouter()
+
+  async function deleteNote(id: string) {
+    startTransition(() => setTimeline(prev => prev.filter(e => e.id !== id)))
+    await fetch(`/api/crm/timeline/${id}`, { method: 'DELETE' })
+  }
 
   async function addNote() {
     if (!description.trim()) return
@@ -123,10 +129,19 @@ export default function CaseNotesSection({ caseId, initialTimeline }: Props) {
             <div className="absolute right-2 top-0 bottom-0 w-px bg-slate-100" />
             <div className="space-y-4">
               {[...timeline].reverse().map(event => (
-                <div key={event.id} className="flex items-start gap-4 pr-8 relative">
+                <div key={event.id} className="group flex items-start gap-4 pr-8 relative">
                   <div className="absolute right-0 w-4 h-4 rounded-full bg-blue-100 border-2 border-blue-400 shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-800">{event.description}</p>
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm text-slate-800">{event.description}</p>
+                      <button
+                        onClick={() => deleteNote(event.id)}
+                        className="text-slate-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100 shrink-0 mt-0.5"
+                        title="מחק הערה"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
                     <p className="text-xs text-slate-400 mt-1 flex items-center gap-2">
                       {event.event_type && (
                         <span className={`px-1.5 py-0.5 rounded font-medium text-xs ${EVENT_TYPE_COLORS[event.event_type] ?? 'bg-slate-100 text-slate-500'}`}>

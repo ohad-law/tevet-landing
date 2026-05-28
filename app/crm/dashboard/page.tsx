@@ -34,7 +34,7 @@ export default async function DashboardPage() {
     { data: monthIncome },
     { data: soonHearings },
   ] = await Promise.all([
-    supabase.from('cases').select('id, case_number, case_name, status, assigned_to, client_id').neq('status', 'ארכיון').neq('status', 'פסק דין'),
+    supabase.from('cases').select('id, case_number, case_name, status, assigned_to, client_id, target_close_date').neq('status', 'ארכיון').neq('status', 'פסק דין'),
     supabase.from('clients').select('id, full_name, status'),
     supabase.from('tasks').select('id, description, status, priority, due_date, case_id').neq('status', 'הושלמה').order('due_date', { ascending: true, nullsFirst: false }),
     supabase.from('hearings').select('id, case_id, date, time, location, description').gte('date', today).lte('date', in7Days).order('date'),
@@ -46,6 +46,7 @@ export default async function DashboardPage() {
     supabase.from('hearings').select('case_id, date, description').gte('date', today).lte('date', in3Days),
   ])
 
+  const caseNameMap = Object.fromEntries((cases ?? []).map(c => [c.id, c.case_name]))
   const activeClients = clients?.filter(c => c.status === 'פעיל').length ?? 0
   const activeCases = cases?.length ?? 0
   const openTasks = tasks?.length ?? 0
@@ -64,10 +65,12 @@ export default async function DashboardPage() {
   const soonHearingCaseIds = new Set((soonHearings ?? []).map(h => h.case_id).filter(Boolean))
 
   const atRiskCases = (cases ?? []).filter(c =>
-    (overdueByCase[c.id] ?? 0) > 0 || soonHearingCaseIds.has(c.id)
+    (overdueByCase[c.id] ?? 0) > 0 ||
+    soonHearingCaseIds.has(c.id) ||
+    (c.target_close_date && c.target_close_date >= today && c.target_close_date <= in7Days)
   ).sort((a, b) => {
-    const scoreA = (soonHearingCaseIds.has(a.id) ? 10 : 0) + (overdueByCase[a.id] ?? 0) * 3
-    const scoreB = (soonHearingCaseIds.has(b.id) ? 10 : 0) + (overdueByCase[b.id] ?? 0) * 3
+    const scoreA = (soonHearingCaseIds.has(a.id) ? 10 : 0) + (overdueByCase[a.id] ?? 0) * 3 + (a.target_close_date && a.target_close_date <= in3Days ? 5 : 0)
+    const scoreB = (soonHearingCaseIds.has(b.id) ? 10 : 0) + (overdueByCase[b.id] ?? 0) * 3 + (b.target_close_date && b.target_close_date <= in3Days ? 5 : 0)
     return scoreB - scoreA
   }).slice(0, 5)
 
@@ -215,6 +218,11 @@ export default async function DashboardPage() {
                           {overdue} משימות באיחור
                         </span>
                       )}
+                      {c.target_close_date && c.target_close_date >= today && c.target_close_date <= in7Days && (
+                        <span className="text-xs bg-orange-50 text-orange-700 border border-orange-200 px-2 py-0.5 rounded-full font-medium">
+                          יעד סיום: {c.target_close_date === today ? 'היום' : c.target_close_date}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <Link
@@ -249,10 +257,16 @@ export default async function DashboardPage() {
             ) : (
               upcomingHearings.slice(0, 5).map(h => {
                 const isToday = h.date === today
+                const relatedCaseName = h.case_id ? caseNameMap[h.case_id] : null
                 return (
                   <div key={h.id} className="px-5 py-3 flex items-center justify-between gap-3 hover:bg-slate-50/60 transition-colors">
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-slate-800 truncate">{h.description || 'דיון'}</p>
+                      {relatedCaseName && (
+                        <Link href={`/crm/cases/${h.case_id}`} className="text-xs text-blue-600 hover:underline mt-0.5 block truncate">
+                          {relatedCaseName}
+                        </Link>
+                      )}
                       {h.location && <p className="text-xs text-slate-400 mt-0.5 truncate">{h.location}</p>}
                     </div>
                     <div className="text-right shrink-0">

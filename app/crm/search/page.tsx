@@ -34,13 +34,13 @@ export default async function SearchPage({
     { data: tasks },
     { data: hearings },
   ] = await Promise.all([
-    supabase.from('cases').select('id, case_name, case_number, case_type, status').or(`case_name.ilike.${pat},case_number.ilike.${pat}`).limit(20),
+    supabase.from('cases').select('id, case_name, case_number, case_type, status').or(`case_name.ilike.${pat},case_number.ilike.${pat},defendant_name.ilike.${pat}`).limit(20),
     supabase.from('clients').select('id, full_name, phone, email, status').or(`full_name.ilike.${pat},phone.ilike.${pat},email.ilike.${pat}`).limit(20),
-    supabase.from('tasks').select('id, description, status, priority, due_date').ilike('description', pat).limit(20),
+    supabase.from('tasks').select('id, description, status, priority, due_date, case_id').ilike('description', pat).limit(20),
     supabase.from('hearings').select('id, date, time, description, location, case_id').or(`description.ilike.${pat},location.ilike.${pat}`).order('date', { ascending: false }).limit(15),
   ])
 
-  const caseMap = Object.fromEntries((cases ?? []).map(c => [c.id, { name: c.case_name, number: c.case_number }]))
+  const caseMap = Object.fromEntries((cases ?? []).map(c => [c.id, { name: c.case_name, number: c.case_number, id: c.id }]))
 
   // Enrich hearings with case names if not already in results
   let hearingCaseMap: Record<string, { name: string; id: string }> = {}
@@ -54,6 +54,14 @@ export default async function SearchPage({
       .select('id, case_name')
       .in('id', [...new Set(unmappedCaseIds)])
     hearingCaseMap = Object.fromEntries((extraCases ?? []).map(c => [c.id, { name: c.case_name, id: c.id }]))
+  }
+
+  // Enrich tasks with case names
+  const taskCaseIds = (tasks ?? []).map(t => (t as any).case_id).filter((id: string | null) => id && !caseMap[id]) as string[]
+  let taskCaseMap: Record<string, { name: string; id: string }> = {}
+  if (taskCaseIds.length > 0) {
+    const { data: taskCases } = await supabase.from('cases').select('id, case_name').in('id', [...new Set(taskCaseIds)])
+    taskCaseMap = Object.fromEntries((taskCases ?? []).map(c => [c.id, { name: c.case_name, id: c.id }]))
   }
 
   const totalResults = (cases?.length ?? 0) + (clients?.length ?? 0) + (tasks?.length ?? 0) + (hearings?.length ?? 0)
@@ -182,27 +190,40 @@ export default async function SearchPage({
             <h2 className="font-semibold text-slate-700 text-sm">משימות ({tasks!.length})</h2>
           </div>
           <div className="space-y-2">
-            {tasks!.map(t => (
-              <div key={t.id} className="bg-white rounded-xl border border-slate-200 px-5 py-3.5 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full shrink-0 ${
-                    t.priority === 'דחוף' ? 'bg-red-500' :
-                    t.priority === 'גבוה' ? 'bg-amber-500' : 'bg-slate-300'
-                  }`} />
-                  <p className={`text-sm font-medium ${t.status === 'הושלמה' ? 'line-through text-slate-400' : 'text-slate-800'}`}>
-                    {t.description}
-                  </p>
+            {tasks!.map(t => {
+              const tAny = t as any
+              const relatedCase = tAny.case_id
+                ? (caseMap[tAny.case_id] ?? taskCaseMap[tAny.case_id])
+                : null
+              return (
+                <div key={t.id} className="bg-white rounded-xl border border-slate-200 px-5 py-3.5 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full shrink-0 ${
+                        t.priority === 'דחוף' ? 'bg-red-500' :
+                        t.priority === 'גבוה' ? 'bg-amber-500' : 'bg-slate-300'
+                      }`} />
+                      <p className={`text-sm font-medium truncate ${t.status === 'הושלמה' ? 'line-through text-slate-400' : 'text-slate-800'}`}>
+                        {t.description}
+                      </p>
+                    </div>
+                    {relatedCase && (
+                      <Link href={`/crm/cases/${relatedCase.id}`} className="text-xs text-blue-600 hover:underline mt-0.5 block pr-4">
+                        {relatedCase.name}
+                      </Link>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {t.due_date && <span className="text-xs font-mono text-slate-400">{t.due_date}</span>}
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      t.status === 'הושלמה' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      {t.status}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {t.due_date && <span className="text-xs font-mono text-slate-400">{t.due_date}</span>}
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                    t.status === 'הושלמה' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'
-                  }`}>
-                    {t.status}
-                  </span>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </section>
       )}

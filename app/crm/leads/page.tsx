@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import LeadCard from '@/components/crm/LeadCard'
+import LeadsManager from '@/components/crm/LeadsManager'
+import ExportCsvButton from '@/components/crm/ExportCsvButton'
 
 export const revalidate = 0
 
@@ -24,13 +25,38 @@ export default async function LeadsPage() {
 
   return (
     <div className="space-y-8" style={{ fontFamily: 'Assistant, sans-serif' }}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">ניהול לידים</h1>
           <p className="text-slate-500 text-sm mt-0.5">
             {(leads?.length ?? 0) + (talushLeads?.length ?? 0)} לידים בסה"כ
           </p>
         </div>
+        <ExportCsvButton
+          data={[
+            ...(leads ?? []).map((l: any) => ({
+              'סוג': 'כללי',
+              'שם': l.full_name ?? '',
+              'טלפון': l.phone ?? '',
+              'אימייל': l.email ?? '',
+              'סטטוס': l.status,
+              'מקור': l.source ?? '',
+              'קמפיין': l.campaign_name ?? '',
+              'תאריך': new Date(l.created_at).toLocaleDateString('he-IL'),
+            })),
+            ...(talushLeads ?? []).map((l: any) => ({
+              'סוג': 'תלוש שכר',
+              'שם': l.full_name ?? '',
+              'טלפון': l.phone ?? '',
+              'אימייל': l.email ?? '',
+              'סטטוס': l.status,
+              'מקור': l.source ?? '',
+              'קמפיין': l.campaign_name ?? '',
+              'תאריך': new Date(l.created_at).toLocaleDateString('he-IL'),
+            })),
+          ]}
+          filename="לידים"
+        />
       </div>
 
       {/* Stats row */}
@@ -50,41 +76,7 @@ export default async function LeadsPage() {
         ))}
       </div>
 
-      <section>
-        <h2 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
-          לידים כלליים
-          <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-normal">{leads?.length ?? 0}</span>
-          {newLeads > 0 && (
-            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">{newLeads} חדשים</span>
-          )}
-        </h2>
-        <div className="space-y-2">
-          {(leads ?? []).map((lead: any) => (
-            <LeadCard key={lead.id} lead={lead} table="leads" />
-          ))}
-          {(leads?.length ?? 0) === 0 && (
-            <p className="text-slate-400 text-sm py-8 text-center bg-white rounded-xl border border-slate-200">אין לידים עדיין</p>
-          )}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
-          לידים תלושי שכר
-          <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-normal">{talushLeads?.length ?? 0}</span>
-          {newTalush > 0 && (
-            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">{newTalush} חדשים</span>
-          )}
-        </h2>
-        <div className="space-y-2">
-          {(talushLeads ?? []).map((lead: any) => (
-            <LeadCard key={lead.id} lead={lead} table="leads_talush" />
-          ))}
-          {(talushLeads?.length ?? 0) === 0 && (
-            <p className="text-slate-400 text-sm py-8 text-center bg-white rounded-xl border border-slate-200">אין לידי תלושים עדיין</p>
-          )}
-        </div>
-      </section>
+      <LeadsManager leads={leads ?? []} talushLeads={talushLeads ?? []} />
     </div>
   )
 }

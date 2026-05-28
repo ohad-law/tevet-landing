@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import FinanceAdder from '@/components/crm/FinanceAdder'
 import IncomeList from '@/components/crm/IncomeList'
+import ExpensesList from '@/components/crm/ExpensesList'
 import ExportCsvButton from '@/components/crm/ExportCsvButton'
 
 export const revalidate = 0
@@ -102,25 +103,7 @@ export default async function FinancesPage() {
               <ExportCsvButton data={expensesExportData} filename="הוצאות" label="CSV" />
             </div>
           </div>
-          <div className="divide-y divide-slate-50">
-            {(expenses ?? []).slice(0, 20).map(e => (
-              <div key={e.id} className="px-5 py-3 flex items-center justify-between">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-800 truncate">{e.description}</p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <p className="text-xs text-slate-400">{e.date}</p>
-                    {e.category && (
-                      <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">{e.category}</span>
-                    )}
-                  </div>
-                </div>
-                <p className="font-semibold text-red-600 shrink-0 mr-3">₪{Number(e.amount ?? 0).toLocaleString()}</p>
-              </div>
-            ))}
-            {(expenses?.length ?? 0) === 0 && (
-              <p className="text-slate-400 text-sm p-6 text-center">אין הוצאות רשומות עדיין</p>
-            )}
-          </div>
+          <ExpensesList initialExpenses={expenses ?? []} />
         </div>
       </div>
     </div>

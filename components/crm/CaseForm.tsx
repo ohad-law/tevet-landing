@@ -22,17 +22,24 @@ type CaseData = {
   court_name?: string
   open_date?: string
   fee?: string
+  fee_amount?: number | null
   notes?: string
   value?: number | null
   assigned_to?: string
+  net_hamishpat_number?: string
+  target_close_date?: string
+  defendant_name?: string
+  parties?: string
+  case_description?: string
 }
 
 type Props = {
   clients: Client[]
   initialData?: CaseData
+  defaultClientId?: string
 }
 
-export default function CaseForm({ clients, initialData }: Props) {
+export default function CaseForm({ clients, initialData, defaultClientId }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -139,7 +146,7 @@ export default function CaseForm({ clients, initialData }: Props) {
             <label className="block text-sm font-medium text-slate-700 mb-1.5">לקוח</label>
             <select
               name="client_id"
-              defaultValue={d.client_id ?? ''}
+              defaultValue={d.client_id ?? defaultClientId ?? ''}
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition bg-slate-50 focus:bg-white"
             >
               <option value="">— בחר לקוח —</option>
@@ -184,6 +191,50 @@ export default function CaseForm({ clients, initialData }: Props) {
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">מספר הליך בנט</label>
+            <input
+              name="net_hamishpat_number"
+              type="text"
+              defaultValue={d.net_hamishpat_number ?? ''}
+              placeholder="מספר בנט המשפט"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">נתבע</label>
+            <input
+              name="defendant_name"
+              type="text"
+              defaultValue={d.defendant_name ?? ''}
+              placeholder="שם הנתבע"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">ערך תביעה (₪)</label>
+            <input
+              name="value"
+              type="number"
+              defaultValue={d.value ?? ''}
+              placeholder="0"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">סכום שכ"ט (₪)</label>
+            <input
+              name="fee_amount"
+              type="number"
+              defaultValue={d.fee_amount ?? ''}
+              placeholder="0"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
+            />
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">שכ״ט (תיאור)</label>
             <input
               name="fee"
@@ -195,13 +246,12 @@ export default function CaseForm({ clients, initialData }: Props) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">ערך תיק (₪)</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">יעד סיום</label>
             <input
-              name="value"
-              type="number"
-              defaultValue={d.value ?? ''}
-              placeholder="0"
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
+              name="target_close_date"
+              type="date"
+              defaultValue={d.target_close_date ?? ''}
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition bg-slate-50 focus:bg-white"
             />
           </div>
 
@@ -213,6 +263,28 @@ export default function CaseForm({ clients, initialData }: Props) {
               defaultValue={d.assigned_to ?? ''}
               placeholder="שם עורך הדין"
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
+            />
+          </div>
+
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">צדדים</label>
+            <textarea
+              name="parties"
+              rows={2}
+              defaultValue={d.parties ?? ''}
+              placeholder="שמות הצדדים בתיק..."
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white resize-none"
+            />
+          </div>
+
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">תיאור התיק</label>
+            <textarea
+              name="case_description"
+              rows={3}
+              defaultValue={d.case_description ?? ''}
+              placeholder="תיאור קצר של התיק..."
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white resize-none"
             />
           </div>
 

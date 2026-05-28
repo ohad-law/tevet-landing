@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import AttendanceClock from '@/components/crm/AttendanceClock'
+import ExportCsvButton from '@/components/crm/ExportCsvButton'
 
 export const revalidate = 0
 
@@ -10,7 +11,7 @@ export default async function AttendancePage() {
   const today = new Date().toISOString().split('T')[0]
 
   const [{ data: todayRecord }, { data: allRecords }] = await Promise.all([
-    supabase.from('attendance').select('*').eq('user_email', userEmail).eq('date', today).maybeSingle(),
+    supabase.from('attendance').select('id, check_in, check_out, total_hours, notes').eq('user_email', userEmail).eq('date', today).maybeSingle(),
     supabase.from('attendance').select('*').eq('user_email', userEmail).order('date', { ascending: false }).limit(60),
   ])
 
@@ -36,9 +37,21 @@ export default async function AttendancePage() {
 
   return (
     <div className="space-y-6" style={{ fontFamily: 'Assistant, sans-serif' }}>
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">נוכחות</h1>
-        <p className="text-slate-500 text-sm mt-0.5">מעקב שעות עבודה</p>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">נוכחות</h1>
+          <p className="text-slate-500 text-sm mt-0.5">מעקב שעות עבודה</p>
+        </div>
+        <ExportCsvButton
+          data={(allRecords ?? []).map(r => ({
+            תאריך: r.date,
+            'שעת כניסה': r.check_in ?? '',
+            'שעת יציאה': r.check_out ?? '',
+            'סה"כ שעות': r.total_hours ?? '',
+            הערות: r.notes ?? '',
+          }))}
+          filename="נוכחות"
+        />
       </div>
 
       {/* Today clock */}

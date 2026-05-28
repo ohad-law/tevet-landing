@@ -8,6 +8,7 @@ type TodayRecord = {
   check_in: string | null
   check_out: string | null
   total_hours: number | null
+  notes?: string | null
 }
 
 type Props = {
@@ -19,6 +20,8 @@ type Props = {
 export default function AttendanceClock({ userEmail, today, todayRecord }: Props) {
   const [record, setRecord] = useState(todayRecord)
   const [loading, setLoading] = useState(false)
+  const [notes, setNotes] = useState(todayRecord?.notes ?? '')
+  const [notesSaving, setNotesSaving] = useState(false)
   const router = useRouter()
 
   const now = () => new Date().toTimeString().slice(0, 5)
@@ -58,6 +61,18 @@ export default function AttendanceClock({ userEmail, today, todayRecord }: Props
       router.refresh()
     }
     setLoading(false)
+  }
+
+  async function saveNotes() {
+    if (!hasCheckedIn) return
+    setNotesSaving(true)
+    await fetch('/api/crm/attendance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_email: userEmail, date: today, notes }),
+    })
+    setNotesSaving(false)
+    router.refresh()
   }
 
   const hasCheckedIn = !!record?.check_in
@@ -126,6 +141,27 @@ export default function AttendanceClock({ userEmail, today, todayRecord }: Props
           )}
         </div>
       </div>
+
+      {hasCheckedIn && (
+        <div className="mt-4 pt-4 border-t border-slate-100">
+          <div className="flex items-end gap-3">
+            <textarea
+              rows={2}
+              placeholder="הערות ליום זה (תיקים שטופלו, פגישות, וכד׳)..."
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right resize-none bg-slate-50 focus:bg-white"
+            />
+            <button
+              onClick={saveNotes}
+              disabled={notesSaving}
+              className="text-xs bg-slate-800 text-white px-3 py-2 rounded-lg hover:bg-slate-700 transition disabled:opacity-50 shrink-0"
+            >
+              {notesSaving ? '...' : 'שמור'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

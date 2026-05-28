@@ -23,9 +23,9 @@ export default function CrmShell({ userEmail, children, badges = {} }: Props) {
         />
       )}
 
-      {/* Sidebar — always visible on desktop, drawer on mobile */}
+      {/* Sidebar — always visible on desktop, drawer on mobile, hidden on print */}
       <div className={`
-        fixed right-0 top-0 h-full z-30 transition-transform duration-300
+        fixed right-0 top-0 h-full z-30 transition-transform duration-300 print:hidden
         lg:static lg:translate-x-0 lg:h-auto lg:z-auto
         ${open ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
       `}>
@@ -35,7 +35,7 @@ export default function CrmShell({ userEmail, children, badges = {} }: Props) {
       {/* Main content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Mobile top bar */}
-        <div className="lg:hidden flex items-center justify-between px-4 h-14 bg-[#0f172a] border-b border-white/10 shrink-0">
+        <div className="lg:hidden print:hidden flex items-center justify-between px-4 h-14 bg-[#0f172a] border-b border-white/10 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
               <Scale size={14} className="text-white" />

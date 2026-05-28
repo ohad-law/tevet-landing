@@ -1,7 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Phone, MessageCircle, ChevronDown, UserPlus } from 'lucide-react'
+import Link from 'next/link'
+import { Phone, MessageCircle, ChevronDown, UserPlus, ExternalLink } from 'lucide-react'
 
 type Lead = {
   id: string
@@ -37,7 +38,18 @@ export default function LeadCard({ lead, table }: Props) {
   const [saving, setSaving] = useState(false)
   const [converting, setConverting] = useState(false)
   const [converted, setConverted] = useState(false)
+  const [convertedClientId, setConvertedClientId] = useState<string | null>(null)
+  const [isViewed, setIsViewed] = useState(lead.is_viewed)
   const router = useRouter()
+
+  async function markViewed() {
+    setIsViewed(true)
+    await fetch(`/api/crm/leads/${lead.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ table, is_viewed: true }),
+    })
+  }
 
   async function changeStatus(newStatus: string) {
     if (newStatus === status) { setOpen(false); return }
@@ -68,8 +80,10 @@ export default function LeadCard({ lead, table }: Props) {
       }),
     })
     if (res.ok) {
+      const { client_id } = await res.json()
       setStatus('הפך ללקוח')
       setConverted(true)
+      if (client_id) setConvertedClientId(client_id)
       router.refresh()
     }
     setConverting(false)
@@ -80,9 +94,15 @@ export default function LeadCard({ lead, table }: Props) {
     : null
 
   return (
-    <div className={`bg-white rounded-xl border px-5 py-4 flex items-start justify-between gap-4 ${!lead.is_viewed ? 'border-blue-200 bg-blue-50/20' : 'border-slate-200'}`}>
+    <div className={`bg-white rounded-xl border px-5 py-4 flex items-start justify-between gap-4 ${!isViewed ? 'border-blue-200 bg-blue-50/20' : 'border-slate-200'}`}>
       <div className="flex items-start gap-3 min-w-0">
-        {!lead.is_viewed && <div className="w-2 h-2 bg-blue-500 rounded-full shrink-0 mt-1.5" />}
+        {!isViewed && (
+          <button
+            onClick={markViewed}
+            title="סמן כנצפה"
+            className="w-2 h-2 bg-blue-500 rounded-full shrink-0 mt-1.5 hover:bg-blue-700 transition"
+          />
+        )}
         <div className="min-w-0">
           <p className="font-semibold text-slate-800">{lead.full_name ?? 'ללא שם'}</p>
           <div className="flex flex-wrap gap-3 mt-1.5">
@@ -139,6 +159,15 @@ export default function LeadCard({ lead, table }: Props) {
             <UserPlus size={11} />
             {converting ? '...' : 'הפוך ללקוח'}
           </button>
+        )}
+        {converted && convertedClientId && (
+          <Link
+            href={`/crm/clients/${convertedClientId}`}
+            className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full font-medium hover:bg-blue-100 transition"
+          >
+            <ExternalLink size={11} />
+            פתח לקוח
+          </Link>
         )}
 
         <div className="relative">

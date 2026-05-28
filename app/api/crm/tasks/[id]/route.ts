@@ -7,17 +7,20 @@ export async function PATCH(
 ) {
   const { id } = await params
   const body = await req.json()
-  const { status } = body
+  const { status, description, priority, due_date } = body
 
-  if (!status) {
-    return NextResponse.json({ error: 'status required' }, { status: 400 })
+  const updates: Record<string, unknown> = {}
+  if (status !== undefined) updates.status = status
+  if (description !== undefined) updates.description = description?.trim() || null
+  if (priority !== undefined) updates.priority = priority
+  if (due_date !== undefined) updates.due_date = due_date || null
+
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json({ error: 'no fields to update' }, { status: 400 })
   }
 
   const supabase = createServiceClient()
-  const { error } = await supabase
-    .from('tasks')
-    .update({ status })
-    .eq('id', id)
+  const { error } = await supabase.from('tasks').update(updates).eq('id', id)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })

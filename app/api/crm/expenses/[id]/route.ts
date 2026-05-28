@@ -7,7 +7,7 @@ export async function DELETE(
 ) {
   const { id } = await params
   const supabase = createServiceClient()
-  const { error } = await supabase.from('income').delete().eq('id', id)
+  const { error } = await supabase.from('expenses').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }
@@ -18,13 +18,13 @@ export async function PATCH(
 ) {
   const { id } = await params
   const body = await req.json()
-  const { status, amount, description, date } = body
+  const { amount, description, date, category } = body
 
   const updates: Record<string, unknown> = {}
-  if (status !== undefined) updates.status = status
   if (amount !== undefined) updates.amount = amount
   if (description !== undefined) updates.description = description
   if (date !== undefined) updates.date = date
+  if (category !== undefined) updates.category = category
 
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: 'no fields to update' }, { status: 400 })
@@ -32,7 +32,7 @@ export async function PATCH(
 
   const supabase = createServiceClient()
   const { error } = await supabase
-    .from('income')
+    .from('expenses')
     .update(updates)
     .eq('id', id)
 

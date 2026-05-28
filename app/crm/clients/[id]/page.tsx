@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowRight, Phone, Mail, MapPin, Hash, CheckSquare, Scale, Pencil, MessageCircle } from 'lucide-react'
+import { ArrowRight, Phone, Mail, MapPin, Hash, CheckSquare, Scale, Pencil, MessageCircle, Banknote } from 'lucide-react'
+import ClientNotesEditor from '@/components/crm/ClientNotesEditor'
 
 export const revalidate = 0
 
@@ -9,17 +10,23 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   const { id } = await params
   const supabase = await createClient()
 
-  const [{ data: client }, { data: cases }, { data: tasks }] = await Promise.all([
+  const [{ data: client }, { data: cases }, { data: tasks }, { data: income }] = await Promise.all([
     supabase.from('clients').select('*').eq('id', id).single(),
     supabase.from('cases').select('id, case_number, case_name, status, open_date, case_type').eq('client_id', id).order('created_at', { ascending: false }),
-    supabase.from('tasks').select('id, description, status, priority, due_date').eq('client_id', id).neq('status', 'הושלמה').order('due_date'),
+    supabase.from('tasks').select('id, description, status, priority, due_date, case_id').eq('client_id', id).neq('status', 'הושלמה').order('due_date'),
+    supabase.from('income').select('id, amount, date, description, status').eq('client_id', id).order('date', { ascending: false }),
   ])
 
   if (!client) notFound()
 
   const today = new Date().toISOString().split('T')[0]
+  const caseNameMap = Object.fromEntries((cases ?? []).map(c => [c.id, { name: c.case_name, id: c.id }]))
   const activeCases = (cases ?? []).filter(c => c.status !== 'ארכיון')
   const openTasks = tasks ?? []
+  const paidIncome = (income ?? []).filter(i => i.status === 'שולם')
+  const totalPaid = paidIncome.reduce((s, i) => s + (Number(i.amount) || 0), 0)
+  const pendingIncome = (income ?? []).filter(i => i.status === 'ממתין')
+  const totalPending = pendingIncome.reduce((s, i) => s + (Number(i.amount) || 0), 0)
 
   const statusColor: Record<string, string> = {
     'תיק נכנס': 'bg-slate-100 text-slate-600',
@@ -105,15 +112,13 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                 </span>
               )}
             </div>
-            {client.notes && (
-              <p className="text-sm text-slate-500 mt-3 bg-slate-50 rounded-lg px-3 py-2">{client.notes}</p>
-            )}
+            <ClientNotesEditor clientId={id} initialNotes={client.notes ?? null} />
           </div>
         </div>
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
           <p className="text-2xl font-bold text-slate-900">{cases?.length ?? 0}</p>
           <p className="text-xs text-slate-400 mt-0.5">תיקים סה"כ</p>
@@ -128,14 +133,29 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           </p>
           <p className="text-xs text-slate-400 mt-0.5">משימות פתוחות</p>
         </div>
+        <div className="bg-emerald-50 rounded-xl border border-emerald-200 p-4 text-center">
+          <p className="text-2xl font-bold text-emerald-700">₪{totalPaid.toLocaleString()}</p>
+          <p className="text-xs text-slate-400 mt-0.5">שולם סה"כ</p>
+          {totalPending > 0 && (
+            <p className="text-xs text-amber-600 mt-0.5 font-medium">+ ₪{totalPending.toLocaleString()} ממתין</p>
+          )}
+        </div>
       </div>
 
       {/* Cases */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2">
-          <Scale size={15} className="text-slate-400" />
-          <h2 className="font-semibold text-slate-800 text-sm">תיקים</h2>
-          <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">{cases?.length ?? 0}</span>
+        <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Scale size={15} className="text-slate-400" />
+            <h2 className="font-semibold text-slate-800 text-sm">תיקים</h2>
+            <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">{cases?.length ?? 0}</span>
+          </div>
+          <Link
+            href={`/crm/cases/new?client_id=${id}`}
+            className="text-xs text-blue-600 hover:text-blue-700 font-medium transition flex items-center gap-1"
+          >
+            + תיק חדש
+          </Link>
         </div>
         {(cases?.length ?? 0) === 0 ? (
           <p className="text-sm text-slate-400 text-center py-8">אין תיקים ללקוח זה</p>
@@ -176,6 +196,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           <div className="divide-y divide-slate-50">
             {openTasks.map(t => {
               const overdue = t.due_date && t.due_date < today
+              const relatedCase = t.case_id ? caseNameMap[t.case_id] : null
               return (
                 <div key={t.id} className="px-5 py-3 flex items-center justify-between gap-3">
                   <div className="flex items-start gap-2 min-w-0">
@@ -183,7 +204,14 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                       t.priority === 'דחוף' ? 'bg-red-500' :
                       t.priority === 'גבוה' ? 'bg-amber-500' : 'bg-slate-300'
                     }`} />
-                    <p className="text-sm text-slate-700 truncate">{t.description}</p>
+                    <div className="min-w-0">
+                      <p className="text-sm text-slate-700 truncate">{t.description}</p>
+                      {relatedCase && (
+                        <Link href={`/crm/cases/${relatedCase.id}`} className="text-xs text-blue-500 hover:underline truncate block mt-0.5">
+                          {relatedCase.name}
+                        </Link>
+                      )}
+                    </div>
                   </div>
                   {t.due_date && (
                     <span className={`text-xs font-mono shrink-0 ${overdue ? 'text-red-600 font-semibold' : 'text-slate-400'}`}>
@@ -193,6 +221,37 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                 </div>
               )
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Income */}
+      {(income?.length ?? 0) > 0 && (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Banknote size={15} className="text-slate-400" />
+              <h2 className="font-semibold text-slate-800 text-sm">תשלומים</h2>
+              <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">{income!.length}</span>
+            </div>
+          </div>
+          <div className="divide-y divide-slate-50">
+            {income!.map(i => (
+              <div key={i.id} className="px-5 py-3 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-800">{i.description || 'תשלום'}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{i.date}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <p className="font-semibold text-slate-800">₪{Number(i.amount ?? 0).toLocaleString()}</p>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                    i.status === 'שולם' ? 'bg-green-100 text-green-700' :
+                    i.status === 'ממתין' ? 'bg-amber-100 text-amber-700' :
+                    'bg-slate-100 text-slate-500'
+                  }`}>{i.status}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

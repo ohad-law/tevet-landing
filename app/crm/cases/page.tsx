@@ -9,7 +9,7 @@ export default async function CasesPage() {
   const supabase = await createClient()
 
   const [{ data: cases }, { data: clients }] = await Promise.all([
-    supabase.from('cases').select('id, case_number, case_name, client_id, case_type, status, assigned_to, value').order('created_at', { ascending: false }),
+    supabase.from('cases').select('id, case_number, case_name, client_id, case_type, status, assigned_to, value, defendant_name').order('created_at', { ascending: false }),
     supabase.from('clients').select('id, full_name'),
   ])
 

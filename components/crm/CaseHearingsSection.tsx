@@ -1,7 +1,7 @@
 'use client'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Calendar, MapPin, Trash2, Plus, X } from 'lucide-react'
+import { Calendar, MapPin, Trash2, Plus, X, Pencil } from 'lucide-react'
 
 type Hearing = {
   id: string
@@ -20,6 +20,7 @@ type Props = {
 export default function CaseHearingsSection({ caseId, initialHearings, today }: Props) {
   const [hearings, setHearings] = useState(initialHearings)
   const [showAdd, setShowAdd] = useState(false)
+  const [editId, setEditId] = useState<string | null>(null)
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
   const [description, setDescription] = useState('')
@@ -31,37 +32,60 @@ export default function CaseHearingsSection({ caseId, initialHearings, today }: 
   const upcoming = hearings.filter(h => h.date >= today)
   const past = hearings.filter(h => h.date < today)
 
+  function startEdit(h: Hearing) {
+    setEditId(h.id)
+    setDate(h.date)
+    setTime(h.time ?? '')
+    setDescription(h.description ?? '')
+    setLocation(h.location ?? '')
+    setShowAdd(false)
+  }
+
+  function cancelForm() {
+    setShowAdd(false)
+    setEditId(null)
+    setDate(''); setTime(''); setDescription(''); setLocation('')
+  }
+
   async function deleteHearing(id: string) {
     startTransition(() => setHearings(prev => prev.filter(h => h.id !== id)))
     await fetch(`/api/crm/hearings/${id}`, { method: 'DELETE' })
     router.refresh()
   }
 
-  async function addHearing() {
+  async function saveHearing() {
     if (!date) return
     setSubmitting(true)
-    const res = await fetch('/api/crm/hearings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        case_id: caseId,
-        date,
-        time: time || null,
-        description: description.trim() || null,
-        location: location.trim() || null,
-      }),
-    })
-    if (res.ok) {
-      const { id } = await res.json()
-      startTransition(() =>
-        setHearings(prev => [...prev, { id, date, time: time || null, description: description.trim() || null, location: location.trim() || null }].sort((a, b) => a.date.localeCompare(b.date)))
-      )
-      setDate('')
-      setTime('')
-      setDescription('')
-      setLocation('')
-      setShowAdd(false)
-      router.refresh()
+    if (editId) {
+      const res = await fetch(`/api/crm/hearings/${editId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date, time: time || null, description: description.trim() || null, location: location.trim() || null }),
+      })
+      if (res.ok) {
+        startTransition(() =>
+          setHearings(prev => prev.map(h => h.id === editId
+            ? { ...h, date, time: time || null, description: description.trim() || null, location: location.trim() || null }
+            : h
+          ).sort((a, b) => a.date.localeCompare(b.date)))
+        )
+        cancelForm()
+        router.refresh()
+      }
+    } else {
+      const res = await fetch('/api/crm/hearings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ case_id: caseId, date, time: time || null, description: description.trim() || null, location: location.trim() || null }),
+      })
+      if (res.ok) {
+        const { id } = await res.json()
+        startTransition(() =>
+          setHearings(prev => [...prev, { id, date, time: time || null, description: description.trim() || null, location: location.trim() || null }].sort((a, b) => a.date.localeCompare(b.date)))
+        )
+        cancelForm()
+        router.refresh()
+      }
     }
     setSubmitting(false)
   }
@@ -75,7 +99,7 @@ export default function CaseHearingsSection({ caseId, initialHearings, today }: 
           <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">{hearings.length}</span>
         </div>
         <button
-          onClick={() => setShowAdd(!showAdd)}
+          onClick={() => { cancelForm(); setShowAdd(s => !s) }}
           className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition"
         >
           <Plus size={13} />
@@ -83,8 +107,9 @@ export default function CaseHearingsSection({ caseId, initialHearings, today }: 
         </button>
       </div>
 
-      {showAdd && (
+      {(showAdd || editId) && (
         <div className="px-5 py-3.5 bg-blue-50/40 border-b border-blue-100">
+          <p className="text-xs font-medium text-blue-700 mb-2">{editId ? 'עריכת דיון' : 'דיון חדש'}</p>
           <div className="space-y-2.5">
             <div className="flex gap-2">
               <input
@@ -117,14 +142,14 @@ export default function CaseHearingsSection({ caseId, initialHearings, today }: 
             />
             <div className="flex gap-2 justify-end">
               <button
-                onClick={addHearing}
+                onClick={saveHearing}
                 disabled={submitting || !date}
                 className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50"
               >
                 {submitting ? '...' : 'שמור'}
               </button>
               <button
-                onClick={() => setShowAdd(false)}
+                onClick={cancelForm}
                 className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition"
               >
                 <X size={14} />
@@ -139,7 +164,7 @@ export default function CaseHearingsSection({ caseId, initialHearings, today }: 
       ) : (
         <div className="divide-y divide-slate-50">
           {upcoming.map(h => (
-            <div key={h.id} className={`group px-5 py-3 flex items-start justify-between gap-3 ${h.date === today ? 'bg-blue-50/30' : ''}`}>
+            <div key={h.id} className={`group px-5 py-3 flex items-start justify-between gap-3 ${h.date === today ? 'bg-blue-50/30' : ''} ${editId === h.id ? 'bg-amber-50/30' : ''}`}>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-slate-800">{h.description || 'דיון'}</p>
                 {h.location && (
@@ -155,6 +180,13 @@ export default function CaseHearingsSection({ caseId, initialHearings, today }: 
                   </p>
                   {h.time && <p className="text-xs text-slate-400">{h.time}</p>}
                 </div>
+                <button
+                  onClick={() => startEdit(h)}
+                  className="text-slate-300 hover:text-blue-500 transition opacity-0 group-hover:opacity-100"
+                  title="ערוך דיון"
+                >
+                  <Pencil size={12} />
+                </button>
                 <button
                   onClick={() => deleteHearing(h.id)}
                   className="text-slate-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100"
