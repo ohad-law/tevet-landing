@@ -138,7 +138,7 @@ export default function Home() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} noValidate>
-                <h3>→ מלא פרטים והעלה תלושים —<br />אוהד יחזור אליך עם האינדיקציה</h3>
+                <h3>→ מלא פרטים והעלה תלושים —<br />אוהד יחזור אליך עם האינדיקציה <span style={{ whiteSpace: "nowrap" }}>תוך 24 שעות</span></h3>
 
                 <div className="form-grid">
                   <input type="text" placeholder="שם מלא" value={name} onChange={e => setName(e.target.value)} />
@@ -305,8 +305,9 @@ export default function Home() {
             </div>
             <div className="step">
               <div className="step-num">2</div>
-              <h4>עו&quot;ד אוהד טבת בודק</h4>
-              <p>כבודק שכר מוסמך, מנתח כל שורה בתלוש ומחשב את הפערים מול החוק.</p>
+              <h4>אוהד טבת בודק אישית</h4>
+              <p>כבודק שכר מוסמך מטעם משרד העבודה, מנתח כל שורה בתלוש ומחשב את הפערים מול החוק.</p>
+              <span className="step-badge">תשובה תוך 24 שעות</span>
             </div>
             <div className="step">
               <div className="step-num">3</div>
