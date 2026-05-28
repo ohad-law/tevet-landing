@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowRight, Phone, Mail, MapPin, Hash, CheckSquare, Scale, Pencil } from 'lucide-react'
+import { ArrowRight, Phone, Mail, MapPin, Hash, CheckSquare, Scale, Pencil, MessageCircle } from 'lucide-react'
 
 export const revalidate = 0
 
@@ -73,6 +73,17 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                 <a href={`tel:${client.phone}`} className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-blue-600 transition">
                   <Phone size={14} className="text-slate-400" />
                   {client.phone}
+                </a>
+              )}
+              {client.phone && (
+                <a
+                  href={`https://wa.me/972${client.phone.replace(/^0/, '').replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-lg hover:bg-green-100 transition"
+                >
+                  <MessageCircle size={12} />
+                  WhatsApp
                 </a>
               )}
               {client.email && (

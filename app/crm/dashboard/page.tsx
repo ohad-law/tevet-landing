@@ -32,10 +32,10 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     supabase.from('cases').select('id, case_number, case_name, status, assigned_to, client_id').neq('status', 'ארכיון').neq('status', 'פסק דין'),
     supabase.from('clients').select('id, full_name, status'),
-    supabase.from('tasks').select('id, description, status, priority, due_date, case_id').in('status', ['לביצוע', 'בטיפול']),
+    supabase.from('tasks').select('id, description, status, priority, due_date, case_id').neq('status', 'הושלמה').order('due_date', { ascending: true, nullsFirst: false }),
     supabase.from('hearings').select('id, case_id, date, time, location, description').gte('date', today).lte('date', in7Days).order('date'),
-    supabase.from('leads').select('id').eq('is_viewed', false),
-    supabase.from('income').select('amount').eq('status', 'שולם').gte('date', firstOfMonth),
+    supabase.from('leads').select('id'),
+    supabase.from('finances').select('amount, type').eq('type', 'הכנסה').gte('date', firstOfMonth),
   ])
 
   const activeClients = clients?.filter(c => c.status === 'פעיל').length ?? 0
@@ -43,9 +43,9 @@ export default async function DashboardPage() {
   const openTasks = tasks?.length ?? 0
   const urgentTasks = tasks?.filter(t => t.priority === 'דחוף') ?? []
   const overdueTasks = tasks?.filter(t => t.due_date && t.due_date < today) ?? []
-  const totalMonthIncome = monthIncome?.reduce((sum, i) => sum + (i.amount ?? 0), 0) ?? 0
+  const totalMonthIncome = monthIncome?.reduce((sum, i) => sum + (Number(i.amount) ?? 0), 0) ?? 0
   const upcomingHearings = hearings ?? []
-  const unviewedLeads = newLeads?.length ?? 0
+  const totalLeads = newLeads?.length ?? 0
 
   const statusColor: Record<string, { bg: string; text: string }> = {
     'תיק נכנס':              { bg: 'bg-slate-100',  text: 'text-slate-600' },
@@ -68,7 +68,7 @@ export default async function DashboardPage() {
           <p className="text-slate-400 text-sm mt-0.5">{dateLabel}</p>
         </div>
         <Link
-          href="/crm/cases"
+          href="/crm/cases/new"
           className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
         >
           + תיק חדש
@@ -125,11 +125,11 @@ export default async function DashboardPage() {
             </Link>
           </div>
         )}
-        {unviewedLeads > 0 && (
+        {totalLeads > 0 && (
           <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
             <UserPlus size={17} className="text-amber-500 shrink-0" />
             <p className="text-sm font-semibold text-amber-700 flex-1">
-              {unviewedLeads} לידים חדשים שטרם נצפו
+              {totalLeads} לידים במערכת
             </p>
             <Link href="/crm/leads" className="text-xs text-amber-600 font-medium hover:underline whitespace-nowrap flex items-center gap-1">
               לניהול לידים <ArrowLeft size={12} />
