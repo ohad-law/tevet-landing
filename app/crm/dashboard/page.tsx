@@ -38,8 +38,8 @@ export default async function DashboardPage() {
     supabase.from('clients').select('id, full_name, status'),
     supabase.from('tasks').select('id, description, status, priority, due_date, case_id').neq('status', 'הושלמה').order('due_date', { ascending: true, nullsFirst: false }),
     supabase.from('hearings').select('id, case_id, date, time, location, description').gte('date', today).lte('date', in7Days).order('date'),
-    supabase.from('leads').select('id'),
-    supabase.from('finances').select('amount, type').eq('type', 'הכנסה').gte('date', firstOfMonth),
+    supabase.from('leads').select('id, status'),
+    supabase.from('income').select('amount, status').eq('status', 'שולם').gte('date', firstOfMonth),
     supabase.from('hearings').select('case_id, date, description').gte('date', today).lte('date', in3Days),
   ])
 
@@ -48,9 +48,10 @@ export default async function DashboardPage() {
   const openTasks = tasks?.length ?? 0
   const urgentTasks = tasks?.filter(t => t.priority === 'דחוף') ?? []
   const overdueTasks = tasks?.filter(t => t.due_date && t.due_date < today) ?? []
-  const totalMonthIncome = monthIncome?.reduce((sum, i) => sum + (Number(i.amount) ?? 0), 0) ?? 0
+  const totalMonthIncome = (monthIncome ?? []).reduce((sum, i) => sum + (Number(i.amount) || 0), 0)
   const upcomingHearings = hearings ?? []
   const totalLeads = newLeads?.length ?? 0
+  const newLeadsCount = newLeads?.filter(l => l.status === 'חדש').length ?? 0
 
   // Smart risk analysis
   const overdueByCase: Record<string, number> = {}
@@ -147,11 +148,12 @@ export default async function DashboardPage() {
             </Link>
           </div>
         )}
-        {totalLeads > 0 && (
+        {newLeadsCount > 0 && (
           <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
             <UserPlus size={17} className="text-amber-500 shrink-0" />
             <p className="text-sm font-semibold text-amber-700 flex-1">
-              {totalLeads} לידים במערכת
+              {newLeadsCount} לידים חדשים ממתינים לטיפול
+              {totalLeads > newLeadsCount && <span className="text-amber-500 font-normal"> · {totalLeads} סה"כ</span>}
             </p>
             <Link href="/crm/leads" className="text-xs text-amber-600 font-medium hover:underline whitespace-nowrap flex items-center gap-1">
               לניהול לידים <ArrowLeft size={12} />
