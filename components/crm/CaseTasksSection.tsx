@@ -1,7 +1,7 @@
 'use client'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckSquare, Plus, Check, X } from 'lucide-react'
+import { CheckSquare, Plus, Check, X, Trash2 } from 'lucide-react'
 
 type Task = {
   id: string
@@ -37,6 +37,12 @@ export default function CaseTasksSection({ caseId, initialTasks, today }: Props)
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus }),
     })
+    router.refresh()
+  }
+
+  async function deleteTask(id: string) {
+    startTransition(() => setTasks(prev => prev.filter(t => t.id !== id)))
+    await fetch(`/api/crm/tasks/${id}`, { method: 'DELETE' })
     router.refresh()
   }
 
@@ -145,7 +151,7 @@ export default function CaseTasksSection({ caseId, initialTasks, today }: Props)
             const overdue = t.due_date && t.due_date < today
             const isDone = t.status === 'הושלמה'
             return (
-              <div key={t.id} className={`px-5 py-3 flex items-center justify-between gap-3 ${overdue ? 'bg-red-50/30' : ''}`}>
+              <div key={t.id} className={`px-5 py-3 flex items-center justify-between gap-3 group ${overdue ? 'bg-red-50/30' : ''}`}>
                 <div className="flex items-center gap-2.5 min-w-0">
                   <button
                     onClick={() => toggleTask(t.id, t.status)}
@@ -171,6 +177,13 @@ export default function CaseTasksSection({ caseId, initialTasks, today }: Props)
                     {t.due_date}
                   </span>
                 )}
+                <button
+                  onClick={() => deleteTask(t.id)}
+                  className="text-slate-300 hover:text-red-500 transition shrink-0 opacity-0 group-hover:opacity-100"
+                  title="מחק משימה"
+                >
+                  <Trash2 size={13} />
+                </button>
               </div>
             )
           })}
