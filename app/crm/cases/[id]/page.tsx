@@ -47,12 +47,14 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
     { data: hearings },
     { data: tasks },
     { data: timeline },
+    { data: caseIncome },
   ] = await Promise.all([
     supabase.from('cases').select('*').eq('id', id).single(),
     supabase.from('clients').select('id, full_name, phone, email, id_number').eq('id', id).maybeSingle(),
     supabase.from('hearings').select('*').eq('case_id', id).order('date', { ascending: true }),
     supabase.from('tasks').select('*').eq('case_id', id).order('created_at', { ascending: false }),
     supabase.from('case_timeline').select('*').eq('case_id', id).order('created_at', { ascending: true }),
+    supabase.from('income').select('id, amount, date, description, status').eq('case_id', id).order('date', { ascending: false }),
   ])
 
   if (!c) notFound()
@@ -213,6 +215,40 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
       </div>
 
       {/* Timeline + Notes */}
+      {/* Income entries for this case */}
+      {(caseIncome?.length ?? 0) > 0 && (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Banknote size={15} className="text-slate-400" />
+              <h2 className="font-semibold text-slate-800 text-sm">תשלומים בתיק</h2>
+              <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">{caseIncome!.length}</span>
+            </div>
+            <span className="text-xs font-semibold text-slate-700">
+              סה"כ שולם: ₪{caseIncome!.filter(i => i.status === 'שולם').reduce((s, i) => s + (i.amount ?? 0), 0).toLocaleString()}
+            </span>
+          </div>
+          <div className="divide-y divide-slate-50">
+            {caseIncome!.map(i => (
+              <div key={i.id} className="px-5 py-3 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-800">{i.description || 'תשלום'}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{i.date}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <p className="font-semibold text-slate-800">₪{Number(i.amount ?? 0).toLocaleString()}</p>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                    i.status === 'שולם' ? 'bg-green-100 text-green-700' :
+                    i.status === 'ממתין' ? 'bg-amber-100 text-amber-700' :
+                    'bg-slate-100 text-slate-500'
+                  }`}>{i.status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <CaseNotesSection caseId={id} initialTimeline={timeline ?? []} />
     </div>
   )

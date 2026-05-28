@@ -38,7 +38,10 @@ export default async function DashboardPage() {
     supabase.from('clients').select('id, full_name, status'),
     supabase.from('tasks').select('id, description, status, priority, due_date, case_id').neq('status', 'הושלמה').order('due_date', { ascending: true, nullsFirst: false }),
     supabase.from('hearings').select('id, case_id, date, time, location, description').gte('date', today).lte('date', in7Days).order('date'),
-    supabase.from('leads').select('id, status'),
+    Promise.all([
+      supabase.from('leads').select('id, status'),
+      supabase.from('leads_talush').select('id, status'),
+    ]).then(([a, b]) => ({ data: [...(a.data ?? []), ...(b.data ?? [])] })),
     supabase.from('income').select('amount, status').eq('status', 'שולם').gte('date', firstOfMonth),
     supabase.from('hearings').select('case_id, date, description').gte('date', today).lte('date', in3Days),
   ])
