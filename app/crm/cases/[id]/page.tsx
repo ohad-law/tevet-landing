@@ -17,6 +17,7 @@ import {
 import CaseStatusSelect from '@/components/crm/CaseStatusSelect'
 import CaseTasksSection from '@/components/crm/CaseTasksSection'
 import CaseHearingAdder from '@/components/crm/CaseHearingAdder'
+import CaseNotesSection from '@/components/crm/CaseNotesSection'
 
 export const revalidate = 0
 
@@ -273,35 +274,8 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
         <CaseTasksSection caseId={id} initialTasks={tasks ?? []} today={today} />
       </div>
 
-      {/* Timeline */}
-      {(timeline ?? []).length > 0 && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2">
-            <Clock size={15} className="text-slate-400" />
-            <h2 className="font-semibold text-slate-800 text-sm">ציר זמן</h2>
-          </div>
-          <div className="px-5 py-4">
-            <div className="relative">
-              <div className="absolute right-2 top-0 bottom-0 w-px bg-slate-100" />
-              <div className="space-y-4">
-                {(timeline ?? []).map((event, i) => (
-                  <div key={event.id} className="flex items-start gap-4 pr-8 relative">
-                    <div className="absolute right-0 w-4 h-4 rounded-full bg-blue-100 border-2 border-blue-400 shrink-0 mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-800">{event.description}</p>
-                      <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-2">
-                        {event.event_type && <span className="font-medium text-slate-500">{event.event_type}</span>}
-                        {event.created_by && <span>· {event.created_by}</span>}
-                        {event.created_at && <span>· {new Date(event.created_at).toLocaleDateString('he-IL')}</span>}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Timeline + Notes */}
+      <CaseNotesSection caseId={id} initialTimeline={timeline ?? []} />
     </div>
   )
 }

@@ -13,6 +13,7 @@ import {
   Wallet,
   LogOut,
   Scale,
+  Search,
 } from 'lucide-react'
 
 const navItems = [
@@ -49,8 +50,21 @@ export default function CrmSidebar({ userEmail }: { userEmail: string }) {
         </div>
       </div>
 
+      {/* Search */}
+      <form action="/crm/search" method="GET" className="px-3 pt-3 pb-1">
+        <div className="relative">
+          <Search size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
+          <input
+            name="q"
+            type="search"
+            placeholder="חיפוש מהיר..."
+            className="w-full pr-7 pl-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs text-white placeholder:text-slate-500 outline-none focus:border-blue-500/50 focus:bg-white/8 transition"
+          />
+        </div>
+      </form>
+
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-3 space-y-0.5">
+      <nav className="flex-1 py-2 px-3 space-y-0.5">
         {navItems.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href || pathname.startsWith(href + '/')
           return (
