@@ -111,6 +111,12 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
                 {overdueTasks.length} משימות באיחור
               </span>
             )}
+            <Link
+              href={`/crm/cases/${id}/edit`}
+              className="text-xs text-slate-500 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition font-medium"
+            >
+              ערוך תיק
+            </Link>
           </div>
         </div>
 

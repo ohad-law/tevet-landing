@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowRight, Phone, Mail, MapPin, Hash, FileText, CheckSquare, Scale } from 'lucide-react'
+import { ArrowRight, Phone, Mail, MapPin, Hash, CheckSquare, Scale, Pencil } from 'lucide-react'
 
 export const revalidate = 0
 
@@ -60,6 +60,13 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
               }`}>
                 {client.status}
               </span>
+              <Link
+                href={`/crm/clients/${id}/edit`}
+                className="flex items-center gap-1 text-xs text-slate-500 border border-slate-200 px-2.5 py-1 rounded-lg hover:bg-slate-50 transition font-medium"
+              >
+                <Pencil size={11} />
+                ערוך
+              </Link>
             </div>
             <div className="flex flex-wrap gap-4 mt-3">
               {client.phone && (

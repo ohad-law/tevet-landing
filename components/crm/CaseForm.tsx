@@ -12,12 +12,31 @@ const CASE_STATUSES = [
 
 type Client = { id: string; full_name: string }
 
-type Props = { clients: Client[] }
+type CaseData = {
+  id?: string
+  case_name?: string
+  case_number?: string
+  case_type?: string
+  status?: string
+  client_id?: string
+  court_name?: string
+  open_date?: string
+  fee?: string
+  notes?: string
+  value?: number | null
+  assigned_to?: string
+}
 
-export default function CaseForm({ clients }: Props) {
+type Props = {
+  clients: Client[]
+  initialData?: CaseData
+}
+
+export default function CaseForm({ clients, initialData }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const isEdit = !!initialData?.id
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -25,22 +44,33 @@ export default function CaseForm({ clients }: Props) {
     setError('')
 
     const data = Object.fromEntries(new FormData(e.currentTarget))
-    const res = await fetch('/api/crm/cases', {
-      method: 'POST',
+
+    const url = isEdit ? `/api/crm/cases/${initialData!.id}` : '/api/crm/cases'
+    const method = isEdit ? 'PATCH' : 'POST'
+
+    const res = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })
 
     if (!res.ok) {
       const err = await res.json()
-      setError(err.error ?? 'שגיאה ביצירת תיק')
+      setError(err.error ?? 'שגיאה בשמירה')
       setLoading(false)
       return
     }
 
-    const { id } = await res.json()
-    router.push(`/crm/cases/${id}`)
+    if (isEdit) {
+      router.push(`/crm/cases/${initialData!.id}`)
+      router.refresh()
+    } else {
+      const { id } = await res.json()
+      router.push(`/crm/cases/${id}`)
+    }
   }
+
+  const d = initialData ?? {}
 
   return (
     <div className="space-y-6 max-w-2xl" style={{ fontFamily: 'Assistant, sans-serif' }}>
@@ -49,12 +79,20 @@ export default function CaseForm({ clients }: Props) {
           <ArrowRight size={14} />
           תיקים
         </Link>
+        {isEdit && (
+          <>
+            <span>/</span>
+            <Link href={`/crm/cases/${d.id}`} className="hover:text-slate-600 transition">
+              {d.case_name}
+            </Link>
+          </>
+        )}
         <span>/</span>
-        <span className="text-slate-600 font-medium">תיק חדש</span>
+        <span className="text-slate-600 font-medium">{isEdit ? 'עריכה' : 'תיק חדש'}</span>
       </div>
 
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">פתיחת תיק חדש</h1>
+        <h1 className="text-2xl font-bold text-slate-800">{isEdit ? 'עריכת תיק' : 'פתיחת תיק חדש'}</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
@@ -69,6 +107,7 @@ export default function CaseForm({ clients }: Props) {
               name="case_name"
               required
               type="text"
+              defaultValue={d.case_name ?? ''}
               placeholder="למשל: כהן נ׳ מפעלים בע״מ"
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
             />
@@ -79,6 +118,7 @@ export default function CaseForm({ clients }: Props) {
             <input
               name="case_number"
               type="text"
+              defaultValue={d.case_number ?? ''}
               placeholder="מספר תיק בית משפט"
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
             />
@@ -89,6 +129,7 @@ export default function CaseForm({ clients }: Props) {
             <input
               name="case_type"
               type="text"
+              defaultValue={d.case_type ?? ''}
               placeholder="פיטורים, שכר, תאונה..."
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
             />
@@ -98,6 +139,7 @@ export default function CaseForm({ clients }: Props) {
             <label className="block text-sm font-medium text-slate-700 mb-1.5">לקוח</label>
             <select
               name="client_id"
+              defaultValue={d.client_id ?? ''}
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition bg-slate-50 focus:bg-white"
             >
               <option value="">— בחר לקוח —</option>
@@ -111,7 +153,7 @@ export default function CaseForm({ clients }: Props) {
             <label className="block text-sm font-medium text-slate-700 mb-1.5">סטטוס</label>
             <select
               name="status"
-              defaultValue="תיק נכנס"
+              defaultValue={d.status ?? 'תיק נכנס'}
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition bg-slate-50 focus:bg-white"
             >
               {CASE_STATUSES.map(s => (
@@ -125,6 +167,7 @@ export default function CaseForm({ clients }: Props) {
             <input
               name="court_name"
               type="text"
+              defaultValue={d.court_name ?? ''}
               placeholder="שם בית המשפט"
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
             />
@@ -135,6 +178,7 @@ export default function CaseForm({ clients }: Props) {
             <input
               name="open_date"
               type="date"
+              defaultValue={d.open_date ?? ''}
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition bg-slate-50 focus:bg-white"
             />
           </div>
@@ -144,6 +188,7 @@ export default function CaseForm({ clients }: Props) {
             <input
               name="fee"
               type="text"
+              defaultValue={d.fee ?? ''}
               placeholder="למשל: 15% מהפיצוי"
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
             />
@@ -154,7 +199,19 @@ export default function CaseForm({ clients }: Props) {
             <input
               name="value"
               type="number"
+              defaultValue={d.value ?? ''}
               placeholder="0"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">אחראי תיק</label>
+            <input
+              name="assigned_to"
+              type="text"
+              defaultValue={d.assigned_to ?? ''}
+              placeholder="שם עורך הדין"
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white"
             />
           </div>
@@ -164,6 +221,7 @@ export default function CaseForm({ clients }: Props) {
             <textarea
               name="notes"
               rows={3}
+              defaultValue={d.notes ?? ''}
               placeholder="הערות נוספות..."
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-blue-400 transition text-right bg-slate-50 focus:bg-white resize-none"
             />
@@ -176,10 +234,10 @@ export default function CaseForm({ clients }: Props) {
             disabled={loading}
             className="bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
           >
-            {loading ? 'שומר...' : 'פתח תיק'}
+            {loading ? 'שומר...' : isEdit ? 'שמור שינויים' : 'פתח תיק'}
           </button>
           <Link
-            href="/crm/cases"
+            href={isEdit ? `/crm/cases/${d.id}` : '/crm/cases'}
             className="text-sm text-slate-500 px-4 py-2.5 rounded-xl hover:bg-slate-100 transition"
           >
             ביטול
