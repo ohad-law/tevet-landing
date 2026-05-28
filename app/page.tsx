@@ -65,6 +65,24 @@ export default function Home() {
         throw new Error(data.error || "שגיאה בשליחה");
       }
       setSubmitted(true);
+      // Fire conversion pixels
+      if (typeof window !== "undefined") {
+        // Meta Pixel
+        if ((window as unknown as Record<string, unknown>).fbq) {
+          (window as unknown as { fbq: (...args: unknown[]) => void }).fbq("track", "Lead");
+        }
+        // TikTok Pixel
+        const w = window as unknown as Record<string, unknown>;
+        if (w.ttq && typeof (w.ttq as { track?: (...a: unknown[]) => void }).track === "function") {
+          (w.ttq as { track: (...a: unknown[]) => void }).track("SubmitForm");
+        }
+        // Google Ads
+        if ((window as unknown as Record<string, unknown>).gtag) {
+          (window as unknown as { gtag: (...args: unknown[]) => void }).gtag("event", "conversion", {
+            send_to: process.env.NEXT_PUBLIC_GOOGLE_ADS_ID,
+          });
+        }
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "שגיאה בשליחה, נסה שוב");
     } finally {
