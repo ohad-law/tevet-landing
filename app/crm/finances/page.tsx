@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import FinanceAdder from '@/components/crm/FinanceAdder'
 
 export const revalidate = 0
 
@@ -8,9 +9,11 @@ export default async function FinancesPage() {
   const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
   const firstOfYear = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0]
 
-  const [{ data: income }, { data: expenses }] = await Promise.all([
+  const [{ data: income }, { data: expenses }, { data: cases }, { data: clients }] = await Promise.all([
     supabase.from('income').select('*').order('date', { ascending: false }),
     supabase.from('expenses').select('*').order('date', { ascending: false }),
+    supabase.from('cases').select('id, case_name, case_number').neq('status', 'ארכיון').order('case_name'),
+    supabase.from('clients').select('id, full_name').eq('status', 'פעיל').order('full_name'),
   ])
 
   const paid = (income ?? []).filter(i => i.status === 'שולם')
@@ -20,13 +23,20 @@ export default async function FinancesPage() {
   const yearIncome = paid.filter(i => i.date >= firstOfYear).reduce((s, i) => s + (i.amount ?? 0), 0)
   const pendingTotal = pending.reduce((s, i) => s + (i.amount ?? 0), 0)
   const monthExpenses = (expenses ?? []).filter(e => e.date >= firstOfMonth).reduce((s, e) => s + (e.amount ?? 0), 0)
+  const profit = monthIncome - monthExpenses
 
   return (
     <div className="space-y-6" style={{ fontFamily: 'Assistant, sans-serif' }}>
-      <h1 className="text-2xl font-bold text-slate-800">פיננסים</h1>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">פיננסים</h1>
+          <p className="text-slate-500 text-sm mt-0.5">הכנסות, הוצאות ומאזן</p>
+        </div>
+        <FinanceAdder cases={cases ?? []} clients={clients ?? []} />
+      </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <p className="text-slate-500 text-xs font-medium">הכנסות החודש</p>
           <p className="text-2xl font-bold text-emerald-600 mt-1">₪{monthIncome.toLocaleString()}</p>
@@ -35,42 +45,78 @@ export default async function FinancesPage() {
           <p className="text-slate-500 text-xs font-medium">הכנסות השנה</p>
           <p className="text-2xl font-bold text-slate-800 mt-1">₪{yearIncome.toLocaleString()}</p>
         </div>
-        <div className="bg-white rounded-2xl border border-amber-200 bg-amber-50/30 p-5">
+        <div className="bg-amber-50/30 rounded-2xl border border-amber-200 p-5">
           <p className="text-slate-500 text-xs font-medium">ממתין לתשלום</p>
           <p className="text-2xl font-bold text-amber-600 mt-1">₪{pendingTotal.toLocaleString()}</p>
-          <p className="text-xs text-slate-400 mt-1">{pending.length} חשבוניות</p>
+          <p className="text-xs text-slate-400 mt-1">{pending.length} רשומות</p>
         </div>
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <p className="text-slate-500 text-xs font-medium">הוצאות החודש</p>
           <p className="text-2xl font-bold text-red-500 mt-1">₪{monthExpenses.toLocaleString()}</p>
         </div>
+        <div className={`rounded-2xl border p-5 ${profit >= 0 ? 'bg-emerald-50/30 border-emerald-200' : 'bg-red-50/30 border-red-200'}`}>
+          <p className="text-slate-500 text-xs font-medium">רווח נקי החודש</p>
+          <p className={`text-2xl font-bold mt-1 ${profit >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+            ₪{profit.toLocaleString()}
+          </p>
+        </div>
       </div>
 
-      {/* Recent Income */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100">
-          <h2 className="font-bold text-slate-800">הכנסות אחרונות</h2>
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Recent Income */}
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h2 className="font-bold text-slate-800">הכנסות אחרונות</h2>
+            <span className="text-xs text-slate-400">{(income ?? []).length} סה"כ</span>
+          </div>
+          <div className="divide-y divide-slate-50">
+            {(income ?? []).slice(0, 20).map(i => (
+              <div key={i.id} className="px-5 py-3 flex items-center justify-between">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-slate-800 truncate">{i.description || 'הכנסה'}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{i.date}</p>
+                </div>
+                <div className="text-right shrink-0 mr-3">
+                  <p className="font-semibold text-slate-800">₪{Number(i.amount ?? 0).toLocaleString()}</p>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    i.status === 'שולם' ? 'bg-green-100 text-green-700' :
+                    i.status === 'ממתין' ? 'bg-amber-100 text-amber-700' :
+                    'bg-slate-100 text-slate-500'
+                  }`}>{i.status}</span>
+                </div>
+              </div>
+            ))}
+            {(income?.length ?? 0) === 0 && (
+              <p className="text-slate-400 text-sm p-6 text-center">אין הכנסות רשומות עדיין</p>
+            )}
+          </div>
         </div>
-        <div className="divide-y divide-slate-50">
-          {(income ?? []).slice(0, 15).map(i => (
-            <div key={i.id} className="px-5 py-3 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-800">{i.description || 'הכנסה'}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{i.date}</p>
+
+        {/* Expenses */}
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h2 className="font-bold text-slate-800">הוצאות אחרונות</h2>
+            <span className="text-xs text-slate-400">{(expenses ?? []).length} סה"כ</span>
+          </div>
+          <div className="divide-y divide-slate-50">
+            {(expenses ?? []).slice(0, 20).map(e => (
+              <div key={e.id} className="px-5 py-3 flex items-center justify-between">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-slate-800 truncate">{e.description}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-xs text-slate-400">{e.date}</p>
+                    {e.category && (
+                      <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">{e.category}</span>
+                    )}
+                  </div>
+                </div>
+                <p className="font-semibold text-red-600 shrink-0 mr-3">₪{Number(e.amount ?? 0).toLocaleString()}</p>
               </div>
-              <div className="text-right">
-                <p className="font-semibold text-slate-800">₪{Number(i.amount ?? 0).toLocaleString()}</p>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                  i.status === 'שולם' ? 'bg-green-100 text-green-700' :
-                  i.status === 'ממתין' ? 'bg-amber-100 text-amber-700' :
-                  'bg-slate-100 text-slate-500'
-                }`}>{i.status}</span>
-              </div>
-            </div>
-          ))}
-          {(income?.length ?? 0) === 0 && (
-            <p className="text-slate-400 text-sm p-6 text-center">אין הכנסות רשומות עדיין</p>
-          )}
+            ))}
+            {(expenses?.length ?? 0) === 0 && (
+              <p className="text-slate-400 text-sm p-6 text-center">אין הוצאות רשומות עדיין</p>
+            )}
+          </div>
         </div>
       </div>
     </div>

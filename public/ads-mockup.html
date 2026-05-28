@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מוקאפ מודעות פייסבוק | משרד עו"ד טבת</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #f0f2f5;
+    font-family: 'Heebo', Arial, sans-serif;
+    direction: rtl;
+    padding: 32px 16px;
+    color: #1c1e21;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 800;
+    color: #0d1526;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #65676b;
+    font-size: 14px;
+    margin-bottom: 40px;
+  }
+
+  .section-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #65676b;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 40px 0 16px;
+    text-align: center;
+  }
+
+  /* =========== FEED CARD =========== */
+  .feed-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
+    max-width: 500px;
+    margin: 0 auto 40px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px 8px;
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d1526, #c9a84c);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 800;
+    color: #c9a84c;
+    flex-shrink: 0;
+    font-family: 'Heebo', Arial;
+  }
+  .avatar.light { color: #0d1526; background: linear-gradient(135deg, #c9a84c, #f0c96e); }
+
+  .card-meta {
+    flex: 1;
+  }
+  .page-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: #1c1e21;
+    line-height: 1.2;
+  }
+  .sponsored-tag {
+    font-size: 12px;
+    color: #65676b;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .sponsored-tag::before {
+    content: '·';
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  .card-menu {
+    font-size: 20px;
+    color: #65676b;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  .card-body-text {
+    padding: 4px 16px 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1c1e21;
+  }
+  .card-body-text strong {
+    font-weight: 700;
+  }
+
+  /* =========== VIDEO CREATIVE =========== */
+  .video-creative {
+    background: linear-gradient(160deg, #0d1526 0%, #101e38 60%, #1a2e50 100%);
+    aspect-ratio: 1.91;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .video-creative::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(201,168,76,0.08) 0%, transparent 60%);
+  }
+
+  .video-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: rgba(201,168,76,0.15);
+    border: 1px solid rgba(201,168,76,0.4);
+    color: #c9a84c;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  .video-amount {
+    font-size: 13px;
+    color: rgba(201,168,76,0.7);
+    font-weight: 500;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .video-headline {
+    font-size: 28px;
+    font-weight: 900;
+    color: #fff;
+    text-align: center;
+    line-height: 1.25;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .video-headline .gold { color: #c9a84c; }
+
+  .video-subtext {
+    font-size: 14px;
+    color: rgba(255,255,255,0.75);
+    text-align: center;
+    line-height: 1.6;
+    position: relative;
+    z-index: 1;
+    max-width: 340px;
+  }
+
+  .video-cta-bar {
+    margin-top: 20px;
+    background: #c9a84c;
+    color: #0d1526;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 10px 28px;
+    border-radius: 6px;
+    display: inline-block;
+    position: relative;
+    z-index: 1;
+  }
+
+  .play-icon {
+    position: absolute;
+    bottom: 14px;
+    left: 14px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #fff;
+  }
+
+  /* =========== CARD FOOTER =========== */
+  .card-footer {
+    border-top: 1px solid #e4e6ea;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .cta-area {
+    flex: 1;
+  }
+  .cta-url {
+    font-size: 11px;
+    color: #65676b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+  .cta-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1c1e21;
+  }
+  .cta-desc {
+    font-size: 13px;
+    color: #65676b;
+  }
+
+  .cta-btn {
+    background: #e4e6ea;
+    border: none;
+    border-radius: 6px;
+    padding: 9px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1c1e21;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-family: 'Heebo', Arial;
+  }
+  .cta-btn.primary {
+    background: #1877f2;
+    color: #fff;
+  }
+  .cta-btn.gold-btn {
+    background: #c9a84c;
+    color: #0d1526;
+  }
+
+  .reactions-row {
+    padding: 8px 16px 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #65676b;
+  }
+  .reactions-row .left { display: flex; align-items: center; gap: 4px; }
+
+  .action-buttons {
+    display: flex;
+    border-top: 1px solid #e4e6ea;
+    padding: 4px 0;
+  }
+  .action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #65676b;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+  .action-btn:hover { background: #f2f3f5; }
+
+  /* =========== CAROUSEL =========== */
+  .carousel-wrapper {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
+    max-width: 500px;
+    margin: 0 auto 40px;
+    overflow: hidden;
+  }
+
+  .carousel-scroll {
+    display: flex;
+    overflow-x: auto;
+    gap: 0;
+    padding: 0;
+    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
+  }
+  .carousel-scroll::-webkit-scrollbar { display: none; }
+
+  .carousel-card {
+    min-width: 220px;
+    scroll-snap-align: start;
+    flex-shrink: 0;
+    border-left: 1px solid #e4e6ea;
+    overflow: hidden;
+  }
+  .carousel-card:first-child { border-left: none; }
+
+  .carousel-img {
+    height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .carousel-img.navy { background: linear-gradient(160deg, #0d1526, #101e38); }
+  .carousel-img.navy2 { background: linear-gradient(160deg, #101e38, #1a2e50); }
+  .carousel-img.navy3 { background: linear-gradient(160deg, #0a0f1e, #0d1526); }
+  .carousel-img.gold-card { background: linear-gradient(160deg, #c9a84c, #a8863a); }
+
+  .carousel-amount {
+    font-size: 32px;
+    font-weight: 900;
+    color: #c9a84c;
+    line-height: 1;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .gold-card .carousel-amount { color: #0d1526; }
+
+  .carousel-years {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    text-align: center;
+  }
+  .gold-card .carousel-years { color: rgba(13,21,38,0.8); }
+
+  .carousel-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .gold-card .carousel-name { color: #0d1526; }
+
+  .question-mark {
+    font-size: 48px;
+    font-weight: 900;
+    color: #0d1526;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .carousel-card-footer {
+    padding: 10px 12px;
+    background: #fff;
+  }
+  .carousel-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1c1e21;
+    line-height: 1.3;
+    margin-bottom: 2px;
+  }
+  .carousel-card-sub {
+    font-size: 12px;
+    color: #65676b;
+    line-height: 1.4;
+  }
+  .carousel-card-btn {
+    margin-top: 8px;
+    display: block;
+    text-align: center;
+    background: #e4e6ea;
+    border-radius: 4px;
+    padding: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1c1e21;
+    cursor: pointer;
+  }
+  .carousel-cta-btn {
+    background: #c9a84c;
+    color: #0d1526;
+  }
+
+  /* =========== LEAD AD =========== */
+  .lead-form-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
+    max-width: 500px;
+    margin: 0 auto 40px;
+    overflow: hidden;
+  }
+
+  .lead-image {
+    background: linear-gradient(135deg, #0d1526 0%, #101e38 50%, #1a2e50 100%);
+    padding: 28px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lead-image::after {
+    content: '⚖️';
+    position: absolute;
+    bottom: -10px;
+    right: 20px;
+    font-size: 64px;
+    opacity: 0.1;
+  }
+
+  .lead-tagline {
+    font-size: 12px;
+    color: rgba(201,168,76,0.8);
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .lead-main-text {
+    font-size: 22px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.3;
+    margin-bottom: 6px;
+  }
+  .lead-sub-text {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.5;
+  }
+
+  .lead-form {
+    padding: 20px 16px;
+  }
+
+  .form-group {
+    margin-bottom: 14px;
+  }
+  .form-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #65676b;
+    margin-bottom: 4px;
+    display: block;
+  }
+  .form-input {
+    width: 100%;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'Heebo', Arial;
+    color: #1c1e21;
+    background: #f7f8fa;
+    direction: rtl;
+    outline: none;
+  }
+  .form-input:focus { border-color: #1877f2; background: #fff; }
+  .form-select {
+    width: 100%;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'Heebo', Arial;
+    color: #1c1e21;
+    background: #f7f8fa;
+    direction: rtl;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+  }
+
+  .privacy-note {
+    font-size: 11px;
+    color: #65676b;
+    line-height: 1.5;
+    padding: 10px 0 14px;
+    border-top: 1px solid #e4e6ea;
+    margin-top: 8px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    background: #1877f2;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 13px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Heebo', Arial;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: background 0.15s;
+  }
+  .submit-btn:hover { background: #1465d8; }
+
+  /* =========== REEL (INSTAGRAM) =========== */
+  .reel-wrapper {
+    max-width: 300px;
+    margin: 0 auto 40px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    position: relative;
+  }
+
+  .reel-creative {
+    background: linear-gradient(180deg, #0a0f1e 0%, #0d1526 40%, #101e38 100%);
+    aspect-ratio: 9/16;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .reel-creative::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 30%, rgba(201,168,76,0.1) 0%, transparent 60%);
+  }
+
+  .reel-top-ui {
+    position: absolute;
+    top: 16px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 16px;
+    align-items: center;
+  }
+
+  .reel-profile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .reel-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c9a84c, #a8863a);
+    border: 2px solid #c9a84c;
+  }
+  .reel-username {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .reel-follow {
+    font-size: 12px;
+    color: #fff;
+    border: 1px solid #fff;
+    border-radius: 4px;
+    padding: 2px 8px;
+  }
+
+  .reel-side-actions {
+    position: absolute;
+    left: 12px;
+    bottom: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+  }
+  .reel-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    color: #fff;
+    font-size: 10px;
+  }
+  .reel-action-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .reel-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    width: 100%;
+  }
+
+  .reel-line {
+    font-size: 16px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 4px;
+  }
+  .reel-amount-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .reel-neto {
+    text-align: center;
+  }
+  .reel-neto-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 2px;
+  }
+  .reel-neto-amount {
+    font-size: 28px;
+    font-weight: 900;
+    color: #fff;
+  }
+  .reel-vs {
+    font-size: 20px;
+    color: rgba(255,255,255,0.3);
+  }
+  .reel-bruto {
+    text-align: center;
+  }
+  .reel-bruto-label {
+    font-size: 11px;
+    color: rgba(201,168,76,0.6);
+    margin-bottom: 2px;
+  }
+  .reel-bruto-amount {
+    font-size: 28px;
+    font-weight: 900;
+    color: #c9a84c;
+  }
+  .reel-question {
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 2px;
+  }
+
+  .reel-divider {
+    width: 60px;
+    height: 2px;
+    background: rgba(201,168,76,0.4);
+    margin: 16px auto;
+    border-radius: 2px;
+  }
+
+  .reel-main-text {
+    font-size: 20px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+  .reel-main-text .gold { color: #c9a84c; }
+
+  .reel-subtext {
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.5;
+  }
+
+  .reel-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+    padding: 16px;
+  }
+
+  .reel-cta {
+    display: flex;
+    align-items: center;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 10px 14px;
+    gap: 10px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .reel-cta-text {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .reel-cta-btn {
+    background: #c9a84c;
+    color: #0d1526;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 7px 14px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  /* Utility */
+  .emoji { font-style: normal; }
+  .mt-8 { margin-top: 8px; }
+
+  .tab-bar {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+  .tab {
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 2px solid #e4e6ea;
+    background: #fff;
+    color: #65676b;
+    transition: all 0.2s;
+    font-family: 'Heebo', Arial;
+  }
+  .tab.active {
+    background: #0d1526;
+    color: #c9a84c;
+    border-color: #0d1526;
+  }
+
+  .ad-section { display: none; }
+  .ad-section.active { display: block; }
+
+  .edit-note {
+    background: #fff8e1;
+    border: 1.5px solid #c9a84c;
+    border-radius: 10px;
+    padding: 14px 18px;
+    max-width: 500px;
+    margin: 0 auto 24px;
+    font-size: 13px;
+    color: #555;
+    line-height: 1.6;
+  }
+  .edit-note strong { color: #0d1526; font-weight: 700; }
+
+  .copy-box {
+    background: #f7f8fa;
+    border: 1px solid #e4e6ea;
+    border-radius: 8px;
+    padding: 12px 16px;
+    max-width: 500px;
+    margin: 0 auto 16px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #1c1e21;
+  }
+  .copy-box label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #65676b;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 4px;
+  }
+</style>
+</head>
+<body>
+
+<h1>🎯 מוקאפ מודעות פייסבוק</h1>
+<p class="subtitle">משרד עו"ד טבת | בדיקת תלוש שכר | לחץ על לשונית לעבור בין המודעות</p>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="showAd(0)">1 · Feed Video</div>
+  <div class="tab" onclick="showAd(1)">2 · קרוסלה</div>
+  <div class="tab" onclick="showAd(2)">3 · Lead Ad</div>
+  <div class="tab" onclick="showAd(3)">4 · Instagram Reel</div>
+</div>
+
+<!-- ===== AD 1: FEED VIDEO ===== -->
+<div class="ad-section active" id="ad-0">
+  <div class="edit-note">
+    <strong>מודעה 1 — Feed Video (TOFU)</strong> | ניסוי ראשון למשיכת תשומת לב רחבה. הוויזואל כולל headline מפתיע על שורת הנטו. <br>
+    <strong>קהל:</strong> Advantage+ Broad, גיל 25-55, ישראל.
+  </div>
+
+  <div class="copy-box">
+    <label>PRIMARY TEXT</label>
+    עבדת שנים — ועדיין לא ידעת כמה כסף באמת מגיע לך.<br>
+    הסוד: הכסף לא בשורת הנטו. הוא בין השורות. 📋
+  </div>
+
+  <div class="feed-card">
+    <div class="card-header">
+      <div class="avatar">ט</div>
+      <div class="card-meta">
+        <div class="page-name">משרד עו"ד אוהד טבת</div>
+        <div class="sponsored-tag">ממומן · 🌐</div>
+      </div>
+      <div class="card-menu">···</div>
+    </div>
+    <div class="card-body-text">
+      עבדת שנים — ועדיין לא ידעת כמה כסף באמת מגיע לך.<br>
+      הסוד: הכסף לא בשורת הנטו. הוא בין השורות. 📋
+    </div>
+
+    <div class="video-creative">
+      <div class="video-badge">📋 בדיקת תלוש שכר</div>
+      <div class="video-amount">מה שאתה רואה בתלוש:</div>
+      <div class="video-headline">
+        שורת הנטו <span class="gold">≠</span><br>מה שמגיע לך
+      </div>
+      <div class="video-subtext">
+        בבית הדין לעבודה לא מדברים נטו.<br>
+        מדברים ברוטו — ואת ההפרש הזה<br>
+        <strong style="color:#c9a84c">מגיע לך לקבל.</strong>
+      </div>
+      <div class="video-cta-bar">שלח תלוש ← קבל אינדיקציה</div>
+      <div class="play-icon">▶</div>
+    </div>
+
+    <div class="card-footer">
+      <div class="cta-area">
+        <div class="cta-url">TEVET-LANDING.VERCEL.APP</div>
+        <div class="cta-title">כמה כסף חסר לך בתלוש?</div>
+        <div class="cta-desc">אוהד טבת — עו"ד + בודק שכר מוסמך</div>
+      </div>
+      <button class="cta-btn">למידע נוסף</button>
+    </div>
+
+    <div class="reactions-row">
+      <div class="left">👍❤️😮 <span>מרב ואחרים — 143</span></div>
+      <div>12 תגובות · 8 שיתופים</div>
+    </div>
+    <div class="action-buttons">
+      <div class="action-btn">👍 אהבתי</div>
+      <div class="action-btn">💬 תגובה</div>
+      <div class="action-btn">↗ שיתוף</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AD 2: CAROUSEL ===== -->
+<div class="ad-section" id="ad-1">
+  <div class="edit-note">
+    <strong>מודעה 2 — קרוסלה (Carousel)</strong> | סיפורי לקוחות אמיתיים. כל כרטיס = לקוח ותוצאה. הכרטיס האחרון = CTA. <br>
+    <strong>קהל:</strong> MOFU — ביקרו בדף / צפו ב-50%+ וידאו TikTok.
+  </div>
+
+  <div class="copy-box">
+    <label>PRIMARY TEXT</label>
+    מאות לקוחות שלנו לא ידעו כמה מגיע להם — עד שבדקנו. ⬇️
+  </div>
+
+  <div class="carousel-wrapper">
+    <div class="card-header">
+      <div class="avatar">ט</div>
+      <div class="card-meta">
+        <div class="page-name">משרד עו"ד אוהד טבת</div>
+        <div class="sponsored-tag">ממומן · 🌐</div>
+      </div>
+      <div class="card-menu">···</div>
+    </div>
+    <div class="card-body-text">
+      מאות לקוחות שלנו לא ידעו כמה מגיע להם — עד שבדקנו. ⬇️
+    </div>
+
+    <div class="carousel-scroll">
+      <!-- Card 1 -->
+      <div class="carousel-card">
+        <div class="carousel-img navy">
+          <div style="font-size:11px;color:rgba(201,168,76,0.6);margin-bottom:6px;text-align:center">קיבל בפשרה</div>
+          <div class="carousel-amount">700K ₪</div>
+          <div class="carousel-years">31 שנות עבודה</div>
+        </div>
+        <div class="carousel-card-footer">
+          <div class="carousel-card-title">ד. כהן — 31 שנה עבודה</div>
+          <div class="carousel-card-sub">קיבל 700,000 ₪ אחרי בדיקת תלושים</div>
+          <div class="carousel-card-btn">למידע נוסף</div>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="carousel-card">
+        <div class="carousel-img navy2">
+          <div style="font-size:11px;color:rgba(201,168,76,0.6);margin-bottom:6px;text-align:center">הסדר פשרה</div>
+          <div class="carousel-amount">210K ₪</div>
+          <div class="carousel-years">נהג הובלות, 6 שנים</div>
+        </div>
+        <div class="carousel-card-footer">
+          <div class="carousel-card-title">מ. לוי — נהג הובלות</div>
+          <div class="carousel-card-sub">210,000 ₪ בהסדר פשרה</div>
+          <div class="carousel-card-btn">למידע נוסף</div>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="carousel-card">
+        <div class="carousel-img navy3">
+          <div style="font-size:11px;color:rgba(201,168,76,0.6);margin-bottom:6px;text-align:center">פנסיה + שימוע</div>
+          <div class="carousel-amount">195K ₪</div>
+          <div class="carousel-years">פוטרה ללא שימוע</div>
+        </div>
+        <div class="carousel-card-footer">
+          <div class="carousel-card-title">י. פרץ — פוטרה ללא שימוע</div>
+          <div class="carousel-card-sub">195,000 ₪ על חוסרים בפנסיה</div>
+          <div class="carousel-card-btn">למידע נוסף</div>
+        </div>
+      </div>
+
+      <!-- Card 4 CTA -->
+      <div class="carousel-card">
+        <div class="carousel-img gold-card">
+          <div class="question-mark">?</div>
+          <div class="carousel-name" style="font-size:16px;font-weight:900">מה לגביך?</div>
+          <div class="carousel-years" style="color:rgba(13,21,38,0.7)">שלח 2-3 תלושים</div>
+        </div>
+        <div class="carousel-card-footer">
+          <div class="carousel-card-title">קבל אינדיקציה תוך 24 שעות</div>
+          <div class="carousel-card-sub">בדיקה ראשונית ללא עלות</div>
+          <div class="carousel-card-btn carousel-cta-btn">גלה כמה מגיע לך</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="reactions-row">
+      <div class="left">👍❤️ <span>שי ואחרים — 89</span></div>
+      <div>6 תגובות · 14 שיתופים</div>
+    </div>
+    <div class="action-buttons">
+      <div class="action-btn">👍 אהבתי</div>
+      <div class="action-btn">💬 תגובה</div>
+      <div class="action-btn">↗ שיתוף</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AD 3: LEAD AD ===== -->
+<div class="ad-section" id="ad-2">
+  <div class="edit-note">
+    <strong>מודעה 3 — Meta Lead Ad (BOFU)</strong> | הטופס נמצא בתוך פייסבוק — המשתמש לא עוזב. מתאים לרטרגטינג של מי שביקר בדף. <br>
+    <strong>קהל:</strong> ביקרו בדף הנחיתה אך לא מילאו טופס.
+  </div>
+
+  <div class="lead-form-card">
+    <div class="card-header">
+      <div class="avatar">ט</div>
+      <div class="card-meta">
+        <div class="page-name">משרד עו"ד אוהד טבת</div>
+        <div class="sponsored-tag">ממומן · 🌐</div>
+      </div>
+      <div class="card-menu">···</div>
+    </div>
+
+    <div class="card-body-text">
+      פוטרת לאחרונה? עדיין עובד ורוצה לדעת מה מגיע לך?<br><br>
+      עו"ד אוהד טבת — בודק שכר מוסמך מטעם משרד העבודה — בודק את התלושים שלך ומגיד לך כמה חסר. הבדיקה הראשונית ללא עלות.
+    </div>
+
+    <div class="lead-image">
+      <div class="lead-tagline">⚖️ ייעוץ ראשוני ללא עלות</div>
+      <div class="lead-main-text">גלה כמה כסף<br>מגיע לך</div>
+      <div class="lead-sub-text">עו"ד + בודק שכר מוסמך<br>מטעם משרד העבודה</div>
+    </div>
+
+    <div class="lead-form">
+      <div class="form-group">
+        <label class="form-label">שם מלא</label>
+        <input class="form-input" type="text" placeholder="ישראל ישראלי" readonly>
+      </div>
+      <div class="form-group">
+        <label class="form-label">מספר טלפון</label>
+        <input class="form-input" type="tel" placeholder="050-0000000" readonly>
+      </div>
+      <div class="form-group">
+        <label class="form-label">כמה שנים עבדת?</label>
+        <select class="form-select">
+          <option>בחר...</option>
+          <option>פחות משנה</option>
+          <option>1-3 שנים</option>
+          <option>3-7 שנים</option>
+          <option>מעל 7 שנים</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">מה הסיטואציה שלך?</label>
+        <select class="form-select">
+          <option>בחר...</option>
+          <option>פוטרתי לאחרונה</option>
+          <option>עדיין עובד, חושד בבעיות שכר</option>
+          <option>שכר במזומן / ללא תלוש</option>
+          <option>שעות נוספות שלא שולמו</option>
+        </select>
+      </div>
+
+      <div class="privacy-note">
+        🔒 המידע ישמש לצורך בדיקת זכויות בלבד בהתאם לתיקון 13 לחוק הגנת הפרטיות. לא יועבר לצד ג'.
+      </div>
+
+      <button class="submit-btn">שלח ← קבל אינדיקציה תוך 24 שעות</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AD 4: INSTAGRAM REEL ===== -->
+<div class="ad-section" id="ad-3">
+  <div class="edit-note">
+    <strong>מודעה 4 — Instagram Reel (15 שניות)</strong> | פורמט 9:16 אנכי. טקסט מונפש על רקע נייבי. ויזואל של נטו מול ברוטו. <br>
+    <strong>קהל:</strong> TOFU Broad + Advantage+ Audience.
+  </div>
+
+  <div class="reel-wrapper">
+    <div class="reel-creative">
+
+      <div class="reel-top-ui">
+        <div class="reel-profile">
+          <div class="reel-avatar"></div>
+          <div class="reel-username">tevet.law</div>
+          <div class="reel-follow">עקוב</div>
+        </div>
+        <div style="color:rgba(255,255,255,0.7);font-size:18px">···</div>
+      </div>
+
+      <div class="reel-content">
+        <div class="reel-line">הסתכלת על התלוש שלך?</div>
+        <div class="reel-amount-row">
+          <div class="reel-neto">
+            <div class="reel-neto-label">שורת נטו</div>
+            <div class="reel-neto-amount">12,000 ₪</div>
+          </div>
+          <div class="reel-vs">≠</div>
+          <div class="reel-bruto">
+            <div class="reel-bruto-label">מגיע לך (ברוטו)</div>
+            <div class="reel-bruto-amount">???</div>
+          </div>
+        </div>
+
+        <div class="reel-divider"></div>
+
+        <div class="reel-main-text">
+          בבית הדין לעבודה<br>
+          מדברים <span class="gold">ברוטו</span>
+        </div>
+        <div class="reel-subtext">
+          את ההפרש הזה<br>
+          <strong style="color:#c9a84c">מגיע לך לקבל.</strong>
+        </div>
+      </div>
+
+      <div class="reel-side-actions">
+        <div class="reel-action">
+          <div class="reel-action-icon">❤️</div>
+          <span>1.2K</span>
+        </div>
+        <div class="reel-action">
+          <div class="reel-action-icon">💬</div>
+          <span>48</span>
+        </div>
+        <div class="reel-action">
+          <div class="reel-action-icon">↗</div>
+          <span>שתף</span>
+        </div>
+        <div class="reel-action">
+          <div class="reel-action-icon">⋯</div>
+          <span>עוד</span>
+        </div>
+      </div>
+
+      <div class="reel-bottom">
+        <div style="color:rgba(255,255,255,0.7);font-size:12px;margin-bottom:6px">ממומן · tevet.law · <strong style="color:#c9a84c">פרסומת</strong></div>
+        <div class="reel-cta">
+          <div class="reel-cta-text">שלח תלוש — קבל אינדיקציה חינם</div>
+          <div class="reel-cta-btn">לחץ כאן</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showAd(idx) {
+  document.querySelectorAll('.ad-section').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+  });
+  document.querySelectorAll('.tab').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+  });
+}
+</script>
+</body>
+</html>

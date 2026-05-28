@@ -45,7 +45,7 @@ export default function TasksList({ initialTasks, caseMap, today }: Props) {
   }
 
   async function toggleTask(id: string, currentStatus: string) {
-    const newStatus = currentStatus === 'הושלמה' ? 'פתוחה' : 'הושלמה'
+    const newStatus = currentStatus === 'הושלמה' ? 'לביצוע' : 'הושלמה'
     startTransition(() => {
       setTasks(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t))
     })

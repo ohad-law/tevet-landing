@@ -30,7 +30,7 @@ export default function CaseTasksSection({ caseId, initialTasks, today }: Props)
   const openTasks = tasks.filter(t => t.status !== 'הושלמה')
 
   async function toggleTask(id: string, currentStatus: string) {
-    const newStatus = currentStatus === 'הושלמה' ? 'פתוחה' : 'הושלמה'
+    const newStatus = currentStatus === 'הושלמה' ? 'לביצוע' : 'הושלמה'
     startTransition(() => setTasks(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t)))
     await fetch(`/api/crm/tasks/${id}`, {
       method: 'PATCH',
@@ -57,7 +57,7 @@ export default function CaseTasksSection({ caseId, initialTasks, today }: Props)
         priority,
         due_date: dueDate || null,
         case_id: caseId,
-        status: 'פתוחה',
+        status: 'לביצוע',
       }),
     })
     if (res.ok) {
@@ -66,7 +66,7 @@ export default function CaseTasksSection({ caseId, initialTasks, today }: Props)
         setTasks(prev => [...prev, {
           id,
           description: description.trim(),
-          status: 'פתוחה',
+          status: 'לביצוע',
           priority,
           due_date: dueDate || null,
         }])

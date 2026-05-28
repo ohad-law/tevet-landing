@@ -14,6 +14,7 @@ import {
   LogOut,
   Scale,
   Search,
+  ClockIcon,
 } from 'lucide-react'
 
 const navItems = [
@@ -24,6 +25,7 @@ const navItems = [
   { href: '/crm/hearings', label: 'דיונים', icon: CalendarDays },
   { href: '/crm/leads', label: 'לידים', icon: UserPlus },
   { href: '/crm/finances', label: 'פיננסים', icon: Wallet },
+  { href: '/crm/attendance', label: 'נוכחות', icon: ClockIcon },
 ]
 
 export default function CrmSidebar({ userEmail }: { userEmail: string }) {
