@@ -15,6 +15,7 @@ import {
   Scale,
   Search,
   ClockIcon,
+  X,
 } from 'lucide-react'
 
 const navItems = [
@@ -28,7 +29,7 @@ const navItems = [
   { href: '/crm/attendance', label: 'נוכחות', icon: ClockIcon },
 ]
 
-export default function CrmSidebar({ userEmail }: { userEmail: string }) {
+export default function CrmSidebar({ userEmail, onClose }: { userEmail: string; onClose?: () => void }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -46,10 +47,15 @@ export default function CrmSidebar({ userEmail }: { userEmail: string }) {
         <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center shrink-0 shadow-lg shadow-blue-900/40">
           <Scale size={17} className="text-white" />
         </div>
-        <div>
+        <div className="flex-1">
           <p className="text-white font-bold text-sm leading-tight tracking-tight">משרד טבת</p>
           <p className="text-slate-500 text-xs">מערכת ניהול</p>
         </div>
+        {onClose && (
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-300 transition lg:hidden">
+            <X size={16} />
+          </button>
+        )}
       </div>
 
       {/* Search */}
@@ -73,6 +79,7 @@ export default function CrmSidebar({ userEmail }: { userEmail: string }) {
             <Link
               key={href}
               href={href}
+              onClick={onClose}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 isActive
                   ? 'bg-blue-600 text-white shadow-sm'
