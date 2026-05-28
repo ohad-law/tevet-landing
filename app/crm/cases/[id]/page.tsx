@@ -14,6 +14,9 @@ import {
   FileText,
   MapPin,
 } from 'lucide-react'
+import CaseStatusSelect from '@/components/crm/CaseStatusSelect'
+import CaseTasksSection from '@/components/crm/CaseTasksSection'
+import CaseHearingAdder from '@/components/crm/CaseHearingAdder'
 
 export const revalidate = 0
 
@@ -90,10 +93,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${sc.bg} ${sc.text}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
-                {c.status}
-              </span>
+              <CaseStatusSelect caseId={id} initialStatus={c.status} />
               {c.case_number && (
                 <span className="text-xs text-slate-400 font-mono bg-slate-50 border border-slate-200 px-2 py-0.5 rounded">
                   #{c.case_number}
@@ -221,6 +221,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
               <h2 className="font-semibold text-slate-800 text-sm">דיונים</h2>
               <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">{(hearings ?? []).length}</span>
             </div>
+            <CaseHearingAdder caseId={id} />
           </div>
 
           {upcomingHearings.length === 0 && pastHearings.length === 0 ? (
@@ -263,44 +264,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         {/* Tasks */}
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CheckSquare size={15} className="text-slate-400" />
-              <h2 className="font-semibold text-slate-800 text-sm">משימות</h2>
-              <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">{openTasks.length}</span>
-            </div>
-            <Link href="/crm/tasks" className="text-xs text-blue-600 hover:underline">הכל</Link>
-          </div>
-
-          {openTasks.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-8">אין משימות פתוחות</p>
-          ) : (
-            <div className="divide-y divide-slate-50">
-              {openTasks.slice(0, 8).map(t => {
-                const overdue = t.due_date && t.due_date < today
-                return (
-                  <div key={t.id} className="px-5 py-3 flex items-center justify-between gap-3">
-                    <div className="flex items-start gap-2 min-w-0">
-                      <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
-                        t.priority === 'דחוף' ? 'bg-red-500' :
-                        t.priority === 'גבוה' ? 'bg-amber-500' : 'bg-slate-300'
-                      }`} />
-                      <p className="text-sm text-slate-700 truncate">{t.description}</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      {t.due_date && (
-                        <span className={`text-xs font-mono ${overdue ? 'text-red-600 font-semibold' : 'text-slate-400'}`}>
-                          {t.due_date}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
+        <CaseTasksSection caseId={id} initialTasks={tasks ?? []} today={today} />
       </div>
 
       {/* Timeline */}
