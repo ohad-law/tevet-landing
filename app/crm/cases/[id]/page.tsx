@@ -13,6 +13,7 @@ import CaseStatusSelect from '@/components/crm/CaseStatusSelect'
 import CaseTasksSection from '@/components/crm/CaseTasksSection'
 import CaseHearingsSection from '@/components/crm/CaseHearingsSection'
 import CaseNotesSection from '@/components/crm/CaseNotesSection'
+import CaseFeeToggle from '@/components/crm/CaseFeeToggle'
 
 export const revalidate = 0
 
@@ -165,19 +166,11 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
           </span>
         </InfoCard>
         <InfoCard icon={<Banknote size={15} />} label={'שכ"ט'}>
-          <div>
+          <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-slate-800">
               {c.fee_amount ? `₪${Number(c.fee_amount).toLocaleString()}` : '—'}
             </span>
-            {c.fee_status && (
-              <span className={`mr-2 text-xs px-1.5 py-0.5 rounded font-medium ${
-                c.fee_status === 'שולמה' ? 'bg-green-100 text-green-700' :
-                c.fee_status === 'הוחזרה' ? 'bg-red-100 text-red-600' :
-                'bg-amber-100 text-amber-700'
-              }`}>
-                {c.fee_status}
-              </span>
-            )}
+            <CaseFeeToggle caseId={id} initialStatus={c.fee_status ?? null} />
           </div>
         </InfoCard>
         <InfoCard icon={<Calendar size={15} />} label="יעד סיום">
