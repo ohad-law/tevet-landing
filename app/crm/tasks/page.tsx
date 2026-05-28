@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
 import TasksList from '@/components/crm/TasksList'
 
 export const revalidate = 0
@@ -24,6 +25,12 @@ export default async function TasksPage() {
           <h1 className="text-2xl font-bold text-slate-800">משימות</h1>
           <p className="text-slate-500 text-sm mt-0.5">{open.length} פתוחות · {done.length} הושלמו</p>
         </div>
+        <Link
+          href="/crm/tasks/new"
+          className="bg-slate-900 text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-slate-800 transition"
+        >
+          + משימה חדשה
+        </Link>
       </div>
 
       <TasksList initialTasks={tasks ?? []} caseMap={caseMap} today={today} />
