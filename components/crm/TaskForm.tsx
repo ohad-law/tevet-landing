@@ -108,7 +108,7 @@ export default function TaskForm({ cases, defaultCaseId }: Props) {
           </select>
         </div>
 
-        <input type="hidden" name="status" value="פתוחה" />
+        <input type="hidden" name="status" value="לביצוע" />
 
         <div className="flex gap-3 pt-2">
           <button

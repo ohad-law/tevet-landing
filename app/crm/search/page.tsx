@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Search, FolderOpen, Users, CheckSquare } from 'lucide-react'
+import { Search, FolderOpen, Users, CheckSquare, Calendar } from 'lucide-react'
 
 export const revalidate = 0
 
@@ -20,7 +20,7 @@ export default async function SearchPage({
         <h1 className="text-2xl font-bold text-slate-800">חיפוש</h1>
         <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400">
           <Search size={40} className="mx-auto mb-3 opacity-30" />
-          <p>הקלד שם לקוח, מספר תיק, או תיאור משימה</p>
+          <p>הקלד שם לקוח, מספר תיק, תיאור משימה, או תיאור דיון</p>
         </div>
       </div>
     )
@@ -32,13 +32,31 @@ export default async function SearchPage({
     { data: cases },
     { data: clients },
     { data: tasks },
+    { data: hearings },
   ] = await Promise.all([
     supabase.from('cases').select('id, case_name, case_number, case_type, status').or(`case_name.ilike.${pat},case_number.ilike.${pat}`).limit(20),
     supabase.from('clients').select('id, full_name, phone, email, status').or(`full_name.ilike.${pat},phone.ilike.${pat},email.ilike.${pat}`).limit(20),
     supabase.from('tasks').select('id, description, status, priority, due_date').ilike('description', pat).limit(20),
+    supabase.from('hearings').select('id, date, time, description, location, case_id').or(`description.ilike.${pat},location.ilike.${pat}`).order('date', { ascending: false }).limit(15),
   ])
 
-  const totalResults = (cases?.length ?? 0) + (clients?.length ?? 0) + (tasks?.length ?? 0)
+  const caseMap = Object.fromEntries((cases ?? []).map(c => [c.id, { name: c.case_name, number: c.case_number }]))
+
+  // Enrich hearings with case names if not already in results
+  let hearingCaseMap: Record<string, { name: string; id: string }> = {}
+  const unmappedCaseIds = (hearings ?? [])
+    .map(h => h.case_id)
+    .filter(id => id && !caseMap[id]) as string[]
+
+  if (unmappedCaseIds.length > 0) {
+    const { data: extraCases } = await supabase
+      .from('cases')
+      .select('id, case_name')
+      .in('id', [...new Set(unmappedCaseIds)])
+    hearingCaseMap = Object.fromEntries((extraCases ?? []).map(c => [c.id, { name: c.case_name, id: c.id }]))
+  }
+
+  const totalResults = (cases?.length ?? 0) + (clients?.length ?? 0) + (tasks?.length ?? 0) + (hearings?.length ?? 0)
 
   const statusColor: Record<string, string> = {
     'תיק נכנס': 'bg-slate-100 text-slate-600',
@@ -120,6 +138,39 @@ export default async function SearchPage({
                 </span>
               </Link>
             ))}
+          </div>
+        </section>
+      )}
+
+      {(hearings?.length ?? 0) > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <Calendar size={15} className="text-slate-400" />
+            <h2 className="font-semibold text-slate-700 text-sm">דיונים ({hearings!.length})</h2>
+          </div>
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            {hearings!.map((h, i) => {
+              const relatedCase = h.case_id
+                ? (caseMap[h.case_id] ? { name: caseMap[h.case_id].name, id: h.case_id } : hearingCaseMap[h.case_id])
+                : null
+              return (
+                <div
+                  key={h.id}
+                  className={`flex items-center justify-between px-5 py-3.5 ${i > 0 ? 'border-t border-slate-50' : ''}`}
+                >
+                  <div>
+                    <p className="font-semibold text-slate-800">{h.description || 'דיון'}</p>
+                    {relatedCase && (
+                      <Link href={`/crm/cases/${h.case_id}`} className="text-xs text-blue-600 hover:underline mt-0.5 block">
+                        {relatedCase.name}
+                      </Link>
+                    )}
+                    {h.location && <p className="text-xs text-slate-400 mt-0.5">{h.location}</p>}
+                  </div>
+                  <p className="font-mono text-sm text-slate-600 shrink-0">{h.date}</p>
+                </div>
+              )
+            })}
           </div>
         </section>
       )}

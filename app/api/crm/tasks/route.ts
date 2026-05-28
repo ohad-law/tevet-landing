@@ -3,7 +3,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const { description, priority = 'רגיל', status = 'פתוחה', due_date, case_id, client_id } = body
+  const { description, priority = 'רגיל', status = 'לביצוע', due_date, case_id, client_id } = body
 
   if (!description?.trim()) {
     return NextResponse.json({ error: 'תיאור משימה חובה' }, { status: 400 })
