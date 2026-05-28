@@ -10,6 +10,7 @@ import {
   CalendarDays,
   ArrowLeft,
   Clock,
+  Zap,
 } from 'lucide-react'
 
 export const revalidate = 0
@@ -22,6 +23,8 @@ export default async function DashboardPage() {
   const today = now.toISOString().split('T')[0]
   const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
+  const in3Days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+
   const [
     { data: cases },
     { data: clients },
@@ -29,6 +32,7 @@ export default async function DashboardPage() {
     { data: hearings },
     { data: newLeads },
     { data: monthIncome },
+    { data: soonHearings },
   ] = await Promise.all([
     supabase.from('cases').select('id, case_number, case_name, status, assigned_to, client_id').neq('status', 'ארכיון').neq('status', 'פסק דין'),
     supabase.from('clients').select('id, full_name, status'),
@@ -36,6 +40,7 @@ export default async function DashboardPage() {
     supabase.from('hearings').select('id, case_id, date, time, location, description').gte('date', today).lte('date', in7Days).order('date'),
     supabase.from('leads').select('id'),
     supabase.from('finances').select('amount, type').eq('type', 'הכנסה').gte('date', firstOfMonth),
+    supabase.from('hearings').select('case_id, date, description').gte('date', today).lte('date', in3Days),
   ])
 
   const activeClients = clients?.filter(c => c.status === 'פעיל').length ?? 0
@@ -46,6 +51,23 @@ export default async function DashboardPage() {
   const totalMonthIncome = monthIncome?.reduce((sum, i) => sum + (Number(i.amount) ?? 0), 0) ?? 0
   const upcomingHearings = hearings ?? []
   const totalLeads = newLeads?.length ?? 0
+
+  // Smart risk analysis
+  const overdueByCase: Record<string, number> = {}
+  for (const t of overdueTasks) {
+    if (t.case_id) overdueByCase[t.case_id] = (overdueByCase[t.case_id] ?? 0) + 1
+  }
+  const soonHearingCaseIds = new Set((soonHearings ?? []).map(h => h.case_id).filter(Boolean))
+
+  const atRiskCases = (cases ?? []).filter(c =>
+    (overdueByCase[c.id] ?? 0) > 0 || soonHearingCaseIds.has(c.id)
+  ).sort((a, b) => {
+    const scoreA = (soonHearingCaseIds.has(a.id) ? 10 : 0) + (overdueByCase[a.id] ?? 0) * 3
+    const scoreB = (soonHearingCaseIds.has(b.id) ? 10 : 0) + (overdueByCase[b.id] ?? 0) * 3
+    return scoreB - scoreA
+  }).slice(0, 5)
+
+  const todayHearings = (soonHearings ?? []).filter(h => h.date === today)
 
   const statusColor: Record<string, { bg: string; text: string }> = {
     'תיק נכנס':              { bg: 'bg-slate-100',  text: 'text-slate-600' },
@@ -137,6 +159,71 @@ export default async function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Today's hearings alert */}
+      {todayHearings.length > 0 && (
+        <div className="flex items-start gap-3 bg-blue-50 border border-blue-300 rounded-xl px-4 py-3">
+          <CalendarDays size={17} className="text-blue-600 mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-blue-800">
+              {todayHearings.length === 1 ? 'יש לך דיון היום' : `יש לך ${todayHearings.length} דיונים היום`}
+            </p>
+            <p className="text-xs text-blue-600 mt-0.5">
+              {todayHearings.map(h => h.description || 'דיון').join(' · ')}
+            </p>
+          </div>
+          <Link href="/crm/hearings" className="text-xs text-blue-700 font-medium hover:underline whitespace-nowrap flex items-center gap-1">
+            לפרטים <ArrowLeft size={12} />
+          </Link>
+        </div>
+      )}
+
+      {/* Smart risk analysis */}
+      {atRiskCases.length > 0 && (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Zap size={15} className="text-amber-500" />
+              <h2 className="font-semibold text-slate-800 text-sm">תיקים שדורשים תשומת לב</h2>
+              <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">{atRiskCases.length}</span>
+            </div>
+          </div>
+          <div className="divide-y divide-slate-50">
+            {atRiskCases.map(c => {
+              const overdue = overdueByCase[c.id] ?? 0
+              const hasSoonHearing = soonHearingCaseIds.has(c.id)
+              const hearing = (soonHearings ?? []).find(h => h.case_id === c.id)
+              return (
+                <div key={c.id} className="px-5 py-3 flex items-center justify-between gap-3 hover:bg-slate-50/60 transition">
+                  <div className="min-w-0">
+                    <Link href={`/crm/cases/${c.id}`} className="font-medium text-slate-800 hover:text-blue-600 transition text-sm">
+                      {c.case_name}
+                    </Link>
+                    <div className="flex gap-2 mt-1 flex-wrap">
+                      {hasSoonHearing && hearing && (
+                        <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-medium">
+                          דיון {hearing.date === today ? 'היום' : hearing.date}
+                        </span>
+                      )}
+                      {overdue > 0 && (
+                        <span className="text-xs bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded-full font-medium">
+                          {overdue} משימות באיחור
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <Link
+                    href={`/crm/cases/${c.id}`}
+                    className="text-xs text-blue-600 hover:underline shrink-0"
+                  >
+                    פתח תיק
+                  </Link>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Two columns */}
       <div className="grid lg:grid-cols-2 gap-5">
