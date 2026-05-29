@@ -15,6 +15,7 @@ import CaseHearingsSection from '@/components/crm/CaseHearingsSection'
 import CaseNotesSection from '@/components/crm/CaseNotesSection'
 import CaseFeeToggle from '@/components/crm/CaseFeeToggle'
 import PrintButton from '@/components/crm/PrintButton'
+import CaseAIAgent from '@/components/crm/CaseAIAgent'
 
 export const revalidate = 0
 
@@ -252,6 +253,9 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
       )}
 
       <CaseNotesSection caseId={id} initialTimeline={timeline ?? []} />
+
+      {/* AI Legal Agent */}
+      <CaseAIAgent caseId={id} caseName={c.case_name as string} />
     </div>
   )
 }

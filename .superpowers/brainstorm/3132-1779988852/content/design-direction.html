@@ -1,0 +1,164 @@
+<h2>איזה כיוון עיצוב מתאים ל-CRM של משרד טבת?</h2>
+<p class="subtitle">שלושה כיוונים — לחץ על הכיוון שמדבר אליך</p>
+
+<style>
+  .dir-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; margin-top: 24px; direction: rtl; }
+  .dir-card { border-radius: 16px; overflow: hidden; cursor: pointer; border: 3px solid transparent; transition: all .2s; box-shadow: 0 4px 20px rgba(0,0,0,.1); }
+  .dir-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.18); }
+  .dir-card.selected { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99,102,241,.25); }
+  .dir-label { font-size: 13px; font-weight: 700; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+  .dir-desc { font-size: 12px; padding: 8px 14px 12px; line-height: 1.6; }
+
+  /* Option A — Linear/Notion Clean */
+  .dir-a .sidebar { background:#111827; width:52px; display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:10px; }
+  .dir-a .sidebar .dot { width:22px; height:22px; border-radius:6px; background:rgba(255,255,255,.12); }
+  .dir-a .sidebar .dot.active { background:#6366f1; }
+  .dir-a .main { background:#f9fafb; flex:1; padding:14px; }
+  .dir-a .card { background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px; margin-bottom:8px; }
+  .dir-a .stat { font-size:20px; font-weight:800; color:#111827; }
+  .dir-a .slabel { font-size:10px; color:#6b7280; margin-top:2px; }
+  .dir-a .badge { display:inline-block; background:#ede9fe; color:#7c3aed; font-size:9px; font-weight:700; padding:2px 7px; border-radius:20px; }
+  .dir-a .row { background:#fff; border:1px solid #f3f4f6; border-radius:8px; padding:8px 10px; margin-bottom:5px; font-size:10px; color:#374151; display:flex; justify-content:space-between; }
+
+  /* Option B — Premium Dark Accent */
+  .dir-b .sidebar { background:#0f172a; width:56px; display:flex; flex-direction:column; align-items:center; padding:14px 0; gap:12px; }
+  .dir-b .sidebar .dot { width:24px; height:24px; border-radius:8px; background:rgba(255,255,255,.08); }
+  .dir-b .sidebar .dot.active { background:linear-gradient(135deg,#6366f1,#8b5cf6); box-shadow:0 2px 8px rgba(99,102,241,.5); }
+  .dir-b .main { background:#f8f7ff; flex:1; padding:14px; }
+  .dir-b .card { background:#fff; border:1px solid rgba(99,102,241,.12); border-radius:12px; padding:12px 14px; margin-bottom:8px; box-shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(99,102,241,.06); }
+  .dir-b .stat { font-size:22px; font-weight:800; color:#1e1b4b; }
+  .dir-b .slabel { font-size:10px; color:#6b7280; margin-top:2px; }
+  .dir-b .badge { display:inline-block; background:linear-gradient(135deg,#ede9fe,#ddd6fe); color:#6d28d9; font-size:9px; font-weight:700; padding:2px 8px; border-radius:20px; }
+  .dir-b .accent-bar { height:3px; background:linear-gradient(90deg,#6366f1,#8b5cf6,#a78bfa); border-radius:2px; margin-bottom:10px; }
+  .dir-b .row { background:#fff; border:1px solid rgba(99,102,241,.1); border-radius:8px; padding:8px 10px; margin-bottom:5px; font-size:10px; color:#374151; display:flex; justify-content:space-between; box-shadow:0 1px 3px rgba(0,0,0,.04); }
+
+  /* Option C — Warm Professional */
+  .dir-c .sidebar { background:#1c1917; width:54px; display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:10px; }
+  .dir-c .sidebar .dot { width:22px; height:22px; border-radius:7px; background:rgba(255,255,255,.1); }
+  .dir-c .sidebar .dot.active { background:#b45309; box-shadow:0 2px 8px rgba(180,83,9,.45); }
+  .dir-c .main { background:#fffbf7; flex:1; padding:14px; }
+  .dir-c .card { background:#fff; border:1px solid #fde68a; border-radius:12px; padding:10px 12px; margin-bottom:8px; box-shadow:0 1px 4px rgba(180,83,9,.08); }
+  .dir-c .stat { font-size:20px; font-weight:800; color:#78350f; }
+  .dir-c .slabel { font-size:10px; color:#92400e; margin-top:2px; opacity:.7; }
+  .dir-c .badge { display:inline-block; background:#fef3c7; color:#b45309; font-size:9px; font-weight:700; padding:2px 7px; border-radius:20px; border:1px solid #fde68a; }
+  .dir-c .row { background:#fff; border:1px solid #fef3c7; border-radius:8px; padding:8px 10px; margin-bottom:5px; font-size:10px; color:#44403c; display:flex; justify-content:space-between; }
+
+  .mini-preview { display:flex; height:180px; border-radius:10px; overflow:hidden; }
+</style>
+
+<div class="dir-grid">
+
+  <!-- Option A -->
+  <div class="dir-card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="mini-preview dir-a">
+      <div class="sidebar">
+        <div class="dot active"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <div class="main">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+          <div class="card">
+            <div class="stat">24</div>
+            <div class="slabel">תיקים פעילים</div>
+          </div>
+          <div class="card">
+            <div class="stat">₪48K</div>
+            <div class="slabel">הכנסות החודש</div>
+          </div>
+        </div>
+        <div class="row">כהן נ׳ מפעלים <span class="badge">הוכחות</span></div>
+        <div class="row">לוי נ׳ חברת הניקיון <span class="badge">תביעה</span></div>
+      </div>
+    </div>
+    <div style="background:#f9fafb;padding:12px 14px">
+      <div class="dir-label" style="color:#111827;padding:0 0 6px">
+        A — Linear Clean
+        <span style="font-size:11px;color:#9ca3af;font-weight:500">מינימליסטי</span>
+      </div>
+      <div class="dir-desc" style="color:#6b7280">
+        לבן נקי, אפור עדין, אקסנט סגול. הרבה אוויר, ללא רעש. תחושת SaaS מקצועי.
+      </div>
+    </div>
+  </div>
+
+  <!-- Option B -->
+  <div class="dir-card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="mini-preview dir-b">
+      <div class="sidebar">
+        <div class="dot active"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <div class="main">
+        <div class="accent-bar"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+          <div class="card">
+            <div class="stat">24</div>
+            <div class="slabel">תיקים פעילים</div>
+          </div>
+          <div class="card">
+            <div class="stat">₪48K</div>
+            <div class="slabel">הכנסות החודש</div>
+          </div>
+        </div>
+        <div class="row">כהן נ׳ מפעלים <span class="badge">הוכחות</span></div>
+        <div class="row">לוי נ׳ חברת הניקיון <span class="badge">תביעה</span></div>
+      </div>
+    </div>
+    <div style="background:#f8f7ff;padding:12px 14px">
+      <div class="dir-label" style="color:#1e1b4b;padding:0 0 6px">
+        B — Premium Indigo
+        <span style="font-size:11px;color:#a5b4fc;font-weight:500">✨ מומלץ</span>
+      </div>
+      <div class="dir-desc" style="color:#4c4787">
+        אינדיגו/סגול כצבע ראשי, רקע לבן-סגלגל עדין, צללים עמוקים. תחושת פרימיום מובהק.
+      </div>
+    </div>
+  </div>
+
+  <!-- Option C -->
+  <div class="dir-card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="mini-preview dir-c">
+      <div class="sidebar">
+        <div class="dot active"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <div class="main">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+          <div class="card">
+            <div class="stat">24</div>
+            <div class="slabel">תיקים פעילים</div>
+          </div>
+          <div class="card">
+            <div class="stat">₪48K</div>
+            <div class="slabel">הכנסות החודש</div>
+          </div>
+        </div>
+        <div class="row">כהן נ׳ מפעלים <span class="badge">הוכחות</span></div>
+        <div class="row">לוי נ׳ חברת הניקיון <span class="badge">תביעה</span></div>
+      </div>
+    </div>
+    <div style="background:#fffbf7;padding:12px 14px">
+      <div class="dir-label" style="color:#78350f;padding:0 0 6px">
+        C — Warm Amber
+        <span style="font-size:11px;color:#d97706;font-weight:500">חמים</span>
+      </div>
+      <div class="dir-desc" style="color:#92400e">
+        ענבר/כתום זהוב, רקע קרם חמים, כרטיסים עם גבול זהוב. תחושת ישראלי-עסקי אלגנטי.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p style="text-align:center;color:#9ca3af;font-size:12px;margin-top:20px;direction:rtl">
+  אפשר לבחור יותר מאחד — אני אשלב
+</p>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>שינויי טון — לפני ואחרי</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, 'Segoe UI', Arial, sans-serif;
+    background: #0d0d0d;
+    color: #eee;
+    padding: 2.5rem 1.5rem 4rem;
+    direction: rtl;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.4rem;
+  }
+  .subtitle {
+    text-align: center;
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 3rem;
+  }
+  .change-block {
+    max-width: 860px;
+    margin: 0 auto 3.5rem;
+  }
+  .change-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #c9a84c;
+    margin-bottom: 1rem;
+  }
+  .cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+  .col-header {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 0.4rem 0.9rem;
+    border-radius: 4px 4px 0 0;
+  }
+  .col-before .col-header { background: #3a1a1a; color: #e07070; }
+  .col-after  .col-header { background: #1a3a1a; color: #70c870; }
+  .col-body {
+    border-radius: 0 0 10px 10px;
+    padding: 1.4rem 1.5rem;
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+  .col-before .col-body { background: #1e1212; border: 1px solid #3a1a1a; }
+  .col-after  .col-body { background: #121e12; border: 1px solid #1a3a1a; }
+  .annotation {
+    margin-top: 1rem;
+    font-size: 0.82rem;
+    color: #888;
+    line-height: 1.6;
+    border-top: 1px solid #222;
+    padding-top: 0.8rem;
+  }
+  .annotation strong { color: #c9a84c; }
+  .verdict {
+    max-width: 860px;
+    margin: 0 auto;
+    background: #161610;
+    border: 1px solid #c9a84c44;
+    border-radius: 12px;
+    padding: 1.6rem 2rem;
+  }
+  .verdict h2 { font-size: 1.05rem; color: #c9a84c; margin-bottom: 0.6rem; }
+  .verdict p { font-size: 0.9rem; color: #bbb; line-height: 1.7; }
+  .verdict ul { font-size: 0.9rem; color: #bbb; line-height: 1.9; padding-right: 1.2rem; margin-top: 0.5rem; }
+
+  /* ─── COMPONENT MOCKUPS ─── */
+
+  /* NAV */
+  .nav-mock {
+    background: #111;
+    border-bottom: 1px solid #2a2a2a;
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px;
+  }
+  .nav-logo-before { font-size: 1.1rem; font-weight: 900; color: #fff; letter-spacing: 0.15em; }
+  .nav-logo-before span { display: block; font-size: 0.6rem; color: #555; letter-spacing: 0.05em; font-weight: 400; margin-top: 1px; }
+  .nav-logo-after {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .nav-logo-after .firm-name {
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 0.18em;
+    line-height: 1;
+  }
+  .nav-logo-after .firm-sub {
+    font-size: 0.65rem;
+    color: #c9a84c;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+  }
+  .nav-btn {
+    background: #c9a84c;
+    color: #000;
+    font-weight: 700;
+    font-size: 0.78rem;
+    padding: 0.45rem 1rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* STEP 2 */
+  .step-mock {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .step-num-mock {
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    border: 2px solid #c9a84c;
+    color: #c9a84c;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-text h4 { font-size: 0.95rem; color: #fff; margin-bottom: 0.3rem; }
+  .step-text p  { font-size: 0.85rem; color: #aaa; line-height: 1.6; }
+  .badge {
+    display: inline-block;
+    background: #c9a84c22;
+    color: #c9a84c;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #c9a84c55;
+    margin-top: 0.35rem;
+  }
+
+  /* FAQ ITEM */
+  .faq-mock {
+    border-bottom: 1px solid #2a2a2a;
+    padding-bottom: 1rem;
+  }
+  .faq-q { font-weight: 700; color: #fff; margin-bottom: 0.4rem; font-size: 0.92rem; }
+  .faq-a { font-size: 0.85rem; color: #aaa; line-height: 1.7; }
+  .faq-a strong { color: #fff; }
+
+  /* DIVIDER */
+  .section-divider {
+    max-width: 860px;
+    margin: 0 auto 3rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #333, transparent);
+  }
+
+  /* NO-CHANGE badge */
+  .no-change-box {
+    max-width: 860px;
+    margin: 0 auto 3.5rem;
+    background: #12121a;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 1.2rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .no-change-icon { font-size: 1.5rem; flex-shrink: 0; }
+  .no-change-text h4 { font-size: 0.95rem; color: #eee; margin-bottom: 0.2rem; }
+  .no-change-text p  { font-size: 0.83rem; color: #777; line-height: 1.5; }
+  .no-change-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #4488cc;
+    background: #4488cc22;
+    border: 1px solid #4488cc44;
+    padding: 0.15rem 0.6rem;
+    border-radius: 4px;
+    margin-top: 0.4rem;
+    display: inline-block;
+  }
+</style>
+</head>
+<body>
+
+<h1>שינויי טון — לפני ואחרי</h1>
+<p class="subtitle">3 שינויים קטנים · כל השאר נשאר בדיוק אותו דבר</p>
+
+<!-- ─── CHANGE 1: NAV LOGO ─── -->
+<div class="change-block">
+  <div class="change-label">שינוי 1 מתוך 3 · לוגו הניווט — הדגשת שם המשרד</div>
+  <div class="cols">
+    <div class="col-before">
+      <div class="col-header">לפני — פחות נוכחות לפירמה</div>
+      <div class="col-body">
+        <div class="nav-mock">
+          <div class="nav-logo-before">
+            TEVET
+            <span>TEVET | LAW OFFICE | טבת משרד עורכי דין</span>
+          </div>
+          <button class="nav-btn">גלה כמה מגיע לך</button>
+        </div>
+      </div>
+    </div>
+    <div class="col-after">
+      <div class="col-header">אחרי — פירמה + פרסונל ברנד</div>
+      <div class="col-body">
+        <div class="nav-mock">
+          <div class="nav-logo-after">
+            <span class="firm-name">TEVET</span>
+            <span class="firm-sub">LAW OFFICE · טבת משרד עורכי דין</span>
+          </div>
+          <button class="nav-btn">גלה כמה מגיע לך</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="annotation">
+    <strong>למה:</strong> השם "TEVET LAW OFFICE" כבר נמצא, רק קטן מדי ובצבע אפור.
+    העלאה ל-gold והדגשה קלה נותנת תחושת פירמה — בלי לשנות מילה בטקסט.
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- ─── CHANGE 2: STEP 2 ─── -->
+<div class="change-block">
+  <div class="change-label">שינוי 2 מתוך 3 · שלב 2 בתהליך — קיבולת + אוהד ביחד</div>
+  <div class="cols">
+    <div class="col-before">
+      <div class="col-header">לפני — נשמע כמו עסק של אדם אחד</div>
+      <div class="col-body">
+        <div class="step-mock">
+          <div class="step-num-mock">2</div>
+          <div class="step-text">
+            <h4>עו"ד אוהד טבת בודק</h4>
+            <p>כבודק שכר מוסמך, מנתח כל שורה בתלוש ומחשב את הפערים מול החוק.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-after">
+      <div class="col-header">אחרי — אוהד אישית + מסגרת מקצועית</div>
+      <div class="col-body">
+        <div class="step-mock">
+          <div class="step-num-mock">2</div>
+          <div class="step-text">
+            <h4>אוהד טבת בודק אישית תוך 24 שעות</h4>
+            <p>כבודק שכר מוסמך מטעם משרד העבודה, מנתח כל שורה בתלוש ומחשב את הפערים מול החוק.</p>
+            <span class="badge">תשובה מובטחת תוך 24 שעות</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="annotation">
+    <strong>למה:</strong> "תוך 24 שעות" פותר את חשש הקיבולת — מבהיר שיש SLA מחייב.
+    ה-badge מחזק את זה ויזואלית. הטון נשאר אישי ("אוהד בודק"), לא קורפורטיבי.
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- ─── CHANGE 3: FORM HEADER ─── -->
+<div class="change-block">
+  <div class="change-label">שינוי 3 מתוך 3 · כותרת הטופס — הפירמה מאחורי אוהד</div>
+  <div class="cols">
+    <div class="col-before">
+      <div class="col-header">לפני</div>
+      <div class="col-body" style="font-size:0.9rem; color:#aaa; line-height:1.7;">
+        <strong style="color:#fff;">→ מלא פרטים והעלה תלושים —<br/>אוהד יחזור אליך עם האינדיקציה</strong>
+      </div>
+    </div>
+    <div class="col-after">
+      <div class="col-header">אחרי</div>
+      <div class="col-body" style="font-size:0.9rem; color:#aaa; line-height:1.7;">
+        <strong style="color:#fff;">→ מלא פרטים והעלה תלושים —<br/>אוהד יחזור אליך עם האינדיקציה תוך 24 שעות</strong>
+      </div>
+    </div>
+  </div>
+  <div class="annotation">
+    <strong>למה:</strong> הוספת "תוך 24 שעות" גם כאן. זה עדיין אוהד שחוזר — לא "הצוות שלנו".
+    24 שעות = אמינות + קיבולת = מוחק את החשש שגרם לפידבק.
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- ─── NO CHANGE BLOCKS ─── -->
+<div class="no-change-box">
+  <div class="no-change-icon">🔒</div>
+  <div class="no-change-text">
+    <h4>כל שאר ה-USP של אוהד — לא נוגעים בו</h4>
+    <p>"הייתי מעסיק של 50+ עובדים" · "למה דווקא אוהד טבת?" · הציטוט האישי · כל הסקשן Why Ohad</p>
+    <span class="no-change-label">לא משנים · זה הלב של הדף</span>
+  </div>
+</div>
+
+<div class="no-change-box">
+  <div class="no-change-icon">🔒</div>
+  <div class="no-change-text">
+    <h4>promise-detail בהירו — לא נוגעים</h4>
+    <p>"אוהד טבת — עו"ד לדיני עבודה ובודק שכר מוסמך · עונה תוך 24 שעות"</p>
+    <span class="no-change-label">לא משנים · כבר מושלם</span>
+  </div>
+</div>
+
+<!-- ─── VERDICT ─── -->
+<div class="verdict">
+  <h2>סיכום: מה מאחורי השינויים</h2>
+  <p>הפידבק מהוואטסאפ לא טעה לגמרי — אבל האבחנה שלו הייתה קצת לא מדויקת.<br/>
+  הבעיה לא הייתה "אוהד" — הבעיה הייתה <strong>חוסר בהרגעת חשש קיבולת</strong>.<br/>
+  3 שינויים מינימליים פותרים את זה:</p>
+  <ul>
+    <li>לוגו מודגש יותר → תחושת פירמה מוסדית</li>
+    <li>"תוך 24 שעות" בשלב 2 + badge → SLA ברור = אין חשש קיבולת</li>
+    <li>"תוך 24 שעות" בכותרת הטופס → עקביות</li>
+  </ul>
+  <p style="margin-top:0.8rem; color:#666;">הכל שאר הדף נשאר <strong style="color:#bbb;">בדיוק אותו דבר</strong>. הטון האישי הוא הנכס הגדול ביותר של הדף הזה.</p>
+</div>
+
+</body>
+</html>

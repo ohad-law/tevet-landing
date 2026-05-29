@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Design Concept</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Assistant', sans-serif; background: #0f0f0f; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+
+.browser-frame {
+  width: 100%;
+  max-width: 1100px;
+  background: #1a1a1a;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 40px 100px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.08);
+}
+.browser-bar {
+  background: #2a2a2a;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.browser-dot { width: 12px; height: 12px; border-radius: 50%; }
+.url-bar { flex: 1; margin: 0 16px; height: 22px; background: rgba(255,255,255,.06); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: rgba(255,255,255,.3); }
+
+.crm { display: flex; height: 600px; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 220px;
+  background: #141414;
+  border-left: 1px solid rgba(255,255,255,.06);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.sb-logo {
+  padding: 20px 18px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.sb-logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  box-shadow: 0 4px 12px rgba(217,119,6,.35);
+  flex-shrink: 0;
+}
+.sb-logo-text { line-height: 1.25; }
+.sb-logo-text .t1 { font-size: 13px; font-weight: 800; color: #f5f5f5; }
+.sb-logo-text .t2 { font-size: 10px; color: rgba(255,255,255,.3); font-weight: 500; }
+
+.sb-search {
+  margin: 12px 12px 8px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 11px;
+  color: rgba(255,255,255,.2);
+  font-family: inherit;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.sb-section { padding: 6px 10px 2px; font-size: 9px; font-weight: 700; color: rgba(255,255,255,.2); text-transform: uppercase; letter-spacing: .08em; margin-top: 8px; }
+
+.sb-item {
+  margin: 1px 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.sb-item .icon { width: 16px; height: 16px; border-radius: 4px; background: rgba(255,255,255,.12); flex-shrink: 0; }
+.sb-item .label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,.45); flex: 1; }
+.sb-item .badge { background: rgba(255,255,255,.1); color: rgba(255,255,255,.4); font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 20px; }
+
+.sb-item.active {
+  background: rgba(217,119,6,.15);
+  border: 1px solid rgba(217,119,6,.2);
+}
+.sb-item.active .icon { background: linear-gradient(135deg, #d97706, #f59e0b); box-shadow: 0 2px 8px rgba(217,119,6,.4); }
+.sb-item.active .label { color: #fbbf24; }
+
+.sb-item.has-badge .badge { background: rgba(239,68,68,.2); color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
+
+.sb-bottom { margin-top: auto; padding: 12px; border-top: 1px solid rgba(255,255,255,.05); }
+.sb-user { display: flex; align-items: center; gap: 9px; }
+.sb-avatar { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg,#d97706,#f59e0b); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #fff; }
+.sb-user-info .name { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.7); }
+.sb-user-info .email { font-size: 9px; color: rgba(255,255,255,.25); }
+
+/* ── Main ── */
+.main {
+  flex: 1;
+  background: #FAFAF8;
+  overflow-y: auto;
+  padding: 24px 28px;
+}
+
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+.page-title { font-size: 22px; font-weight: 900; color: #1a1a1a; line-height: 1.1; }
+.page-sub { font-size: 12px; color: #9ca3af; margin-top: 4px; font-weight: 500; }
+.btn-new {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 18px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(217,119,6,.35);
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* Stats */
+.stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px; }
+.stat-card {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.04);
+}
+.stat-icon { width: 32px; height: 32px; border-radius: 9px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.stat-num { font-size: 26px; font-weight: 900; color: #111; line-height: 1; }
+.stat-label { font-size: 11px; color: #9ca3af; margin-top: 4px; font-weight: 600; }
+.stat-sub { font-size: 10px; color: #d97706; font-weight: 700; margin-top: 3px; }
+.stat-sub.red { color: #ef4444; }
+
+/* Alert */
+.alert {
+  background: linear-gradient(135deg, #fff7ed, #fffbf7);
+  border: 1px solid #fed7aa;
+  border-right: 4px solid #f97316;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 18px;
+  font-size: 12px;
+  color: #7c2d12;
+  font-weight: 600;
+}
+
+/* Two cols */
+.two-col { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+.panel {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 6px 20px rgba(0,0,0,.04);
+}
+.panel-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.panel-title { font-size: 13px; font-weight: 800; color: #111; display: flex; align-items: center; gap: 7px; }
+.panel-icon { width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+.panel-count { background: #f3f4f6; color: #6b7280; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+.panel-link { font-size: 11px; color: #d97706; font-weight: 700; }
+
+.case-row {
+  padding: 11px 18px;
+  border-bottom: 1px solid #fafafa;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+}
+.case-row:last-child { border-bottom: none; }
+.case-name { font-size: 12px; font-weight: 700; color: #1a1a1a; }
+.case-meta { font-size: 10px; color: #9ca3af; margin-top: 2px; }
+.status-pill { font-size: 9px; font-weight: 700; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+.s-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.s-amber { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+.s-red { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+.s-green { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.s-purple { background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+
+.hearing-row {
+  padding: 10px 18px;
+  border-bottom: 1px solid #fafafa;
+  display: flex; align-items: center; gap: 10px;
+}
+.hearing-row:last-child { border-bottom: none; }
+.hearing-date {
+  background: linear-gradient(135deg, #fff7ed, #fef3c7);
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  width: 38px; min-width: 38px; height: 40px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.h-day { font-size: 14px; font-weight: 900; color: #b45309; line-height: 1; }
+.h-mon { font-size: 8px; font-weight: 700; color: #d97706; text-transform: uppercase; }
+.hearing-info { flex: 1; }
+.h-name { font-size: 11px; font-weight: 700; color: #1a1a1a; }
+.h-case { font-size: 10px; color: #9ca3af; margin-top: 1px; }
+.h-time { font-size: 10px; font-weight: 700; color: #d97706; }
+
+/* Gradient text accent */
+.grad { background: linear-gradient(135deg,#d97706,#f59e0b); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+
+/* Click overlay */
+.click-hint {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,.8);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-family: 'Assistant',sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 30px;
+  border: 1px solid rgba(255,255,255,.15);
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<div class="browser-frame">
+  <div class="browser-bar">
+    <div class="browser-dot" style="background:#ff5f57"></div>
+    <div class="browser-dot" style="background:#febc2e"></div>
+    <div class="browser-dot" style="background:#28c840"></div>
+    <div class="url-bar">tevet-landing.vercel.app/crm/dashboard</div>
+  </div>
+
+  <div class="crm">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sb-logo">
+        <div class="sb-logo-icon">⚖️</div>
+        <div class="sb-logo-text">
+          <div class="t1">משרד טבת</div>
+          <div class="t2">מערכת ניהול</div>
+        </div>
+      </div>
+
+      <div class="sb-search">🔍 חיפוש מהיר...</div>
+
+      <div class="sb-section">ניהול</div>
+      <div class="sb-item active">
+        <div class="icon" style="font-size:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800">🏠</div>
+        <span class="label">לוח בקרה</span>
+      </div>
+      <div class="sb-item">
+        <div class="icon"></div>
+        <span class="label">תיקים</span>
+        <span class="badge">24</span>
+      </div>
+      <div class="sb-item">
+        <div class="icon"></div>
+        <span class="label">לקוחות</span>
+      </div>
+      <div class="sb-item has-badge">
+        <div class="icon"></div>
+        <span class="label">לידים</span>
+        <span class="badge">7</span>
+      </div>
+
+      <div class="sb-section">כספים ומשימות</div>
+      <div class="sb-item">
+        <div class="icon"></div>
+        <span class="label">משימות</span>
+        <span class="badge">12</span>
+      </div>
+      <div class="sb-item">
+        <div class="icon"></div>
+        <span class="label">דיונים</span>
+      </div>
+      <div class="sb-item">
+        <div class="icon"></div>
+        <span class="label">פיננסים</span>
+      </div>
+
+      <div class="sb-bottom">
+        <div class="sb-user">
+          <div class="sb-avatar">א</div>
+          <div class="sb-user-info">
+            <div class="name">אוהד טבת</div>
+            <div class="email">עו"ד ומגשר</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <div class="page-title">שלום, אוהד 👋</div>
+          <div class="page-sub">יום רביעי, 28 במאי 2026 · 3 דיונים השבוע</div>
+        </div>
+        <button class="btn-new">＋ תיק חדש</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fff7ed">⚖️</div>
+          <div class="stat-num">24</div>
+          <div class="stat-label">תיקים פעילים</div>
+          <div class="stat-sub">↑ 3 החודש</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f0fdf4">👥</div>
+          <div class="stat-num">18</div>
+          <div class="stat-label">לקוחות פעילים</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fef2f2">✓</div>
+          <div class="stat-num" style="color:#ef4444">5</div>
+          <div class="stat-label">משימות דחופות</div>
+          <div class="stat-sub red">3 באיחור!</div>
+        </div>
+        <div class="stat-card" style="border-color:#fed7aa;background:linear-gradient(135deg,#fffbf7,#fff7ed)">
+          <div class="stat-icon" style="background:#fff7ed">₪</div>
+          <div class="stat-num"><span class="grad">₪48K</span></div>
+          <div class="stat-label">הכנסות החודש</div>
+          <div class="stat-sub">↑ 12% מחודש קודם</div>
+        </div>
+      </div>
+
+      <!-- Alert -->
+      <div class="alert">
+        ⚠️ &nbsp;3 משימות עברו את המועד · כהן נ׳ מפעלים, לוי נ׳ חברת הניקיון ועוד
+        <span style="margin-right:auto;color:#f97316;cursor:pointer;font-size:11px">לצפייה ←</span>
+      </div>
+
+      <!-- Two cols -->
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">
+              <div class="panel-icon" style="background:#fff7ed">⚖️</div>
+              תיקים פעילים
+              <span class="panel-count">24</span>
+            </div>
+            <span class="panel-link">לכל התיקים ←</span>
+          </div>
+          <div class="case-row">
+            <div>
+              <div class="case-name">כהן נ׳ מפעלים בע"מ</div>
+              <div class="case-meta">#2024-041 · אוהד טבת</div>
+            </div>
+            <span class="status-pill s-red">הוכחות</span>
+          </div>
+          <div class="case-row">
+            <div>
+              <div class="case-name">לוי נ׳ חברת הניקיון</div>
+              <div class="case-meta">#2024-038 · אוהד טבת</div>
+            </div>
+            <span class="status-pill s-amber">תצהיר גילוי</span>
+          </div>
+          <div class="case-row">
+            <div>
+              <div class="case-name">ישראלי נ׳ מד"א</div>
+              <div class="case-meta">#2024-035 · אוהד טבת</div>
+            </div>
+            <span class="status-pill s-blue">מעקב בנט</span>
+          </div>
+          <div class="case-row">
+            <div>
+              <div class="case-name">דוד נ׳ אייס פאואר</div>
+              <div class="case-meta">#2024-029 · אוהד טבת</div>
+            </div>
+            <span class="status-pill s-purple">סיכומים</span>
+          </div>
+          <div class="case-row">
+            <div>
+              <div class="case-name">פרץ נ׳ חברת הבניה</div>
+              <div class="case-meta">#2024-022 · אוהד טבת</div>
+            </div>
+            <span class="status-pill s-green">פסק דין</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">
+              <div class="panel-icon" style="background:#fff7ed">📅</div>
+              דיונים קרובים
+              <span class="panel-count">3</span>
+            </div>
+            <span class="panel-link">הכל ←</span>
+          </div>
+          <div class="hearing-row">
+            <div class="hearing-date">
+              <div class="h-day">29</div>
+              <div class="h-mon">מאי</div>
+            </div>
+            <div class="hearing-info">
+              <div class="h-name">דיון הוכחות</div>
+              <div class="h-case">כהן נ׳ מפעלים</div>
+            </div>
+            <div class="h-time">09:30</div>
+          </div>
+          <div class="hearing-row">
+            <div class="hearing-date">
+              <div class="h-day">02</div>
+              <div class="h-mon">יוני</div>
+            </div>
+            <div class="hearing-info">
+              <div class="h-name">קדם משפט</div>
+              <div class="h-case">ישראלי נ׳ מד"א</div>
+            </div>
+            <div class="h-time">11:00</div>
+          </div>
+          <div class="hearing-row">
+            <div class="hearing-date">
+              <div class="h-day">08</div>
+              <div class="h-mon">יוני</div>
+            </div>
+            <div class="hearing-info">
+              <div class="h-name">שמיעת סיכומים</div>
+              <div class="h-case">דוד נ׳ אייס פאואר</div>
+            </div>
+            <div class="h-time">14:00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="click-hint">זה מוקאפ — ספר לי בטרמינל מה אתה חושב</div>
+
+</body>
+</html>
