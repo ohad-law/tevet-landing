@@ -43,8 +43,9 @@ export default function LibraryPage() {
   const [dragOver, setDragOver]   = useState(false)
   const [tagInput, setTagInput]   = useState('')
   const [pendingTags, setPendingTags] = useState<string[]>([])
-  const [uploadProgress, setUploadProgress] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number; current: string } | null>(null)
+  const fileInputRef       = useRef<HTMLInputElement>(null)
+  const folderInputRef     = useRef<HTMLInputElement>(null)
 
   const fetchDocs = useCallback(async () => {
     try {
@@ -69,25 +70,41 @@ export default function LibraryPage() {
     return () => clearInterval(interval)
   }, [fetchDocs])
 
+  const SUPPORTED_EXTS = /\.(pdf|docx?|xlsx?|txt|jpe?g|png|webp|gif)$/i
+
   const handleFiles = async (files: FileList | File[]) => {
-    const arr = Array.from(files)
+    const arr = Array.from(files).filter(f => SUPPORTED_EXTS.test(f.name))
     if (!arr.length) return
     setUploading(true)
 
-    for (const file of arr) {
-      setUploadProgress(`מעלה: ${file.name}`)
+    let done = 0
+    const total = arr.length
+
+    const uploadOne = async (file: File) => {
+      setUploadProgress({ done, total, current: file.name })
       const fd = new FormData()
       fd.append('file', file)
       fd.append('tags', JSON.stringify(pendingTags))
       try {
         const res = await fetch('/api/crm/library/upload', { method: 'POST', body: fd })
         if (!res.ok) {
-          const { error } = await res.json()
-          alert(`שגיאה: ${error}`)
+          const { error } = await res.json().catch(() => ({ error: 'שגיאה לא ידועה' }))
+          console.error(`שגיאה ב-${file.name}: ${error}`)
         }
-      } catch {
-        alert(`שגיאה בהעלאת ${file.name}`)
+      } catch (e) {
+        console.error(`שגיאה בהעלאת ${file.name}`, e)
+      } finally {
+        done++
+        setUploadProgress({ done, total, current: file.name })
       }
+    }
+
+    // עיבוד מקבילי — 3 קבצים בו-זמנית
+    const CONCURRENCY = 3
+    for (let i = 0; i < arr.length; i += CONCURRENCY) {
+      const batch = arr.slice(i, i + CONCURRENCY)
+      await Promise.all(batch.map(uploadOne))
+      await fetchDocs() // עדכן רשימה אחרי כל אצווה
     }
 
     setUploadProgress(null)
@@ -155,20 +172,60 @@ export default function LibraryPage() {
           className="hidden"
           onChange={e => e.target.files && handleFiles(e.target.files)}
         />
+        <input
+          ref={folderInputRef}
+          type="file"
+          multiple
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          {...{ webkitdirectory: '' } as any}
+          className="hidden"
+          onChange={e => e.target.files && handleFiles(e.target.files)}
+        />
 
-        {uploading ? (
+        {uploading && uploadProgress ? (
           <div className="flex flex-col items-center gap-3">
             <Loader2 size={28} color="#d97706" className="animate-spin" />
-            <p className="text-sm font-medium" style={{ color: '#d97706' }}>{uploadProgress}</p>
+            <p className="text-sm font-bold" style={{ color: '#d97706' }}>
+              {uploadProgress.done} / {uploadProgress.total} קבצים
+            </p>
+            <p className="text-xs truncate max-w-xs" style={{ color: '#94a3b8' }}>
+              {uploadProgress.current}
+            </p>
+            {/* Progress bar */}
+            <div className="w-48 h-1.5 rounded-full" style={{ background: '#f1f5f9' }}>
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  background: '#d97706',
+                  width: `${Math.round((uploadProgress.done / uploadProgress.total) * 100)}%`,
+                }}
+              />
+            </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-3">
             <Upload size={26} color="#94a3b8" />
             <p className="text-sm font-semibold" style={{ color: '#475569' }}>
-              גרור קבצים לכאן או לחץ לבחירה
+              גרור קבצים לכאן
             </p>
+            <div className="flex gap-2">
+              <button
+                onClick={e => { e.stopPropagation(); fileInputRef.current?.click() }}
+                className="px-4 py-2 rounded-lg text-xs font-semibold transition-colors"
+                style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#475569' }}
+              >
+                בחר קבצים
+              </button>
+              <button
+                onClick={e => { e.stopPropagation(); folderInputRef.current?.click() }}
+                className="px-4 py-2 rounded-lg text-xs font-semibold transition-colors"
+                style={{ background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.2)', color: '#d97706' }}
+              >
+                📁 בחר תיקייה שלמה
+              </button>
+            </div>
             <p className="text-xs" style={{ color: '#94a3b8' }}>
-              PDF · Word · Excel · תמונות · TXT — עד 50MB לקובץ
+              PDF · Word · Excel · תמונות · TXT
             </p>
           </div>
         )}
