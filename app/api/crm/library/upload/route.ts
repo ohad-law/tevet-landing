@@ -30,8 +30,9 @@ function chunkText(text: string): string[] {
 
 async function extractText(buffer: Buffer, fileType: string, filename: string): Promise<string> {
   if (fileType === 'pdf') {
-    const pdfParseModule = await import('pdf-parse')
-    const pdfParse = ('default' in pdfParseModule ? pdfParseModule.default : pdfParseModule) as (buf: Buffer) => Promise<{ text: string }>
+    // ייבוא ישיר מהספרייה הפנימית — עוקף את קובץ הטסט שלא קיים בסביבת Vercel
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const pdfParse = require('pdf-parse/lib/pdf-parse.js') as (buf: Buffer) => Promise<{ text: string }>
     const data = await pdfParse(buffer)
     return data.text || ''
   }
