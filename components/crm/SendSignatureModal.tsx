@@ -24,9 +24,10 @@ export default function SendSignatureModal({ caseId, clientId, clientName, onClo
 
   // Step 1
   const [docName,    setDocName]    = useState('')
-  const [pdfBase64,  setPdfBase64]  = useState<string | null>(null)
+  const [pdfFile,    setPdfFile]    = useState<File | null>(null)
   const [pdfPages,   setPdfPages]   = useState<string[]>([])
   const [pdfLoading, setPdfLoading] = useState(false)
+  const [pdfError,   setPdfError]   = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   // Step 2 — signature fields
@@ -45,35 +46,32 @@ export default function SendSignatureModal({ caseId, clientId, clientName, onClo
   /* ── PDF load ── */
   const loadPdf = useCallback(async (file: File) => {
     setPdfLoading(true)
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-      const base64 = e.target!.result as string
-      setPdfBase64(base64)
-      if (!docName) setDocName(file.name.replace(/\.pdf$/i, ''))
+    setPdfError(null)
+    setPdfFile(file)
+    if (!docName) setDocName(file.name.replace(/\.pdf$/i, ''))
 
-      try {
-        const pdfjsLib = await import('pdfjs-dist')
-        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
-        const bytes  = Uint8Array.from(atob(base64.split(',')[1]), c => c.charCodeAt(0))
-        const pdf    = await pdfjsLib.getDocument({ data: bytes }).promise
-        const images: string[] = []
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page     = await pdf.getPage(i)
-          const viewport = page.getViewport({ scale: 1.5 })
-          const canvas   = document.createElement('canvas')
-          canvas.width   = viewport.width; canvas.height = viewport.height
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await page.render({ canvasContext: canvas.getContext('2d')!, viewport, canvas } as any).promise
-          images.push(canvas.toDataURL('image/jpeg', 0.85))
-        }
-        setPdfPages(images)
-      } catch (err) {
-        console.error('PDF render error:', err)
-      } finally {
-        setPdfLoading(false)
+    try {
+      const pdfjsLib = await import('pdfjs-dist')
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
+      const bytes = new Uint8Array(await file.arrayBuffer())
+      const pdf   = await pdfjsLib.getDocument({ data: bytes }).promise
+      const images: string[] = []
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page     = await pdf.getPage(i)
+        const viewport = page.getViewport({ scale: 1.5 })
+        const canvas   = document.createElement('canvas')
+        canvas.width   = viewport.width; canvas.height = viewport.height
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await page.render({ canvasContext: canvas.getContext('2d')!, viewport } as any).promise
+        images.push(canvas.toDataURL('image/jpeg', 0.85))
       }
+      setPdfPages(images)
+    } catch (err) {
+      console.error('PDF render error:', err)
+      setPdfError('שגיאה בטעינת ה-PDF — ודא שהקובץ תקין ונסה שוב')
+    } finally {
+      setPdfLoading(false)
     }
-    reader.readAsDataURL(file)
   }, [docName])
 
   /* ── add field on click ── */
@@ -90,21 +88,19 @@ export default function SendSignatureModal({ caseId, clientId, clientName, onClo
 
   /* ── send ── */
   const handleSend = async () => {
-    if (!pdfBase64 || !docName.trim()) { setError('חסר שם מסמך או PDF'); return }
+    if (!pdfFile || !docName.trim()) { setError('חסר שם מסמך או PDF'); return }
     setSending(true); setError(null)
     try {
-      const res = await fetch('/api/crm/signatures', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          caseId, clientId,
-          documentName:    docName.trim(),
-          pdfBase64,
-          signatureFields: fields,
-          sendWhatsApp:    sendWA,
-          sendEmail,
-        }),
-      })
+      const fd = new FormData()
+      fd.append('file',            pdfFile)
+      fd.append('caseId',          caseId)
+      fd.append('clientId',        clientId)
+      fd.append('documentName',    docName.trim())
+      fd.append('signatureFields', JSON.stringify(fields))
+      fd.append('sendWhatsApp',    String(sendWA))
+      fd.append('sendEmail',       String(sendEmail))
+
+      const res = await fetch('/api/crm/signatures', { method: 'POST', body: fd })
       const data = await res.json()
       if (data.error) { setError(data.error); return }
       setSent(true)
@@ -176,10 +172,14 @@ export default function SendSignatureModal({ caseId, clientId, clientName, onClo
                   onChange={e => { const f = e.target.files?.[0]; if (f) loadPdf(f) }} />
                 {pdfLoading ? (
                   <><Loader2 size={24} color="#d97706" className="animate-spin" /><p className="text-sm text-slate-500">טוען PDF...</p></>
-                ) : pdfPages.length > 0 ? (
+                ) : pdfError ? (
+                  <><X size={24} color="#dc2626" />
+                    <p className="text-sm font-semibold text-red-600">{pdfError}</p>
+                    <p className="text-xs text-slate-400">לחץ לבחירת קובץ אחר</p></>
+                ) : pdfFile ? (
                   <><CheckCircle2 size={24} color="#16a34a" />
                     <p className="text-sm font-semibold text-slate-700">{docName}</p>
-                    <p className="text-xs text-slate-400">{pdfPages.length} עמודים · לחץ להחלפה</p></>
+                    <p className="text-xs text-slate-400">{pdfPages.length > 0 ? `${pdfPages.length} עמודים` : 'קובץ נטען'} · לחץ להחלפה</p></>
                 ) : (
                   <><Upload size={24} color="#94a3b8" />
                     <p className="text-sm font-semibold text-slate-600">גרור PDF לכאן או לחץ לבחירה</p></>
@@ -304,7 +304,7 @@ export default function SendSignatureModal({ caseId, clientId, clientName, onClo
             {step < 3 ? (
               <button
                 onClick={() => {
-                  if (step === 1 && !pdfBase64) { setError('נא להעלות PDF'); return }
+                  if (step === 1 && !pdfFile) { setError('נא להעלות PDF'); return }
                   if (step === 1 && !docName.trim()) { setError('נא להזין שם מסמך'); return }
                   setError(null)
                   setStep(s => (s + 1) as 2|3)

@@ -31,18 +31,16 @@ export async function GET(req: NextRequest) {
 /* ── POST: יצירת בקשת חתימה ── */
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as {
-      caseId:          string
-      clientId:        string
-      documentName:    string
-      pdfBase64:       string   // PDF מקורי
-      signatureFields: object[]
-      sendWhatsApp:    boolean
-      sendEmail:       boolean
-    }
+    const fd             = await req.formData()
+    const file           = fd.get('file')           as File   | null
+    const caseId         = fd.get('caseId')         as string | null
+    const clientId       = fd.get('clientId')       as string | null
+    const documentName   = fd.get('documentName')   as string | null
+    const sendWhatsApp   = fd.get('sendWhatsApp') === 'true'
+    const sendEmail      = fd.get('sendEmail')    === 'true'
+    const signatureFields: object[] = JSON.parse((fd.get('signatureFields') as string) || '[]')
 
-    const { caseId, clientId, documentName, pdfBase64, signatureFields, sendWhatsApp, sendEmail } = body
-    if (!caseId || !clientId || !documentName || !pdfBase64) {
+    if (!caseId || !clientId || !documentName || !file) {
       return NextResponse.json({ error: 'חסרים פרטים חובה' }, { status: 400 })
     }
 
@@ -59,7 +57,7 @@ export async function POST(req: NextRequest) {
 
     // יצירת טוקן + העלאת PDF מקורי
     const token     = crypto.randomUUID()
-    const pdfBuffer = Buffer.from(pdfBase64.replace(/^data:application\/pdf;base64,/, ''), 'base64')
+    const pdfBuffer = Buffer.from(await file.arrayBuffer())
     const storagePath = `originals/${caseId}/${token}.pdf`
 
     const { error: uploadErr } = await supabase.storage
