@@ -7,12 +7,14 @@ import dynamic from 'next/dynamic'
 const SendSignatureModal = dynamic(() => import('./SendSignatureModal'), { ssr: false })
 
 interface Props {
-  caseId:     string
-  clientId:   string
-  clientName: string
+  caseId:       string
+  clientId:     string
+  clientName:   string
+  clientPhone?: string
+  clientEmail?: string
 }
 
-export default function SignatureButton({ caseId, clientId, clientName }: Props) {
+export default function SignatureButton({ caseId, clientId, clientName, clientPhone, clientEmail }: Props) {
   const [open, setOpen] = useState(false)
 
   if (!clientId) return null
@@ -35,6 +37,8 @@ export default function SignatureButton({ caseId, clientId, clientName }: Props)
           caseId={caseId}
           clientId={clientId}
           clientName={clientName}
+          clientPhone={clientPhone}
+          clientEmail={clientEmail}
           onClose={() => setOpen(false)}
           onSent={() => setOpen(false)}
         />

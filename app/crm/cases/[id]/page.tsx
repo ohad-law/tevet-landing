@@ -115,6 +115,8 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
               caseId={id}
               clientId={clientData?.id ?? ''}
               clientName={clientData?.full_name ?? ''}
+              clientPhone={clientData?.phone ?? ''}
+              clientEmail={clientData?.email ?? ''}
             />
             <PrintButton />
             <Link

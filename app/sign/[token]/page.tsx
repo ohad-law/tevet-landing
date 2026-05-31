@@ -6,10 +6,25 @@ import { getStroke } from 'perfect-freehand'
 import { CheckCircle2, Loader2, AlertCircle, PenLine, X, RotateCcw } from 'lucide-react'
 
 /* ── types ── */
+type FieldType = 'signature' | 'date' | 'initials' | 'full_name' | 'id_number'
 interface SignatureField {
-  type: 'signature' | 'date' | 'initials'
+  type: FieldType
   page: number
   x: number; y: number; w: number; h: number
+}
+const FIELD_COLOR: Record<FieldType, string> = {
+  signature: '#d97706',
+  date:      '#0284c7',
+  initials:  '#d97706',
+  full_name: '#16a34a',
+  id_number: '#7c3aed',
+}
+const FIELD_LABEL: Record<FieldType, string> = {
+  signature: '✍️ חתום כאן',
+  date:      '📅 תאריך',
+  initials:  'ר"ת',
+  full_name: '👤 שם מלא',
+  id_number: '🪪 ת"ז',
 }
 interface DocData {
   documentName:    string
@@ -142,8 +157,11 @@ export default function SignPage({ params }: { params: Promise<{ token: string }
   const [activeField, setActiveField] = useState<number | null>(null)
 
   const [signerName, setSignerName] = useState('')
+  const [idNumber,   setIdNumber]   = useState('')
   const [sigPng,     setSigPng]     = useState<string | null>(null)
   const [agreed,     setAgreed]     = useState(false)
+
+  const needsId = doc?.signatureFields.some(f => f.type === 'id_number') ?? false
 
   const [submitting, setSubmitting] = useState(false)
   const [done,       setDone]       = useState(false)
@@ -202,7 +220,7 @@ export default function SignPage({ params }: { params: Promise<{ token: string }
       const res = await fetch(`/api/sign/${token}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ signerName, signatureImageBase64: sigPng }),
+        body: JSON.stringify({ signerName, signatureImageBase64: sigPng, idNumber: idNumber.trim() }),
       })
       const data = await res.json()
       if (data.error) { setSubmitErr(data.error); return }
@@ -279,29 +297,35 @@ export default function SignPage({ params }: { params: Promise<{ token: string }
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={src} alt={`עמוד ${pi + 1}`} style={{ width: '100%', display: 'block' }} />
                   {pageFields.map((field, fi) => {
-                    const key = doc.signatureFields.indexOf(field)
+                    const key   = doc.signatureFields.indexOf(field)
+                    const color = FIELD_COLOR[field.type] ?? '#d97706'
+                    const isSig = field.type === 'signature' || field.type === 'initials'
+                    const today = new Date().toLocaleDateString('he-IL')
                     return (
                       <div
                         key={fi}
-                        onClick={() => { setActiveField(key); setModalOpen(true) }}
+                        onClick={() => isSig && (setActiveField(key), setModalOpen(true))}
                         style={{
                           position: 'absolute',
                           left:   `${field.x * 100}%`,
                           top:    `${field.y * 100}%`,
                           width:  `${field.w * 100}%`,
                           height: `${field.h * 100}%`,
-                          background: sigPng ? 'transparent' : 'rgba(217,119,6,0.18)',
-                          border: `2px dashed ${sigPng ? 'transparent' : '#d97706'}`,
-                          borderRadius: 4,
-                          cursor: 'pointer',
+                          background: isSig && sigPng ? 'transparent' : `${color}18`,
+                          border: `1.5px solid ${isSig && sigPng ? 'transparent' : color}`,
+                          borderRadius: 4, cursor: isSig ? 'pointer' : 'default',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}
                       >
-                        {sigPng
+                        {isSig && sigPng
                           ? <img src={sigPng} alt="חתימה" style={{ width: '90%', height: '90%', objectFit: 'contain' }} />
-                          : <span style={{ fontSize: 11, color: '#d97706', fontWeight: 600 }}>
-                              {field.type === 'signature' ? '✍️ חתום כאן' : field.type === 'date' ? '📅 תאריך' : 'ר"ת'}
-                            </span>
+                          : field.type === 'date'
+                            ? <span style={{ fontSize: 11, color, fontWeight: 600 }}>{today}</span>
+                            : field.type === 'full_name' && signerName
+                              ? <span style={{ fontSize: 11, color, fontWeight: 600 }}>{signerName}</span>
+                              : field.type === 'id_number' && idNumber
+                                ? <span style={{ fontSize: 11, color, fontWeight: 600 }}>{idNumber}</span>
+                                : <span style={{ fontSize: 11, color, fontWeight: 600 }}>{FIELD_LABEL[field.type]}</span>
                         }
                       </div>
                     )
@@ -393,6 +417,22 @@ export default function SignPage({ params }: { params: Promise<{ token: string }
                 style={{ border: '1.5px solid #e2e8f0', fontFamily: 'inherit', outline: 'none' }}
               />
             </div>
+
+            {needsId && (
+              <div>
+                <label className="text-xs font-semibold text-slate-600 mb-1.5 block">מספר תעודת זהות</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={idNumber}
+                  onChange={e => setIdNumber(e.target.value.replace(/\D/g, ''))}
+                  placeholder="000000000"
+                  maxLength={9}
+                  className="w-full px-3 py-2.5 rounded-lg text-sm"
+                  style={{ border: '1.5px solid #e2e8f0', fontFamily: 'inherit', outline: 'none', direction: 'ltr', textAlign: 'right' }}
+                />
+              </div>
+            )}
 
             <div>
               <label className="text-xs font-semibold text-slate-600 mb-1.5 block">חתימה</label>

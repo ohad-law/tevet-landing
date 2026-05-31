@@ -1,7 +1,7 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 
 export interface SignatureField {
-  type: 'signature' | 'date' | 'initials'
+  type: 'signature' | 'date' | 'initials' | 'full_name' | 'id_number'
   page: number   // 0-indexed
   x: number      // % מרוחב העמוד
   y: number      // % מגובה העמוד (0 = תחתית, 1 = ראש)
@@ -16,6 +16,7 @@ export interface SignatureData {
   signedAt:   Date
   fields:     SignatureField[]
   signatureImageBase64: string  // PNG base64
+  idNumber?:  string            // ת"ז — אופציונלי
 }
 
 export async function stampPdf(
@@ -77,6 +78,27 @@ export async function stampPdf(
         font,
         color: rgb(0.1, 0.1, 0.25),
       })
+    } else if (field.type === 'full_name') {
+      const fontSize = Math.min(h * 0.55, 12)
+      page.drawText(data.signerName, {
+        x: x + 4,
+        y: y + (h - fontSize) / 2,
+        size: fontSize,
+        font,
+        color: rgb(0.1, 0.1, 0.25),
+      })
+    } else if (field.type === 'id_number') {
+      const idText = data.idNumber ?? ''
+      const fontSize = Math.min(h * 0.55, 12)
+      if (idText) {
+        page.drawText(idText, {
+          x: x + 4,
+          y: y + (h - fontSize) / 2,
+          size: fontSize,
+          font,
+          color: rgb(0.1, 0.1, 0.25),
+        })
+      }
     }
 
     // קו תחתי עדין תחת כל שדה

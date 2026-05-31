@@ -55,6 +55,7 @@ export async function POST(request: NextRequest, { params }: Params) {
   const body = await request.json() as {
     signerName:           string
     signatureImageBase64: string  // PNG base64
+    idNumber?:            string
   }
 
   if (!body.signerName?.trim() || !body.signatureImageBase64) {
@@ -89,6 +90,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     signedAt:             new Date(),
     fields:               sigReq.signature_fields as SignatureField[],
     signatureImageBase64: body.signatureImageBase64,
+    idNumber:             body.idNumber,
   }
 
   // הטבע חתימה

@@ -38,6 +38,9 @@ export async function POST(req: NextRequest) {
     const documentName   = fd.get('documentName')   as string | null
     const sendWhatsApp   = fd.get('sendWhatsApp') === 'true'
     const sendEmail      = fd.get('sendEmail')    === 'true'
+    // phone/email from form override whatever is in the DB
+    const overridePhone  = (fd.get('phone')  as string | null)?.trim() || null
+    const overrideEmail  = (fd.get('email')  as string | null)?.trim() || null
     const signatureFields: object[] = JSON.parse((fd.get('signatureFields') as string) || '[]')
 
     if (!caseId || !clientId || !documentName || !file) {
@@ -46,7 +49,7 @@ export async function POST(req: NextRequest) {
 
     const supabase = createServiceClient()
 
-    // שליפת פרטי לקוח
+    // שליפת פרטי לקוח (רק לשם — phone/email מגיעים מהטופס)
     const { data: client } = await supabase
       .from('clients')
       .select('full_name, phone, email')
@@ -54,6 +57,16 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (!client) return NextResponse.json({ error: 'לקוח לא נמצא' }, { status: 404 })
+
+    // אם הוזנו פרטים חדשים — עדכן בDB
+    if (overridePhone && overridePhone !== client.phone) {
+      await supabase.from('clients').update({ phone: overridePhone }).eq('id', clientId)
+      client.phone = overridePhone
+    }
+    if (overrideEmail && overrideEmail !== client.email) {
+      await supabase.from('clients').update({ email: overrideEmail }).eq('id', clientId)
+      client.email = overrideEmail
+    }
 
     // יצירת טוקן + העלאת PDF מקורי
     const token     = crypto.randomUUID()
