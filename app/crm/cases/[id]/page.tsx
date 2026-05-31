@@ -16,6 +16,7 @@ import CaseNotesSection from '@/components/crm/CaseNotesSection'
 import CaseFeeToggle from '@/components/crm/CaseFeeToggle'
 import PrintButton from '@/components/crm/PrintButton'
 import CaseAIAgent from '@/components/crm/CaseAIAgent'
+import SignatureButton from '@/components/crm/SignatureButton'
 
 export const revalidate = 0
 
@@ -110,6 +111,11 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
                 {overdueTasks.length} משימות באיחור
               </span>
             )}
+            <SignatureButton
+              caseId={id}
+              clientId={clientData?.id ?? ''}
+              clientName={clientData?.full_name ?? ''}
+            />
             <PrintButton />
             <Link
               href={`/crm/cases/${id}/edit`}

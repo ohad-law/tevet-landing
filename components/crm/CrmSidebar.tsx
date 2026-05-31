@@ -5,20 +5,21 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   LayoutDashboard, FolderOpen, Users, CheckSquare, CalendarDays,
-  UserPlus, Wallet, LogOut, Scale, ClockIcon, X, Sun, ExternalLink, BookOpen,
+  UserPlus, Wallet, LogOut, Scale, ClockIcon, X, Sun, ExternalLink, BookOpen, PenLine,
 } from 'lucide-react'
 
 const navItems = [
-  { href: '/crm/dashboard', label: 'לוח בקרה',      icon: LayoutDashboard },
-  { href: '/crm/my-day',    label: 'יום שלי',         icon: Sun },
-  { href: '/crm/cases',     label: 'תיקים',            icon: FolderOpen },
-  { href: '/crm/clients',   label: 'לקוחות',           icon: Users },
-  { href: '/crm/tasks',     label: 'משימות',            icon: CheckSquare },
-  { href: '/crm/hearings',  label: 'דיונים',            icon: CalendarDays },
-  { href: '/crm/leads',     label: 'לידים',             icon: UserPlus },
-  { href: '/crm/finances',  label: 'פיננסים',           icon: Wallet },
-  { href: '/crm/attendance',label: 'נוכחות',            icon: ClockIcon },
-  { href: '/crm/library',   label: 'ספריית ידע',        icon: BookOpen },
+  { href: '/crm/dashboard',  label: 'לוח בקרה',      icon: LayoutDashboard },
+  { href: '/crm/my-day',     label: 'יום שלי',         icon: Sun },
+  { href: '/crm/cases',      label: 'תיקים',            icon: FolderOpen },
+  { href: '/crm/clients',    label: 'לקוחות',           icon: Users },
+  { href: '/crm/tasks',      label: 'משימות',            icon: CheckSquare },
+  { href: '/crm/hearings',   label: 'דיונים',            icon: CalendarDays },
+  { href: '/crm/leads',      label: 'לידים',             icon: UserPlus },
+  { href: '/crm/finances',   label: 'פיננסים',           icon: Wallet },
+  { href: '/crm/attendance', label: 'נוכחות',            icon: ClockIcon },
+  { href: '/crm/signatures', label: 'חתימות',            icon: PenLine },
+  { href: '/crm/library',    label: 'ספריית ידע',        icon: BookOpen },
 ]
 
 const extLinks = [
