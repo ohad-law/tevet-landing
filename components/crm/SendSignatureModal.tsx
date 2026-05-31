@@ -53,8 +53,7 @@ export default function SendSignatureModal({ caseId, clientId, clientName, onClo
 
       try {
         const pdfjsLib = await import('pdfjs-dist')
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-          `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
         const bytes  = Uint8Array.from(atob(base64.split(',')[1]), c => c.charCodeAt(0))
         const pdf    = await pdfjsLib.getDocument({ data: bytes }).promise
         const images: string[] = []

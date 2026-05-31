@@ -4,6 +4,7 @@ import { notifyClientWhatsApp, notifyClientEmail } from '@/lib/signatures/notify
 import crypto from 'crypto'
 
 export const maxDuration = 60
+export const dynamic = 'force-dynamic'
 
 /* ── GET: רשימת בקשות חתימה ── */
 export async function GET(req: NextRequest) {
