@@ -79,8 +79,12 @@ export async function POST(request: NextRequest, { params }: Params) {
 
   // הורד PDF מקורי
   const urlPath = sigReq.original_url.split('/signed-documents/')[1]
-  const { data: fileData } = await supabase.storage.from('signed-documents').download(urlPath)
-  if (!fileData) return NextResponse.json({ error: 'לא ניתן לטעון מסמך' }, { status: 500 })
+  console.log('[sign POST] downloading:', urlPath)
+  const { data: fileData, error: dlErr } = await supabase.storage.from('signed-documents').download(urlPath)
+  if (!fileData) {
+    console.error('[sign POST] download failed:', dlErr)
+    return NextResponse.json({ error: `לא ניתן לטעון מסמך: ${dlErr?.message ?? 'לא ידוע'}` }, { status: 500 })
+  }
 
   const pdfBytes     = new Uint8Array(await fileData.arrayBuffer())
   const signatureData: SignatureData = {
@@ -94,15 +98,26 @@ export async function POST(request: NextRequest, { params }: Params) {
   }
 
   // הטבע חתימה
-  const stampedBytes = await stampPdf(pdfBytes, signatureData)
+  console.log('[sign POST] stamping PDF...')
+  let stampedBytes: Uint8Array
+  try {
+    stampedBytes = await stampPdf(pdfBytes, signatureData)
+  } catch (stampErr) {
+    console.error('[sign POST] stamp failed:', stampErr)
+    return NextResponse.json({ error: `שגיאה בהטבעת חתימה: ${stampErr instanceof Error ? stampErr.message : 'לא ידוע'}` }, { status: 500 })
+  }
 
   // שמור PDF חתום
   const signedPath  = `signed/${sigReq.case_id}/${token}.pdf`
+  console.log('[sign POST] uploading signed PDF...')
   const { error: upErr } = await supabase.storage
     .from('signed-documents')
     .upload(signedPath, stampedBytes, { contentType: 'application/pdf', upsert: true })
 
-  if (upErr) return NextResponse.json({ error: 'שגיאה בשמירת מסמך חתום' }, { status: 500 })
+  if (upErr) {
+    console.error('[sign POST] upload failed:', upErr)
+    return NextResponse.json({ error: `שגיאה בשמירת מסמך: ${upErr.message}` }, { status: 500 })
+  }
 
   const { data: { publicUrl: signedUrl } } = supabase.storage
     .from('signed-documents')

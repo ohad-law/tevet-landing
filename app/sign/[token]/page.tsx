@@ -222,11 +222,12 @@ export default function SignPage({ params }: { params: Promise<{ token: string }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ signerName, signatureImageBase64: sigPng, idNumber: idNumber.trim() }),
       })
-      const data = await res.json()
-      if (data.error) { setSubmitErr(data.error); return }
+      let data: { error?: string; success?: boolean } = {}
+      try { data = await res.json() } catch { data = { error: `שגיאת שרת ${res.status}` } }
+      if (!res.ok || data.error) { setSubmitErr(data.error ?? `שגיאה ${res.status}`); return }
       setDone(true)
-    } catch {
-      setSubmitErr('שגיאת רשת — נסה שוב')
+    } catch (e) {
+      setSubmitErr(`שגיאת רשת — ${e instanceof Error ? e.message : 'נסה שוב'}`)
     } finally {
       setSubmitting(false)
     }
@@ -389,71 +390,106 @@ export default function SignPage({ params }: { params: Promise<{ token: string }
 
       </div>
 
-      {/* Signature Modal */}
+      {/* Signature Modal — iOS-safe: ללא backdropFilter, גלילה מובנית */}
       {modalOpen && (
         <div
-          className="fixed inset-0 flex items-end justify-center z-50 p-4"
-          style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+          className="fixed inset-0 z-50"
+          style={{ background: 'rgba(15,23,42,0.6)' }}
           onClick={() => setModalOpen(false)}
         >
+          {/* Bottom sheet — position:fixed עם overflow:auto כדי שהמקלדת לא תגרום לרעידה */}
           <div
-            className="w-full max-w-md rounded-2xl p-5 space-y-4"
-            style={{ background: '#fff' }}
+            className="absolute bottom-0 left-0 right-0 w-full"
+            style={{
+              background: '#fff',
+              borderRadius: '20px 20px 0 0',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              WebkitOverflowScrolling: 'touch' as never,
+            }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-800">חתימה דיגיטלית</h3>
-              <button onClick={() => setModalOpen(false)}><X size={20} color="#94a3b8" /></button>
+            {/* Handle bar */}
+            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12, paddingBottom: 4 }}>
+              <div style={{ width: 40, height: 4, borderRadius: 2, background: '#e2e8f0' }} />
             </div>
 
-            <div>
-              <label className="text-xs font-semibold text-slate-600 mb-1.5 block">שם מלא (חובה)</label>
-              <input
-                type="text"
-                value={signerName}
-                onChange={e => setSignerName(e.target.value)}
-                placeholder="ישראל ישראלי"
-                className="w-full px-3 py-2.5 rounded-lg text-sm"
-                style={{ border: '1.5px solid #e2e8f0', fontFamily: 'inherit', outline: 'none' }}
-              />
-            </div>
+            <div style={{ padding: '12px 20px 32px' }} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-slate-800 text-base">חתימה דיגיטלית</h3>
+                <button onClick={() => setModalOpen(false)} style={{ padding: 4 }}>
+                  <X size={20} color="#94a3b8" />
+                </button>
+              </div>
 
-            {needsId && (
+              {/* שם מלא — autoComplete=off מונע מ-iOS לחסום קלט */}
               <div>
-                <label className="text-xs font-semibold text-slate-600 mb-1.5 block">מספר תעודת זהות</label>
+                <label className="text-xs font-semibold text-slate-600 mb-1.5 block">שם מלא (חובה)</label>
                 <input
                   type="text"
-                  inputMode="numeric"
-                  value={idNumber}
-                  onChange={e => setIdNumber(e.target.value.replace(/\D/g, ''))}
-                  placeholder="000000000"
-                  maxLength={9}
-                  className="w-full px-3 py-2.5 rounded-lg text-sm"
-                  style={{ border: '1.5px solid #e2e8f0', fontFamily: 'inherit', outline: 'none', direction: 'ltr', textAlign: 'right' }}
+                  value={signerName}
+                  onChange={e => setSignerName(e.target.value)}
+                  placeholder="ישראל ישראלי"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="words"
+                  className="w-full px-3 rounded-lg text-sm"
+                  style={{
+                    border: '1.5px solid #e2e8f0',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    height: 44,
+                    fontSize: 16, // מונע zoom אוטומטי ב-iOS
+                  }}
                 />
               </div>
-            )}
 
-            <div>
-              <label className="text-xs font-semibold text-slate-600 mb-1.5 block">חתימה</label>
-              <SignatureCanvas
-                onDone={png => setSigPng(png)}
-                onClear={() => setSigPng(null)}
-              />
+              {needsId && (
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 mb-1.5 block">מספר תעודת זהות</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={idNumber}
+                    onChange={e => setIdNumber(e.target.value.replace(/\D/g, ''))}
+                    placeholder="000000000"
+                    maxLength={9}
+                    autoComplete="off"
+                    className="w-full px-3 rounded-lg text-sm"
+                    style={{
+                      border: '1.5px solid #e2e8f0',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      direction: 'ltr',
+                      textAlign: 'right',
+                      height: 44,
+                      fontSize: 16,
+                    }}
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="text-xs font-semibold text-slate-600 mb-1.5 block">חתימה</label>
+                <SignatureCanvas
+                  onDone={png => setSigPng(png)}
+                  onClear={() => setSigPng(null)}
+                />
+              </div>
+
+              <button
+                onClick={() => {
+                  if (!signerName.trim()) { alert('נא להזין שם מלא'); return }
+                  if (!sigPng) { alert('נא לצייר חתימה'); return }
+                  setModalOpen(false)
+                  void activeField
+                }}
+                className="w-full rounded-xl font-bold text-sm"
+                style={{ background: '#d97706', color: '#fff', height: 52, fontSize: 16 }}
+              >
+                אשר חתימה ✓
+              </button>
             </div>
-
-            <button
-              onClick={() => {
-                if (!signerName.trim()) { alert('נא להזין שם מלא'); return }
-                if (!sigPng) { alert('נא לצייר חתימה'); return }
-                setModalOpen(false)
-                void activeField
-              }}
-              className="w-full py-3 rounded-xl font-bold text-sm"
-              style={{ background: '#d97706', color: '#fff' }}
-            >
-              אשר חתימה
-            </button>
           </div>
         </div>
       )}
