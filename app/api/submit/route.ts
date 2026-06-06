@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
-const GREEN_API_INSTANCE = "7105435035";
-const GREEN_API_TOKEN = "25e05f98851f4262b11be4110f31a462306a88d0d7dd490695";
-const OHAD_WHATSAPP = process.env.OHAD_WHATSAPP_NUMBER ?? "";
+const GREEN_API_INSTANCE = process.env.GREEN_API_INSTANCE_ID ?? "7105435035";
+const GREEN_API_TOKEN = process.env.GREEN_API_TOKEN ?? "25e05f98851f4262b11be4110f31a462306a88d0d7dd490695";
+const GREEN_API_HOST = `https://${GREEN_API_INSTANCE.slice(0, 4)}.api.greenapi.com`;
+const OHAD_WHATSAPP = process.env.OHAD_WHATSAPP_NUMBER ?? process.env.OHAD_WHATSAPP ?? "972542274497";
 
 const OHAD_EMAIL = "ohad@tevet-law.com";
 
@@ -29,7 +30,7 @@ async function sendWhatsApp(name: string, phone: string, years: string, situatio
     `📅 שנות עבודה: ${years}\n` +
     `💼 סיטואציה: ${situation || "לא צוין"}`;
 
-  const url = `https://api.green-api.com/waInstance${GREEN_API_INSTANCE}/sendMessage/${GREEN_API_TOKEN}`;
+  const url = `${GREEN_API_HOST}/waInstance${GREEN_API_INSTANCE}/sendMessage/${GREEN_API_TOKEN}`;
   await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
