@@ -13,6 +13,11 @@ export async function PATCH(
     return NextResponse.json({ error: 'invalid table' }, { status: 400 })
   }
 
+  // אוהד התחיל לטפל (שינה סטטוס מ'חדש') → עצור את רובוט הפולואפ
+  if (typeof updates.status === 'string' && updates.status !== 'חדש') {
+    updates.followup_stopped = true
+  }
+
   const supabase = createServiceClient()
   const { error } = await supabase
     .from(table as 'leads' | 'leads_talush')

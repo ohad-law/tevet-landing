@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/poll-meta-leads",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/followup-leads",
+      "schedule": "0 8 * * *"
     }
   ]
 }

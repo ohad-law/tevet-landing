@@ -109,6 +109,8 @@ export async function POST(req: NextRequest) {
   }
 
   // ── 1. Supabase ───────────────────────────────────────────────
+  // הליד עבר את הסינון → נכנס לרצף הפולואפ. הפולואפ הראשון מתוכנן ליום אחרי.
+  const followupNextAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
   try {
     const supabase = createServiceClient()
     const { error } = await supabase.from('leads').insert({
@@ -119,6 +121,8 @@ export async function POST(req: NextRequest) {
       notes: `שנות עבודה: ${years_worked} | תחום: ${work_sector}${work_sector_detail ? ` (${work_sector_detail})` : ''} | סיטואציה: ${situation}`,
       status: 'חדש',
       is_viewed: false,
+      followup_stage: 0,
+      followup_next_at: followupNextAt,
     })
     if (error) console.error('[incoming] Supabase error:', JSON.stringify(error))
     else console.log('[incoming] Saved to Supabase:', full_name)
