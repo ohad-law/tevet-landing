@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
       phone: phoneNorm,
       source: 'facebook_lead_form',
       campaign_name: ad_name || campaign_name,
-      issue_description: `שנות עבודה: ${years_worked} | תחום: ${work_sector}${work_sector_detail ? ` (${work_sector_detail})` : ''} | סיטואציה: ${situation}`,
+      notes: `שנות עבודה: ${years_worked} | תחום: ${work_sector}${work_sector_detail ? ` (${work_sector_detail})` : ''} | סיטואציה: ${situation}`,
       status: 'חדש',
       is_viewed: false,
     })
