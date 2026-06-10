@@ -71,11 +71,7 @@ export async function POST(req: NextRequest) {
       status: 'חדש',
       is_viewed: false,
     })
-    if (error) {
-      console.error('[incoming] Supabase error:', JSON.stringify(error))
-      // DEBUG TEMP — remove after fix
-      return NextResponse.json({ ok: false, supabase_error: error }, { status: 500 })
-    }
+    if (error) console.error('[incoming] Supabase error:', JSON.stringify(error))
     else console.log('[incoming] Saved to Supabase:', full_name)
   } catch (e) {
     console.error('[incoming] Supabase exception:', e)
