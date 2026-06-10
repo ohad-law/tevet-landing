@@ -19,7 +19,7 @@ const WEBHOOK_SECRET = process.env.LEADS_WEBHOOK_SECRET!
 
 export async function POST(req: NextRequest) {
   // ── אימות ─────────────────────────────────────────────────────
-  const secret = req.headers.get('x-webhook-secret')
+  const secret = req.headers.get('x-webhook-secret')?.trim()
   if (WEBHOOK_SECRET && secret !== WEBHOOK_SECRET) {
     console.warn('[incoming] Unauthorized request')
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
