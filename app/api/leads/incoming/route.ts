@@ -17,6 +17,29 @@ import { sendWhatsApp } from '@/lib/whatsapp'
 const OHAD_WA = process.env.OHAD_WHATSAPP_NUMBER!
 const WEBHOOK_SECRET = process.env.LEADS_WEBHOOK_SECRET!
 
+// פרסור field_data של פייסבוק — מחזיר מפה של name→value
+function parseFieldData(
+  fieldData: Array<{ name?: string; values?: string[]; value?: string }>
+): Record<string, string> {
+  const map: Record<string, string> = {}
+  for (const f of fieldData) {
+    const name = (f.name ?? '').toLowerCase().trim()
+    const val = (f.values?.[0] ?? f.value ?? '').trim()
+    if (name) map[name] = val
+  }
+  return map
+}
+
+// חיפוש במפה לפי מילת מפתח — מחזיר ערך ראשון שנמצא
+function findByKeyword(map: Record<string, string>, ...keywords: string[]): string {
+  for (const key of Object.keys(map)) {
+    if (keywords.some(k => key.includes(k.toLowerCase()))) {
+      return map[key]
+    }
+  }
+  return ''
+}
+
 export async function POST(req: NextRequest) {
   // ── אימות ─────────────────────────────────────────────────────
   const secret = req.headers.get('x-webhook-secret')?.trim()
@@ -25,7 +48,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  let body: Record<string, string>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let body: Record<string, any>
   try {
     body = await req.json()
   } catch {
@@ -34,16 +58,41 @@ export async function POST(req: NextRequest) {
 
   console.log('[incoming] Received lead:', JSON.stringify(body))
 
-  // תמיכה בשמות שדות שונים שMake.com עשוי לשלוח
-  const full_name      = body.full_name      || body['Full Name']         || body.name         || '—'
-  const phone          = body.phone          || body['Phone Number']      || body.phone_number  || ''
-  const years_worked   = body.years_worked   || body['years_worked']      || body.years         || '—'
-  const work_sector    = body.work_sector    || body['work_sector']       || body.sector        || '—'
-  const work_sector_detail = body.work_sector_detail || body['work_sector_detail'] || ''
-  const situation      = body.situation      || body['situation']         || '—'
-  const ad_name        = body.ad_name        || body['Ad Name']           || body['ad_name']    || ''
-  const campaign_name  = body.campaign_name  || body['Campaign Name']     || body['campaign_name'] || ''
-  const lead_id        = body.lead_id        || body['Lead ID']           || ''
+  // ── פרסור שדות — שלב 1: שדות ישירים ──────────────────────────
+  let full_name = body.full_name || body['Full Name'] || body.name || ''
+  let phone = body.phone || body['Phone Number'] || body.phone_number || body['phone_number'] || ''
+  let years_worked = body.years_worked || body['years_worked'] || body.years || ''
+  let work_sector = body.work_sector || body['work_sector'] || body.sector || ''
+  let work_sector_detail = body.work_sector_detail || body['work_sector_detail'] || ''
+  let situation = body.situation || body['situation'] || ''
+  let ad_name = body.ad_name || body['Ad Name'] || body['ad_name'] || ''
+  let campaign_name = body.campaign_name || body['Campaign Name'] || body['campaign_name'] || ''
+  let lead_id = body.lead_id || body['Lead ID'] || body.id || ''
+
+  // ── פרסור שדות — שלב 2: field_data של פייסבוק ─────────────────
+  // Make.com לפעמים מעביר את הנתונים כמערך {name, values[]} במקום שדות ישירים
+  if (Array.isArray(body.field_data) && body.field_data.length > 0) {
+    const fd = parseFieldData(body.field_data)
+    console.log('[incoming] field_data parsed:', JSON.stringify(fd))
+
+    if (!full_name) full_name = fd['full_name'] || fd['name'] || findByKeyword(fd, 'name', 'שם')
+    if (!phone) phone = fd['phone_number'] || fd['phone'] || findByKeyword(fd, 'phone', 'טלפון', 'נייד')
+    if (!years_worked) years_worked = fd['years_worked'] || fd['years'] || findByKeyword(fd, 'year', 'שנ', 'ותק', 'experience', 'עבוד')
+    if (!work_sector) work_sector = fd['work_sector'] || fd['sector'] || findByKeyword(fd, 'sector', 'תחום', 'ענף')
+    if (!work_sector_detail) work_sector_detail = fd['work_sector_detail'] || findByKeyword(fd, 'detail', 'פירוט')
+    if (!situation) situation = fd['situation'] || findByKeyword(fd, 'situation', 'סיטואציה', 'מצב')
+    if (!ad_name) ad_name = fd['ad_name'] || ''
+    if (!campaign_name) campaign_name = fd['campaign_name'] || ''
+    if (!lead_id) lead_id = fd['lead_id'] || ''
+  }
+
+  // ── ברירות מחדל אחרי כל הפרסורים ──────────────────────────────
+  if (!full_name) full_name = '—'
+  if (!years_worked) years_worked = '—'
+  if (!work_sector) work_sector = '—'
+  if (!situation) situation = '—'
+
+  console.log(`[incoming] Parsed: name=${full_name}, phone=${phone}, years=${years_worked}, sector=${work_sector}, situation=${situation}, ad=${ad_name}`)
 
   const phoneNorm = normalizePhone(phone)
   const now = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' })
@@ -112,22 +161,22 @@ export async function POST(req: NextRequest) {
 
   // ── 3. WhatsApp לאוהד ─────────────────────────────────────────
   try {
+    const displayPhone = phone || phoneNorm
     const ohadMsg = [
       `🟢 *ליד חדש — דיני עבודה*`,
       ``,
       `👤 *שם:* ${full_name}`,
-      `📞 *טלפון:* ${phone}`,
+      `📞 *טלפון:* ${displayPhone}`,
       ``,
       `📋 *פרטים:*`,
       `• שנות עבודה: ${years_worked}`,
       `• תחום: ${work_sector}${work_sector_detail ? ` — ${work_sector_detail}` : ''}`,
       `• סיטואציה: ${situation}`,
       ``,
-      `📢 *מודעה:* ${ad_name || campaign_name}`,
+      `📢 *מודעה:* ${ad_name || campaign_name || '—'}`,
       `🕐 ${now}`,
-      ``,
-      `▶️ לחץ להשיב: https://wa.me/${phoneNorm}`,
-    ].join('\n')
+      phoneNorm ? `\n▶️ לחץ להשיב: https://wa.me/${phoneNorm}` : '',
+    ].filter(l => l !== undefined).join('\n')
 
     await sendWhatsApp(OHAD_WA, ohadMsg)
     console.log('[incoming] Notified Ohad via WhatsApp')
