@@ -16,6 +16,48 @@ import { sendWhatsApp } from '@/lib/whatsapp'
 
 const OHAD_WA = process.env.OHAD_WHATSAPP_NUMBER!
 const WEBHOOK_SECRET = process.env.LEADS_WEBHOOK_SECRET!
+const META_TOKEN = process.env.META_ACCESS_TOKEN!
+
+// מחלץ את מזהה הליד של פייסבוק מכל מבנה אפשרי ש-Make.com / מטא עשויים לשלוח
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractLeadgenId(body: Record<string, any>): string {
+  return (
+    body.leadgen_id ||
+    body.lead_id ||
+    body['Lead ID'] ||
+    body.id ||
+    body.entry?.[0]?.changes?.[0]?.value?.leadgen_id ||
+    body.value?.leadgen_id ||
+    ''
+  )
+}
+
+// מושך את פרטי הליד המלאים ישירות מ-Meta Graph API לפי מזהה הליד
+async function fetchLeadFromGraph(leadgenId: string): Promise<Record<string, string> | null> {
+  if (!META_TOKEN || !leadgenId) return null
+  try {
+    const res = await fetch(
+      `https://graph.facebook.com/v21.0/${leadgenId}` +
+      `?fields=id,field_data,ad_name,campaign_name,created_time&access_token=${META_TOKEN}`
+    )
+    const data = await res.json()
+    if (data.error) {
+      console.error('[incoming] Graph API error:', JSON.stringify(data.error))
+      return null
+    }
+    const map: Record<string, string> = {}
+    for (const f of (data.field_data ?? []) as Array<{ name: string; values: string[] }>) {
+      map[f.name] = f.values?.[0] ?? ''
+    }
+    if (data.ad_name) map['ad_name'] = data.ad_name
+    if (data.campaign_name) map['campaign_name'] = data.campaign_name
+    console.log('[incoming] Graph API fetched:', JSON.stringify(map))
+    return map
+  } catch (e) {
+    console.error('[incoming] Graph API exception:', e)
+    return null
+  }
+}
 
 // פרסור field_data של פייסבוק — מחזיר מפה של name→value
 function parseFieldData(
@@ -84,6 +126,35 @@ export async function POST(req: NextRequest) {
     if (!ad_name) ad_name = fd['ad_name'] || ''
     if (!campaign_name) campaign_name = fd['campaign_name'] || ''
     if (!lead_id) lead_id = fd['lead_id'] || ''
+  }
+
+  // ── פרסור שדות — שלב 3: משיכה ישירה מ-Meta Graph API ─────────
+  // אם Make.com שלח חבילה ריקה (רק מזהה / כלום) — נמשוך את הפרטים מ-Meta בעצמנו.
+  if (!lead_id) lead_id = extractLeadgenId(body)
+  const needsGraph = (!phone || !full_name) && lead_id
+  if (needsGraph) {
+    console.log(`[incoming] Fields missing — fetching from Graph by leadgen_id=${lead_id}`)
+    const fd = await fetchLeadFromGraph(lead_id)
+    if (fd) {
+      if (!full_name) full_name = fd['full_name'] || fd['name'] || findByKeyword(fd, 'name', 'שם')
+      if (!phone) phone = fd['phone_number'] || fd['phone'] || findByKeyword(fd, 'phone', 'טלפון', 'נייד')
+      if (!years_worked) years_worked = fd['years_worked'] || fd['years'] || findByKeyword(fd, 'year', 'שנ', 'ותק', 'experience', 'עבוד')
+      if (!work_sector) work_sector = fd['work_sector'] || fd['sector'] || findByKeyword(fd, 'sector', 'תחום', 'ענף')
+      if (!work_sector_detail) work_sector_detail = fd['work_sector_detail'] || findByKeyword(fd, 'detail', 'פירוט')
+      if (!situation) situation = fd['situation'] || findByKeyword(fd, 'situation', 'סיטואציה', 'מצב')
+      if (!ad_name) ad_name = fd['ad_name'] || ''
+      if (!campaign_name) campaign_name = fd['campaign_name'] || ''
+    }
+  }
+
+  // ── אם עדיין אין טלפון — אל תיצור ליד ריק ולא תטריד את אוהד ──
+  if (!phone) {
+    console.error('[incoming] Could not resolve lead data. Raw body:', JSON.stringify(body))
+    await sendWhatsApp(
+      OHAD_WA,
+      `⚠️ נכנס ליד אבל לא הצלחתי למשוך את הפרטים שלו אוטומטית (leadgen_id=${lead_id || 'חסר'}). כדאי לבדוק אותו ידנית במנהל המודעות.`
+    )
+    return NextResponse.json({ ok: true, warning: 'no_phone_resolved' })
   }
 
   // ── ברירות מחדל אחרי כל הפרסורים ──────────────────────────────
