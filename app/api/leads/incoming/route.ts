@@ -82,6 +82,36 @@ function findByKeyword(map: Record<string, string>, ...keywords: string[]): stri
   return ''
 }
 
+// תרגום קודי הטופס של פייסבוק לעברית קריאה (הטופס שומר ערכים באנגלית)
+const FORM_MAP: Record<string, Record<string, string>> = {
+  years_worked: {
+    under_1: 'פחות משנה',
+    '1_to_3': 'שנה עד 3 שנים',
+    '3_to_7': '3 עד 7 שנים',
+    over_7: 'מעל 7 שנים',
+  },
+  work_sector: {
+    security: 'שמירה / אבטחה',
+    cleaning: 'ניקיון / תחזוקה',
+    construction: 'בניין / עבודות שטח',
+    retail_food: 'מסחר / מסעדנות / שירות',
+    other: 'אחר',
+  },
+  situation: {
+    fired: 'פוטרתי לאחרונה',
+    resigned: 'התפטרתי',
+    current_issue: 'עדיין עובד, חושד שמשהו לא בסדר בשכר',
+    cash_salary: 'עבדתי בשכר מזומן ללא תיעוד',
+  },
+}
+
+// מתרגם קוד אנגלי לעברית; אם הערך לא מוכר מחזיר אותו כמו שהוא
+function toHebrew(field: string, raw: string): string {
+  const m = FORM_MAP[field]
+  if (!m || !raw) return raw
+  return m[raw.trim()] ?? raw
+}
+
 export async function POST(req: NextRequest) {
   // ── אימות ─────────────────────────────────────────────────────
   const secret = req.headers.get('x-webhook-secret')?.trim()
@@ -157,6 +187,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, warning: 'no_phone_resolved' })
   }
 
+  // ── תרגום קודי הטופס לעברית קריאה ─────────────────────────────
+  years_worked = toHebrew('years_worked', years_worked)
+  work_sector = toHebrew('work_sector', work_sector)
+  situation = toHebrew('situation', situation)
+
   // ── ברירות מחדל אחרי כל הפרסורים ──────────────────────────────
   if (!full_name) full_name = '—'
   if (!years_worked) years_worked = '—'
@@ -169,15 +204,9 @@ export async function POST(req: NextRequest) {
   const now = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' })
   const today = new Date().toISOString().split('T')[0]
 
-  // ── 0. סינון: פחות משנה ───────────────────────────────────────
-  if (isUnderOneYear(years_worked)) {
-    console.log(`[incoming] Filtered (under 1 year): ${full_name} / ${phoneNorm}`)
-    if (phoneNorm && phoneNorm.length >= 10) {
-      const firstName = full_name.split(' ')[0]
-      await sendWhatsApp(phoneNorm, buildRejectionMessage(firstName))
-    }
-    return NextResponse.json({ ok: true, filtered: 'under_one_year' })
-  }
+  // ── סינון אוטומטי בוטל (החלטת אוהד) ───────────────────────────
+  // כל הלידים נכנסים ומקבלים חימום. סינון "פחות מחצי שנה" נעשה ידנית בשיחה,
+  // כי הטופס לא מבחין בחצי שנה (האפשרות הקטנה ביותר היא "פחות משנה").
 
   // ── 1. Supabase ───────────────────────────────────────────────
   // הליד עבר את הסינון → נכנס לרצף הפולואפ. הפולואפ הראשון מתוכנן ליום אחרי.
@@ -275,52 +304,19 @@ export async function POST(req: NextRequest) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// עזר: בדיקת פחות משנה
-// ─────────────────────────────────────────────────────────────────
-function isUnderOneYear(years: string): boolean {
-  if (!years || years === '—') return false
-  const val = years.trim().toLowerCase()
-  return (
-    val.includes('פחות משנה') ||
-    val.includes('פחות מ') ||
-    val.startsWith('0') ||
-    val === 'פחות' ||
-    val.includes('less than 1') ||
-    val.includes('under 1') ||
-    val.includes('under one') ||
-    val === '0'
-  )
-}
-
-// ─────────────────────────────────────────────────────────────────
-// הודעת דחייה מנומסת — פחות משנה
-// ─────────────────────────────────────────────────────────────────
-function buildRejectionMessage(name: string): string {
-  return [
-    `שלום ${name} 👋`,
-    ``,
-    `תודה שפנית למשרד עו"ד אוהד טבת.`,
-    ``,
-    `לאחר בדיקת הפרטים, עם ותק של פחות משנה לרוב לא נוכל לסייע במסגרת ייצוג בדיני עבודה.`,
-    ``,
-    `אם המצב ישתנה בעתיד — נשמח לעמוד לרשותך. בהצלחה! 🙏`,
-  ].join('\n')
-}
-
-// ─────────────────────────────────────────────────────────────────
 // הודעה חמה לליד — לפי סיטואציה
 // ─────────────────────────────────────────────────────────────────
 function buildLeadMessage(name: string, years: string, situation: string): string {
   let hook = ''
 
   if (situation.includes('פוטר') || situation.includes('פיטור')) {
-    hook = `לפי ${years} שנות עבודה וסיטואציית הפיטורין — ברוב המקרים מגיע יותר ממה שחושבים 💡`
+    hook = `לפי הוותק שלך (${years}) וסיטואציית הפיטורים, ברוב המקרים מגיע יותר ממה שחושבים 💡`
   } else if (situation.includes('התפטר') || situation.includes('התפטרות')) {
-    hook = `גם מי שהתפטר עשוי להיות זכאי לזכויות — לפי ${years} שנות עבודה שלך 💡`
+    hook = `גם מי שהתפטר עשוי להיות זכאי לזכויות, לפי הוותק שלך (${years}) 💡`
   } else if (situation.toLowerCase().includes('שכר') || situation.includes('מזומן') || situation.includes('תלוש')) {
-    hook = `בעיות שכר ותלושים הן בדיוק התחום שלנו — ויש לנו תוצאות 💡`
+    hook = `בעיות שכר ותלושים הן בדיוק התחום שלנו, ויש לנו תוצאות 💡`
   } else {
-    hook = `לפי הפרטים שמסרת — ייתכן שמגיע לך יותר ממה שחושבים 💡`
+    hook = `לפי הפרטים שמסרת, ייתכן שמגיע לך יותר ממה שחושבים 💡`
   }
 
   return [
