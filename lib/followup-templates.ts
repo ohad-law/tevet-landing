@@ -82,6 +82,37 @@ export function buildFollowupMessage(
 }
 
 /**
+ * הודעת חימום ראשונית (שלב 0). נשלחת ע"י /incoming לליד חדש,
+ * וגם ע"י הרובוט ללידים משוחזרים שלא קיבלו חימום (followup_stage = -1).
+ */
+export function buildWarmMessage(fullName: string | null, situationText: string): string {
+  const name = (fullName || '').split(' ')[0] || 'שלום'
+  const situation = classifySituation(situationText)
+  let hook: string
+  switch (situation) {
+    case 'fired':
+      hook = 'לפי הסיטואציה שתיארת, ברוב מקרי הפיטורים מגיע יותר ממה שחושבים 💡'; break
+    case 'resigned':
+      hook = 'גם מי שהתפטר עשוי להיות זכאי לזכויות 💡'; break
+    case 'wage':
+      hook = 'בעיות שכר ותלושים הן בדיוק התחום שלנו, ויש לנו תוצאות 💡'; break
+    default:
+      hook = 'לפי הפרטים שמסרת, ייתכן שמגיע לך יותר ממה שחושבים 💡'
+  }
+  return [
+    `שלום ${name} 👋`,
+    ``,
+    `קיבלתי את פנייתך.`,
+    hook,
+    ``,
+    `אני *אוהד טבת*, עו"ד לדיני עבודה ובודק שכר מוסמך.`,
+    ``,
+    `מתי נוח לך לשיחה קצרה של 10 דקות?`,
+    `אפשר לענות ישירות כאן 👇`,
+  ].join('\n')
+}
+
+/**
  * מספר הימים מהפולואפ הנוכחי עד הבא.
  * אחרי שלב 1 → עוד יומיים (יום 3). אחרי שלב 2 → עוד 4 ימים (יום 7).
  * אחרי שלב 3 → null (מיצינו את הרצף).

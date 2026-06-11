@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/followup-leads",
-      "schedule": "0 8 * * *"
+      "schedule": "0 7 * * *"
     }
   ]
 }

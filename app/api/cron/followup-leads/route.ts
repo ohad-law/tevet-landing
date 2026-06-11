@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { sendWhatsApp } from '@/lib/whatsapp'
-import { buildFollowupMessage, daysUntilNextFollowup } from '@/lib/followup-templates'
+import { buildFollowupMessage, buildWarmMessage, daysUntilNextFollowup } from '@/lib/followup-templates'
 
 const DAILY_CAP = 30 // תקרת הודעות יומית — הגנה על המספר
 const PACE_MS = 4000 // מרווח בין הודעות (קצב אנושי)
@@ -88,8 +88,21 @@ export async function GET(req: NextRequest) {
     const phoneNorm = (lead.phone ?? '').replace(/\D/g, '')
     if (phoneNorm.length < 10) { skipped++; continue }
 
-    const stageToSend = lead.followup_stage + 1
-    const message = buildFollowupMessage(stageToSend, lead.full_name, lead.situationText)
+    // שלב -1 = ליד משוחזר שלא קיבל חימום → שלח חימום והכנס לרצף הרגיל.
+    // שלב 0-2 = פולואפ רגיל (שלב הבא ברצף).
+    let message: string | null
+    let newStage: number
+    let nextDays: number | null
+    if (lead.followup_stage === -1) {
+      message = buildWarmMessage(lead.full_name, lead.situationText)
+      newStage = 0
+      nextDays = 1 // הפולואפ הראשון יום אחרי החימום
+    } else {
+      const stageToSend = lead.followup_stage + 1
+      message = buildFollowupMessage(stageToSend, lead.full_name, lead.situationText)
+      newStage = stageToSend
+      nextDays = daysUntilNextFollowup(stageToSend)
+    }
     if (!message) { skipped++; continue }
 
     const ok = await sendWhatsApp(phoneNorm, message)
@@ -100,9 +113,8 @@ export async function GET(req: NextRequest) {
     }
 
     // עדכן מצב: קדם שלב, קבע את הפולואפ הבא (או עצור אם מיצינו)
-    const nextDays = daysUntilNextFollowup(stageToSend)
     const update: Record<string, unknown> = {
-      followup_stage: stageToSend,
+      followup_stage: newStage,
       last_followup_at: new Date().toISOString(),
     }
     if (nextDays === null) {
