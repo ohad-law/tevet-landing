@@ -36,6 +36,10 @@ function buildStage1(name: string, situation: Situation): string {
     `היי ${name}, כאן אוהד טבת 👋`,
     `ניסיתי להשיג אותך ${topic[situation]}`,
     nudge[situation],
+    ``,
+    `ובינתיים, יש לי בעמוד הרבה סרטונים שמסבירים איך לקרוא תלוש שכר ולזהות טעויות 👇`,
+    `📱 טיקטוק: https://www.tiktok.com/@ohad.tevet6`,
+    `📷 אינסטגרם: https://www.instagram.com/ohad.tevet.adv/`,
   ].join('\n')
 }
 
@@ -57,10 +61,13 @@ function buildStage2(name: string): string {
 // ── שלב 3 — 7 ימים אחרי: הזדמנות אחרונה, מכובד ──────────────────
 function buildStage3(name: string): string {
   return [
-    `${name}, לא רוצה להטריד 🙏`,
-    `אני משאיר את הדלת פתוחה. אם תרצה שאבדוק אם מגיעות לך זכויות, אני כאן.`,
-    `אפשר פשוט לענות *"מעוניין"* ואחזור אליך.`,
-    `בהצלחה בכל מקרה! 🤝`,
+    `${name}, אולי עכשיו פשוט לא הזמן המתאים, וזה בסדר גמור 🙂`,
+    ``,
+    `אתה מוזמן לעקוב אחרי העמוד שלי ולקבל הרבה ידע וערך שיעזרו לך בעתיד 👇`,
+    `📱 טיקטוק: https://www.tiktok.com/@ohad.tevet6`,
+    `📷 אינסטגרם: https://www.instagram.com/ohad.tevet.adv/`,
+    ``,
+    `מאחל לך הצלחה בכל מה שתעשה 🤝`,
     ``,
     `_(אם לא רלוונטי, אפשר להשיב "הסר".)_`,
   ].join('\n')
