@@ -209,8 +209,8 @@ export async function POST(req: NextRequest) {
   // כי הטופס לא מבחין בחצי שנה (האפשרות הקטנה ביותר היא "פחות משנה").
 
   // ── 1. Supabase ───────────────────────────────────────────────
-  // הליד עבר את הסינון → נכנס לרצף הפולואפ. הפולואפ הראשון מתוכנן ליום אחרי.
-  const followupNextAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+  // הליד נכנס לרצף הפולואפ. קיבל חימום עכשיו, הפולואפ הבא ביום 3.
+  const followupNextAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
   try {
     const supabase = createServiceClient()
     const { error } = await supabase.from('leads').insert({

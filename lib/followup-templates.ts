@@ -1,13 +1,15 @@
 /**
  * תבניות הודעות פולואפ אוטומטיות לוואטסאפ.
  *
- * רצף: שלב 1 (יום +1), שלב 2 (יום +3), שלב 3 (יום +7).
- * כללים קבועים: אסור "חינם", אסור "תשלום". מותר "ללא עלות".
- *
- * שלב 0 (הודעת החימום הראשונה) נשלח מ-/api/leads/incoming ולא מכאן.
+ * רצף: יום 0 (חימום) → יום 3 (ערך) → יום 7 (פרידה רכה).
+ * כללים קבועים: אסור "חינם", אסור "תשלום". מותר "ללא עלות". בלי מקף ארוך.
  */
 
 export type Situation = 'fired' | 'resigned' | 'wage' | 'general'
+
+const TIKTOK = 'https://www.tiktok.com/@ohad.tevet6'
+const INSTAGRAM = 'https://www.instagram.com/ohad.tevet.adv/'
+const SOCIAL = [`📱 טיקטוק: ${TIKTOK}`, `📷 אינסטגרם: ${INSTAGRAM}`]
 
 /** מסווג את הסיטואציה לפי טקסט חופשי מהליד */
 export function classifySituation(situation: string): Situation {
@@ -18,54 +20,27 @@ export function classifySituation(situation: string): Situation {
   return 'general'
 }
 
-// ── שלב 1 — יום אחרי: תזכורת עדינה ──────────────────────────────
-function buildStage1(name: string, situation: Situation): string {
-  const topic: Record<Situation, string> = {
-    fired: 'בנוגע לפיטורים.',
-    resigned: 'בנוגע לסיום ההעסקה.',
-    wage: 'בנוגע לבדיקת השכר/התלושים.',
-    general: 'בנוגע לפנייה שלך.',
-  }
-  const nudge: Record<Situation, string> = {
-    fired: 'לא תמיד נוח לדבר, אבל חבל לפספס. מתי נוח לך לשיחה קצרה של 10 דקות?',
-    resigned: 'גם מי שהתפטר לרוב זכאי לזכויות, וחבל לפספס. מתי נוח לך ל-10 דקות?',
-    wage: 'חבל לפספס זכויות שאולי מגיעות לך. מתי נוח לך לשיחה קצרה?',
-    general: 'חבל לפספס. מתי נוח לך לשיחה קצרה של 10 דקות?',
-  }
+// ── יום 3 — ערך, סמכות וסרטונים ─────────────────────────────────
+function buildDay3(name: string): string {
   return [
-    `היי ${name}, כאן אוהד טבת 👋`,
-    `ניסיתי להשיג אותך ${topic[situation]}`,
-    nudge[situation],
+    `${name}, רק רציתי לוודא שראית.`,
+    `אני אוהד טבת, עו"ד לדיני עבודה ו*בודק שכר מוסמך מטעם משרד העבודה*. בדקנו כבר אלפי תלושים.`,
     ``,
-    `ובינתיים, יש לי בעמוד הרבה סרטונים שמסבירים איך לקרוא תלוש שכר ולזהות טעויות 👇`,
-    `📱 טיקטוק: https://www.tiktok.com/@ohad.tevet6`,
-    `📷 אינסטגרם: https://www.instagram.com/ohad.tevet.adv/`,
-  ].join('\n')
-}
-
-// ── שלב 2 — 3 ימים אחרי: ערך + אמון ─────────────────────────────
-function buildStage2(name: string): string {
-  return [
-    `${name}, רק שתכיר.`,
-    `אני עו"ד לדיני עבודה וגם *בודק שכר מוסמך*.`,
-    ``,
-    `עד שנדבר, מוזמן לצפות בעמוד שלי. העליתי שם הרבה סרטונים שמלמדים איך לקרוא ולנתח תלוש שכר, אני בטוח שזה יעזור לך 👇`,
-    `📱 טיקטוק: https://www.tiktok.com/@ohad.tevet6`,
-    `📷 אינסטגרם: https://www.instagram.com/ohad.tevet.adv/`,
+    `יש לי בעמוד הרבה סרטונים שמלמדים איך לקרוא תלוש שכר ולזהות טעויות, מוזמן לצפות 👇`,
+    ...SOCIAL,
     ``,
     `בדיקה ראשונית של התיק שלך ללא עלות.`,
     `מתי תרצה שנתאם שיחה קצרה בעניין המקרה שלך?`,
   ].join('\n')
 }
 
-// ── שלב 3 — 7 ימים אחרי: הזדמנות אחרונה, מכובד ──────────────────
-function buildStage3(name: string): string {
+// ── יום 7 — פרידה רכה, ערך לעתיד ─────────────────────────────────
+function buildDay7(name: string): string {
   return [
     `${name}, אולי עכשיו פשוט לא הזמן המתאים, וזה בסדר גמור 🙂`,
     ``,
-    `אתה מוזמן לעקוב אחרי העמוד שלי ולקבל הרבה ידע וערך שיעזרו לך בעתיד 👇`,
-    `📱 טיקטוק: https://www.tiktok.com/@ohad.tevet6`,
-    `📷 אינסטגרם: https://www.instagram.com/ohad.tevet.adv/`,
+    `בתור עו"ד לדיני עבודה ובודק שכר מוסמך מטעם משרד העבודה, אני משתף בעמוד הרבה ידע וערך שיעזרו לך בעתיד. מוזמן לעקוב 👇`,
+    ...SOCIAL,
     ``,
     `מאחל לך הצלחה בכל מה שתעשה 🤝`,
     ``,
@@ -74,26 +49,7 @@ function buildStage3(name: string): string {
 }
 
 /**
- * מחזיר את הודעת הפולואפ לשלב הנתון (1-3).
- * stage מתייחס לפולואפ שעומד להישלח כעת.
- */
-export function buildFollowupMessage(
-  stage: number,
-  fullName: string | null,
-  situationText: string
-): string | null {
-  const name = (fullName || '').split(' ')[0] || 'שלום'
-  const situation = classifySituation(situationText)
-  switch (stage) {
-    case 1: return buildStage1(name, situation)
-    case 2: return buildStage2(name)
-    case 3: return buildStage3(name)
-    default: return null
-  }
-}
-
-/**
- * הודעת חימום ראשונית (שלב 0). נשלחת ע"י /incoming לליד חדש,
+ * הודעת חימום ראשונית (יום 0). נשלחת ע"י /incoming לליד חדש,
  * וגם ע"י הרובוט ללידים משוחזרים שלא קיבלו חימום (followup_stage = -1).
  */
 export function buildWarmMessage(fullName: string | null, situationText: string): string {
@@ -102,36 +58,48 @@ export function buildWarmMessage(fullName: string | null, situationText: string)
   let hook: string
   switch (situation) {
     case 'fired':
-      hook = 'לפי הסיטואציה שתיארת, ברוב מקרי הפיטורים מגיע יותר ממה שחושבים 💡'; break
+      hook = 'ברוב מקרי הפיטורים מגיע יותר ממה שחושבים 💡'; break
     case 'resigned':
       hook = 'גם מי שהתפטר עשוי להיות זכאי לזכויות 💡'; break
     case 'wage':
-      hook = 'בעיות שכר ותלושים הן בדיוק התחום שלנו, ויש לנו תוצאות 💡'; break
+      hook = 'בעיות שכר ותלושים הן בדיוק התחום שלנו 💡'; break
     default:
-      hook = 'לפי הפרטים שמסרת, ייתכן שמגיע לך יותר ממה שחושבים 💡'
+      hook = 'ייתכן שמגיע לך יותר ממה שחושבים 💡'
   }
   return [
     `שלום ${name} 👋`,
-    ``,
     `קיבלתי את פנייתך.`,
     hook,
     ``,
-    `אני *אוהד טבת*, עו"ד לדיני עבודה ובודק שכר מוסמך.`,
+    `אני אוהד טבת, עו"ד לדיני עבודה ו*בודק שכר מוסמך מטעם משרד העבודה*. בדקנו כבר אלפי תלושים.`,
+    ``,
+    `מוזמן לצפות בעמוד שלי בינתיים 👇`,
+    ...SOCIAL,
     ``,
     `מתי נוח לך לשיחה קצרה של 10 דקות?`,
-    `אפשר לענות ישירות כאן 👇`,
   ].join('\n')
 }
 
 /**
+ * מחזיר את הודעת הפולואפ לשלב שנשלח כעת.
+ * 1 = יום 3 (ערך), 2 = יום 7 (פרידה).
+ */
+export function buildFollowupMessage(stage: number, fullName: string | null): string | null {
+  const name = (fullName || '').split(' ')[0] || 'שלום'
+  switch (stage) {
+    case 1: return buildDay3(name)
+    case 2: return buildDay7(name)
+    default: return null
+  }
+}
+
+/**
  * מספר הימים מהפולואפ הנוכחי עד הבא.
- * אחרי שלב 1 → עוד יומיים (יום 3). אחרי שלב 2 → עוד 4 ימים (יום 7).
- * אחרי שלב 3 → null (מיצינו את הרצף).
+ * אחרי יום 3 (שלב 1) → עוד 4 ימים (יום 7). אחרי יום 7 (שלב 2) → null (סוף).
  */
 export function daysUntilNextFollowup(stageJustSent: number): number | null {
   switch (stageJustSent) {
-    case 1: return 2
-    case 2: return 4
+    case 1: return 4
     default: return null
   }
 }

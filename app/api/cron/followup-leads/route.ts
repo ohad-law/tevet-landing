@@ -96,10 +96,10 @@ export async function GET(req: NextRequest) {
     if (lead.followup_stage === -1) {
       message = buildWarmMessage(lead.full_name, lead.situationText)
       newStage = 0
-      nextDays = 1 // הפולואפ הראשון יום אחרי החימום
+      nextDays = 3 // יום 3 אחרי החימום
     } else {
       const stageToSend = lead.followup_stage + 1
-      message = buildFollowupMessage(stageToSend, lead.full_name, lead.situationText)
+      message = buildFollowupMessage(stageToSend, lead.full_name)
       newStage = stageToSend
       nextDays = daysUntilNextFollowup(stageToSend)
     }
