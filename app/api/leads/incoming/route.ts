@@ -112,6 +112,17 @@ function toHebrew(field: string, raw: string): string {
   return m[raw.trim()] ?? raw
 }
 
+// ציון דחיפות לפי ותק — ככל שהוותק גבוה יותר, איכות הליד גבוהה יותר.
+// מקבל גם קוד אנגלי וגם תווית עברית.
+function leadScoreFromYears(years: string): number {
+  const y = years || ''
+  if (y.includes('מעל 7') || y.includes('over_7')) return 100
+  if (y.includes('3 עד 7') || y.includes('3_to_7')) return 85
+  if (y.includes('שנה עד 3') || y.includes('1_to_3')) return 70
+  if (y.includes('פחות משנה') || y.includes('under_1')) return 40
+  return 60
+}
+
 export async function POST(req: NextRequest) {
   // ── אימות ─────────────────────────────────────────────────────
   const secret = req.headers.get('x-webhook-secret')?.trim()
@@ -256,7 +267,7 @@ export async function POST(req: NextRequest) {
       utm_campaign: campaign_name,
       first_contact_date: today,
       is_viewed: false,
-      lead_score: 70,
+      lead_score: leadScoreFromYears(years_worked),
     })
     console.log('[incoming] Created in BASE44:', full_name)
   } catch (e) {
