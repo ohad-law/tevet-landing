@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createBase44Lead, normalizePhone } from '@/lib/base44'
 import { sendWhatsApp } from '@/lib/whatsapp'
+import { buildWarmMessage } from '@/lib/followup-templates'
 
 const OHAD_WA = process.env.OHAD_WHATSAPP_NUMBER!
 const WEBHOOK_SECRET = process.env.LEADS_WEBHOOK_SECRET!
@@ -299,11 +300,10 @@ export async function POST(req: NextRequest) {
     console.error('[incoming] WhatsApp to Ohad error:', e)
   }
 
-  // ── 4. WhatsApp לליד ──────────────────────────────────────────
+  // ── 4. WhatsApp לליד (אותה הודעת חימום כמו הרובוט) ───────────
   if (phoneNorm && phoneNorm.length >= 10) {
     try {
-      const firstName = full_name.split(' ')[0]
-      const leadMsg = buildLeadMessage(firstName, years_worked, situation)
+      const leadMsg = buildWarmMessage(full_name, situation)
       await sendWhatsApp(phoneNorm, leadMsg)
       console.log('[incoming] Warm WhatsApp sent to lead:', phoneNorm)
     } catch (e) {
@@ -312,33 +312,4 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ ok: true })
-}
-
-// ─────────────────────────────────────────────────────────────────
-// הודעה חמה לליד — לפי סיטואציה
-// ─────────────────────────────────────────────────────────────────
-function buildLeadMessage(name: string, years: string, situation: string): string {
-  let hook = ''
-
-  if (situation.includes('פוטר') || situation.includes('פיטור')) {
-    hook = `לפי הוותק שלך (${years}) וסיטואציית הפיטורים, ברוב המקרים מגיע יותר ממה שחושבים 💡`
-  } else if (situation.includes('התפטר') || situation.includes('התפטרות')) {
-    hook = `גם מי שהתפטר עשוי להיות זכאי לזכויות, לפי הוותק שלך (${years}) 💡`
-  } else if (situation.toLowerCase().includes('שכר') || situation.includes('מזומן') || situation.includes('תלוש')) {
-    hook = `בעיות שכר ותלושים הן בדיוק התחום שלנו, ויש לנו תוצאות 💡`
-  } else {
-    hook = `לפי הפרטים שמסרת, ייתכן שמגיע לך יותר ממה שחושבים 💡`
-  }
-
-  return [
-    `שלום ${name} 👋`,
-    ``,
-    `קיבלתי את פנייתך.`,
-    hook,
-    ``,
-    `אני *אוהד טבת*, עו"ד לדיני עבודה ובודק שכר מוסמך.`,
-    ``,
-    `מתי נוח לך שיחה קצרה של 10 דקות?`,
-    `אפשר לענות ישירות כאן 👇`,
-  ].join('\n')
 }
