@@ -87,39 +87,23 @@ export async function POST(req: NextRequest) {
     // ── טקסט ההודעה ───────────────────────────────────────────────
     const textData = messageData.textMessageData as Record<string, string> | undefined
     const msgText = textData?.textMessage || '[הודעה שאינה טקסט]'
-    const leadName = lead.full_name || senderPhone
-    const now = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' })
 
-    // ── בקשת הסרה → עצירה מלאה + אישור ─────────────────────────
+    // ── בקשת הסרה → עצירה מלאה + אישור לליד ────────────────────
+    // אין התראה לאוהד (לבקשתו) — הרעש מיותר; ההודעה ממילא נכנסת לצ'אט שלו.
     if (isOptOut(msgText)) {
       await supabase.from(lead.table)
         .update({ followup_opted_out: true, followup_stopped: true })
         .eq('id', lead.id)
       await sendWhatsApp(senderPhone, 'הוסרת מרשימת ההודעות שלנו. תודה, ובהצלחה! 🙏')
-      await sendWhatsApp(OHAD_WA, `🚫 *הליד ${leadName} (${senderPhone}) ביקש הסרה* — הרובוט הופסק עבורו.`)
       return NextResponse.json({ ok: true, opted_out: true })
     }
 
     // ── הליד ענה → עצור את הרובוט (אוהד ממשיך ידנית) ───────────
+    // ללא התראת "ליד ענה" לאוהד (לבקשתו): הרובוט רץ על המספר שלו,
+    // כך שתשובת הליד נכנסת ממילא ישירות לצ'אט שלו בוואטסאפ.
     await supabase.from(lead.table)
       .update({ followup_stopped: true })
       .eq('id', lead.id)
-
-    const notifyMsg = [
-      `💬 *ליד ענה*`,
-      ``,
-      `👤 *שם:* ${leadName}`,
-      `📞 *טלפון:* ${senderPhone}`,
-      ``,
-      `*ההודעה:*`,
-      `"${msgText}"`,
-      ``,
-      `🕐 ${now}`,
-      ``,
-      `↩️ להשיב: https://wa.me/${senderPhone}`,
-    ].join('\n')
-
-    await sendWhatsApp(OHAD_WA, notifyMsg)
   } catch (e) {
     console.error('[whatsapp-incoming] Error:', e)
   }
