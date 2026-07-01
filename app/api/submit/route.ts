@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import crypto from "crypto";
 
 const GREEN_API_INSTANCE = process.env.GREEN_API_INSTANCE_ID ?? "7105435035";
 const GREEN_API_TOKEN = process.env.GREEN_API_TOKEN ?? "25e05f98851f4262b11be4110f31a462306a88d0d7dd490695";
@@ -7,6 +8,44 @@ const GREEN_API_HOST = `https://${GREEN_API_INSTANCE.slice(0, 4)}.api.greenapi.c
 const OHAD_WHATSAPP = process.env.OHAD_WHATSAPP_NUMBER ?? process.env.OHAD_WHATSAPP ?? "972542274497";
 
 const OHAD_EMAIL = "ohad@tevet-law.com";
+
+const META_PIXEL_ID = process.env.META_PIXEL_ID ?? "1395969088227775";
+const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN ?? process.env.META_ADS_ACCESS_TOKEN ?? "";
+
+function sha256(value: string): string {
+  return crypto.createHash("sha256").update(value.trim().toLowerCase()).digest("hex");
+}
+
+async function sendMetaCAPI(phone: string, name: string, sourceUrl: string) {
+  if (!META_ACCESS_TOKEN) return;
+  const nameParts = name.trim().split(/\s+/);
+  const firstName = nameParts[0] ?? "";
+  const lastName = nameParts.slice(1).join(" ") ?? "";
+  const phoneNorm = phone.replace(/\D/g, "");
+
+  const payload = {
+    data: [
+      {
+        event_name: "Lead",
+        event_time: Math.floor(Date.now() / 1000),
+        action_source: "website",
+        event_source_url: sourceUrl,
+        user_data: {
+          ph: [sha256(phoneNorm)],
+          fn: firstName ? [sha256(firstName)] : undefined,
+          ln: lastName ? [sha256(lastName)] : undefined,
+        },
+      },
+    ],
+    access_token: META_ACCESS_TOKEN,
+  };
+
+  await fetch(`https://graph.facebook.com/v21.0/${META_PIXEL_ID}/events`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
 
 function createTransport() {
   return nodemailer.createTransport({
@@ -87,6 +126,9 @@ export async function POST(req: NextRequest) {
     });
 
     await sendWhatsApp(name, phone, years, situation).catch(() => null);
+
+    const referer = req.headers.get("referer") ?? "https://tevet-landing.vercel.app";
+    sendMetaCAPI(phone, name, referer).catch(() => null);
 
     return NextResponse.json({ ok: true });
   } catch (err) {
