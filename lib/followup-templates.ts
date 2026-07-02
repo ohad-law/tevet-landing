@@ -57,39 +57,17 @@ function buildDay7(name: string): string {
  * הודעת חימום ראשונית (יום 0). נשלחת ע"י /incoming לליד חדש,
  * וגם ע"י הרובוט ללידים משוחזרים שלא קיבלו חימום (followup_stage = -1).
  */
-export function buildWarmMessage(fullName: string | null, situationText: string): string {
+export function buildWarmMessage(fullName: string | null, _situationText: string): string {
   const name = (fullName || '').split(' ')[0] || 'שלום'
-  const situation = classifySituation(situationText)
-  let hook: string
-  switch (situation) {
-    case 'fired':
-      hook = 'ברוב מקרי הפיטורים מגיע יותר ממה שחושבים 💡'; break
-    case 'resigned':
-      hook = 'גם מי שהתפטר עשוי להיות זכאי לזכויות 💡'; break
-    case 'wage':
-      hook = 'בעיות שכר ותלושים הן בדיוק התחום שלנו 💡'; break
-    default:
-      hook = 'ייתכן שמגיע לך יותר ממה שחושבים 💡'
-  }
   return [
-    `שלום ${name} 👋`,
+    `${name}, שאלה אחת —`,
     ``,
-    `קיבלתי את פנייתך.`,
-    hook,
+    `אם הייתי מראה לך שמגיע לך כסף שלא שולם, היית רוצה לדעת?`,
     ``,
-    `כאן אוהד טבת,`,
-    `עו"ד לדיני עבודה ובודק שכר מוסמך מטעם משרד העבודה.`,
-    `בדקנו כבר אלפי תלושים.`,
+    `שלח לי 2-3 תלושים ואחזור אליך תוך 24 שעות עם בדיקה ראשונית ללא עלות.`,
+    `אם נמצא ליקויים, אציג לך מה מגיע לך ומה עלות הליווי. אתה מחליט.`,
     ``,
-    `שאלה קצרה שתעזור לי להבין את המקרה שלך:`,
-    `כמה שעות ביום וכמה ימים בשבוע עבדת?`,
-    ``,
-    `ואם נוח לך, אפשר כבר לשלוח לי לכאן 2-4 תלושי שכר אחרונים`,
-    `לבדיקה ראשונית ללא עלות.`,
-    `הכל חסוי בינינו 🔒`,
-    ``,
-    `מוזמן גם לצפות בעמוד שלי בינתיים 👇`,
-    ...SOCIAL,
+    `הכל חסוי 🔒`,
   ].join('\n')
 }
 
