@@ -15,15 +15,10 @@ import { createBase44Lead, normalizePhone } from '@/lib/base44'
 import { sendWhatsApp } from '@/lib/whatsapp'
 import { buildWarmMessage } from '@/lib/followup-templates'
 
-const OHAD_PHONE_VERIFIED = '972542274497'
-const OHAD_WA = process.env.OHAD_WHATSAPP_NUMBER || process.env.OHAD_WHATSAPP || OHAD_PHONE_VERIFIED
+// מספר אוהד — hard-coded כדי למנוע דליפת מידע לליד שגוי דרך env var שגוי
+const OHAD_WA = '972542274497'
 const WEBHOOK_SECRET = process.env.LEADS_WEBHOOK_SECRET!
 const META_TOKEN = process.env.META_ACCESS_TOKEN!
-
-// בדיקה שה-OHAD_WA מוגדר נכון — אם חסר, הכל ייעצר
-if (!OHAD_WA || OHAD_WA.replace(/\D/g, '').length < 10) {
-  console.error('[incoming] CRITICAL: OHAD_WA is not configured correctly. No lead notifications will be sent.')
-}
 
 // מחלץ את מזהה הליד של פייסבוק מכל מבנה אפשרי ש-Make.com / מטא עשויים לשלוח
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
