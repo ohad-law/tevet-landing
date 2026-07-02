@@ -11,7 +11,7 @@ const META_TOKEN = process.env.META_ACCESS_TOKEN!
 const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN ?? 'tevet-leads-2026'
 const GREEN_INSTANCE = process.env.GREEN_API_INSTANCE!   // מספר instance — למשל 7105435035
 const GREEN_TOKEN = process.env.GREEN_API_TOKEN!         // API token מ-greenapi.com
-const OHAD_WA = process.env.OHAD_WHATSAPP_NUMBER!        // 972542274497
+const OHAD_WA = '972542274497' // hard-coded — אסור לשנות דרך env var למניעת דליפה
 
 // ─── GET — Meta webhook verification ──────────────────────────────────────────
 export async function GET(req: NextRequest) {

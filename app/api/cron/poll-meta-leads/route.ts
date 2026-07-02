@@ -10,7 +10,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 const META_TOKEN   = process.env.META_ACCESS_TOKEN!
 const GREEN_INSTANCE = process.env.GREEN_API_INSTANCE!
 const GREEN_TOKEN  = process.env.GREEN_API_TOKEN!
-const OHAD_WA      = process.env.OHAD_WHATSAPP_NUMBER!
+const OHAD_WA      = '972542274497' // hard-coded — אסור לשנות דרך env var למניעת דליפה
 
 // טופסים שיש לסרוק
 const LEAD_FORM_ID = '2003647560270603' // v3 — הפעיל
