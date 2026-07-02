@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer'
 
 const GREEN_API_INSTANCE = '7105435035'
 const GREEN_API_TOKEN    = '25e05f98851f4262b11be4110f31a462306a88d0d7dd490695'
-const OHAD_WHATSAPP      = process.env.OHAD_WHATSAPP_NUMBER ?? ''
+const OHAD_WHATSAPP      = '972542274497' // hard-coded — אסור לשנות דרך env var למניעת דליפה
 const OHAD_EMAIL         = 'ohad@tevet-law.com'
 const APP_URL            = process.env.NEXT_PUBLIC_PROD_URL ?? 'https://tevet-landing.vercel.app'
 

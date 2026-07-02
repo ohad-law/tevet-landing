@@ -11,7 +11,7 @@ import { sendWhatsApp } from '@/lib/whatsapp'
 import { normalizePhone } from '@/lib/base44'
 import { isOptOut } from '@/lib/followup-templates'
 
-const OHAD_WA = process.env.OHAD_WHATSAPP_NUMBER!
+const OHAD_WA = '972542274497' // hard-coded — אסור לשנות דרך env var למניעת דליפה
 
 type LeadTable = 'leads' | 'leads_talush'
 
