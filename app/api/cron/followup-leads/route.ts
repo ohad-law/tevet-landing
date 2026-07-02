@@ -14,6 +14,7 @@ import { buildFollowupMessage, buildWarmMessage, daysUntilNextFollowup } from '@
 
 const DAILY_CAP = 30 // תקרת הודעות יומית — הגנה על המספר
 const PACE_MS = 4000 // מרווח בין הודעות (קצב אנושי)
+const OHAD_PHONE = (process.env.OHAD_WHATSAPP_NUMBER || process.env.OHAD_WHATSAPP || '972542274497').replace(/\D/g, '')
 
 type Table = 'leads' | 'leads_talush'
 
@@ -87,6 +88,11 @@ export async function GET(req: NextRequest) {
 
     const phoneNorm = (lead.phone ?? '').replace(/\D/g, '')
     if (phoneNorm.length < 10) { skipped++; continue }
+    // הגנה קריטית: אסור לשלוח הודעות פולואפ למספר של אוהד
+    if (phoneNorm === OHAD_PHONE) {
+      console.error(`[followup] SAFETY BLOCK: lead phone matches Ohad's number (${phoneNorm}). Skipping.`)
+      skipped++; continue
+    }
 
     // שלב -1 = ליד משוחזר שלא קיבל חימום → שלח חימום והכנס לרצף הרגיל.
     // שלב 0-2 = פולואפ רגיל (שלב הבא ברצף).

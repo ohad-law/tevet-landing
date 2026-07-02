@@ -15,9 +15,15 @@ import { createBase44Lead, normalizePhone } from '@/lib/base44'
 import { sendWhatsApp } from '@/lib/whatsapp'
 import { buildWarmMessage } from '@/lib/followup-templates'
 
-const OHAD_WA = process.env.OHAD_WHATSAPP_NUMBER!
+const OHAD_PHONE_VERIFIED = '972542274497'
+const OHAD_WA = process.env.OHAD_WHATSAPP_NUMBER || process.env.OHAD_WHATSAPP || OHAD_PHONE_VERIFIED
 const WEBHOOK_SECRET = process.env.LEADS_WEBHOOK_SECRET!
 const META_TOKEN = process.env.META_ACCESS_TOKEN!
+
+// בדיקה שה-OHAD_WA מוגדר נכון — אם חסר, הכל ייעצר
+if (!OHAD_WA || OHAD_WA.replace(/\D/g, '').length < 10) {
+  console.error('[incoming] CRITICAL: OHAD_WA is not configured correctly. No lead notifications will be sent.')
+}
 
 // מחלץ את מזהה הליד של פייסבוק מכל מבנה אפשרי ש-Make.com / מטא עשויים לשלוח
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -294,8 +300,14 @@ export async function POST(req: NextRequest) {
       phoneNorm ? `\n▶️ לחץ להשיב: https://wa.me/${phoneNorm}` : '',
     ].filter(l => l !== undefined).join('\n')
 
-    await sendWhatsApp(OHAD_WA, ohadMsg)
-    console.log('[incoming] Notified Ohad via WhatsApp')
+    // הגנה קריטית: לעולם לא לשלוח פרטי ליד למספר שהוא הליד עצמו
+    const ohadNorm = OHAD_WA.replace(/\D/g, '')
+    if (ohadNorm === phoneNorm) {
+      console.error(`[incoming] SAFETY BLOCK: ohadMsg destination matches lead phone (${phoneNorm}). Not sending to avoid data leak.`)
+    } else {
+      await sendWhatsApp(OHAD_WA, ohadMsg)
+      console.log('[incoming] Notified Ohad via WhatsApp')
+    }
   } catch (e) {
     console.error('[incoming] WhatsApp to Ohad error:', e)
   }
