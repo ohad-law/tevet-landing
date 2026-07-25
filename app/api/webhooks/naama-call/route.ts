@@ -2,26 +2,22 @@
  * POST /api/webhooks/naama-call
  * נקרא ע"י ElevenLabs בסיום שיחה של נעמה — הסוכנת הטלפונית של המשרד.
  *
+ * היעד הוא ה-CRM החי בלבד (tevet-crm על Supabase). BASE44 נטוש מ-25/07/2026.
+ *
  * זרימה:
  *  0. אימות סוד + ודא שזו נעמה בלבד (PayrollAI-Adi יושבת באותו חשבון — לא לערבב!)
  *  1. סינון שיחות ריקות/קצרות — לא יוצרים ליד זבל
  *  2. חילוץ מה שנעמה אספה (data_collection) + הטלפון מתוך ה-metadata של השיחה
  *  3. קביעת חם/קר
- *  4. עדכון/יצירת ליד ב-Supabase וב-BASE44 (לפי טלפון — הליד כבר קיים מהפייסבוק)
- *  5. פתיחת משימת "שיחה חוזרת" לאוהד
+ *  4. עדכון/יצירת ליד לפי טלפון (הליד לרוב כבר קיים מהפייסבוק)
+ *  5. פתיחת משימת "שיחה חוזרת" דחופה, מקושרת לליד
  *  6. הודעת WhatsApp לאוהד עם סיכום השיחה ושעת החזרה
  *
  * ⚠️ גרסה 1: לא נשלחת שום הודעה אוטומטית ללקוח (החלטת אוהד — קודם מאמתים שהצינור עובד).
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import {
-  createBase44Lead,
-  createBase44Task,
-  findBase44LeadByPhone,
-  updateBase44Lead,
-  normalizePhone,
-} from '@/lib/base44'
+import { normalizePhone } from '@/lib/base44'
 import { sendWhatsApp } from '@/lib/whatsapp'
 
 // מספר קשיח בכוונה — משתנה הסביבה היה שגוי בעבר וגרם לדליפת פרטי לידים
@@ -168,10 +164,13 @@ export async function POST(req: NextRequest) {
     conversationId ? `\nElevenLabs conv: ${conversationId}` : '',
   ].filter(Boolean).join('\n')
 
-  const statusHot = 'חם — שיחה חוזרת'
+  // סטטוסים חייבים להיות מהערכים שה-CRM (tevet-crm) מכיר: חדש / יצר קשר / לא רלוונטי / הומרו.
+  // ערך חופשי לא ייתפס בפילטרים ובלוחות של המערכת.
+  const statusHot = 'יצר קשר'
   const statusCold = 'לא רלוונטי'
 
-  // ── 4a. Supabase — עדכון אם הליד קיים (מהפייסבוק), אחרת יצירה ──
+  // ── 4. הליד ב-CRM (tevet-crm / Supabase) — עדכון אם קיים, אחרת יצירה ──
+  let leadId: string | null = null
   try {
     const supabase = createServiceClient()
     const { data: existing } = await supabase
@@ -192,90 +191,40 @@ export async function POST(req: NextRequest) {
     }
 
     if (existing?.id) {
+      leadId = existing.id
       await supabase.from('leads').update(leadRow).eq('id', existing.id)
-      console.log('[naama] Updated existing Supabase lead:', existing.id)
+      console.log('[naama] Updated existing lead:', existing.id)
     } else {
-      await supabase.from('leads').insert({ ...leadRow, full_name: leadName, followup_stage: 0 })
-      console.log('[naama] Inserted new Supabase lead:', leadName)
+      const { data: created } = await supabase
+        .from('leads')
+        .insert({ ...leadRow, full_name: leadName, followup_stage: 0 })
+        .select('id')
+        .single()
+      leadId = created?.id ?? null
+      console.log('[naama] Inserted new lead:', leadName)
     }
   } catch (e) {
     console.error('[naama] Supabase exception:', e)
   }
 
-  // ── 4b. BASE44 (Legal Flow CRM) — עדכון אם קיים, אחרת יצירה ────
-  // ⚠️ מפתח ה-API הנוכחי מרשה קריאה ויצירה בלבד. עדכון ליד קיים מחזיר 403,
-  // ולכן כשהעדכון נכשל אנחנו דוחפים את כל פרטי השיחה לתוך המשימה — שיצירתה עובדת —
-  // כדי ששום מידע לא ילך לאיבוד. אם יונפק מפתח עם הרשאת כתיבה, זה יתחיל לעבוד מעצמו.
-  let base44LeadId: string | null = null
-  let base44LeadUpdated = false
-  try {
-    const existing = await findBase44LeadByPhone(phoneNorm)
-    if (existing?.id) {
-      base44LeadId = existing.id
-      base44LeadUpdated = await updateBase44Lead(existing.id, {
-        status: isHot ? statusHot : statusCold,
-        notes: `${existing.notes ?? ''}\n\n${notes}`.trim(),
-        is_viewed: false,
-      })
-      console.log(
-        base44LeadUpdated
-          ? `[naama] Updated BASE44 lead: ${existing.id}`
-          : `[naama] BASE44 lead update FAILED (no write permission) — details go into the task instead: ${existing.id}`
-      )
-    } else {
-      base44LeadId = await createBase44Lead({
-        full_name: leadName,
-        phone: phoneNorm,
-        source: 'שיחת נעמה AI',
-        status: isHot ? statusHot : statusCold,
-        notes,
-        first_contact_date: today,
-        is_viewed: false,
-      })
-      base44LeadUpdated = base44LeadId !== null
-      console.log('[naama] Created BASE44 lead:', leadName)
-    }
-  } catch (e) {
-    console.error('[naama] BASE44 exception:', e)
-  }
-
   // ── 5. משימת "שיחה חוזרת" לאוהד (רק לליד חם) ──────────────────
-  // נפתחת בשני המקומות: BASE44 הוא ה-CRM שאוהד עובד איתו בפועל (tevet-crm),
-  // ו-Supabase משמש את הדשבורד של דף הנחיתה.
+  // עדיפות "דחוף" — כך המשימה נכנסת לווידג'ט המשימות הדחופות בדשבורד.
   if (isHot) {
     const desc =
       `שיחה חוזרת: ${leadName} (${rawPhone})` +
       (callbackTime ? ` — מבקש חזרה ${callbackTime}` : '') +
       ' | סונן ע"י נעמה'
 
-    // אם לא הצלחנו לעדכן את כרטיס הליד — כל פרטי השיחה נכנסים לתיאור המשימה,
-    // כדי שאוהד יראה את התמונה המלאה גם בלי לפתוח את הליד.
-    const base44Desc = base44LeadUpdated
-      ? desc
-      : `${desc}\n\n${notes}`
-
-    try {
-      await createBase44Task({
-        description: base44Desc,
-        priority: 'גבוה',
-        status: 'לביצוע',
-        due_date: today,
-        ...(base44LeadId ? { lead_id: base44LeadId } : {}),
-      })
-      console.log('[naama] BASE44 callback task created')
-    } catch (e) {
-      console.error('[naama] BASE44 task exception:', e)
-    }
-
     try {
       const supabase = createServiceClient()
       await supabase.from('tasks').insert({
-        description: desc,
-        priority: 'גבוה',
+        description: `${desc}\n\n${notes}`,
+        priority: 'דחוף',
         status: 'לביצוע',
         due_date: today,
+        ...(leadId ? { lead_id: leadId } : {}),
       })
-      console.log('[naama] Supabase callback task created')
+      console.log('[naama] Callback task created')
     } catch (e) {
       console.error('[naama] Task exception:', e)
     }
