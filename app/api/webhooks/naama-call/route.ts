@@ -203,17 +203,25 @@ export async function POST(req: NextRequest) {
   }
 
   // ── 4b. BASE44 (Legal Flow CRM) — עדכון אם קיים, אחרת יצירה ────
+  // ⚠️ מפתח ה-API הנוכחי מרשה קריאה ויצירה בלבד. עדכון ליד קיים מחזיר 403,
+  // ולכן כשהעדכון נכשל אנחנו דוחפים את כל פרטי השיחה לתוך המשימה — שיצירתה עובדת —
+  // כדי ששום מידע לא ילך לאיבוד. אם יונפק מפתח עם הרשאת כתיבה, זה יתחיל לעבוד מעצמו.
   let base44LeadId: string | null = null
+  let base44LeadUpdated = false
   try {
     const existing = await findBase44LeadByPhone(phoneNorm)
     if (existing?.id) {
       base44LeadId = existing.id
-      await updateBase44Lead(existing.id, {
+      base44LeadUpdated = await updateBase44Lead(existing.id, {
         status: isHot ? statusHot : statusCold,
         notes: `${existing.notes ?? ''}\n\n${notes}`.trim(),
         is_viewed: false,
       })
-      console.log('[naama] Updated BASE44 lead:', existing.id)
+      console.log(
+        base44LeadUpdated
+          ? `[naama] Updated BASE44 lead: ${existing.id}`
+          : `[naama] BASE44 lead update FAILED (no write permission) — details go into the task instead: ${existing.id}`
+      )
     } else {
       base44LeadId = await createBase44Lead({
         full_name: leadName,
@@ -224,6 +232,7 @@ export async function POST(req: NextRequest) {
         first_contact_date: today,
         is_viewed: false,
       })
+      base44LeadUpdated = base44LeadId !== null
       console.log('[naama] Created BASE44 lead:', leadName)
     }
   } catch (e) {
@@ -239,9 +248,15 @@ export async function POST(req: NextRequest) {
       (callbackTime ? ` — מבקש חזרה ${callbackTime}` : '') +
       ' | סונן ע"י נעמה'
 
+    // אם לא הצלחנו לעדכן את כרטיס הליד — כל פרטי השיחה נכנסים לתיאור המשימה,
+    // כדי שאוהד יראה את התמונה המלאה גם בלי לפתוח את הליד.
+    const base44Desc = base44LeadUpdated
+      ? desc
+      : `${desc}\n\n${notes}`
+
     try {
       await createBase44Task({
-        description: desc,
+        description: base44Desc,
         priority: 'גבוה',
         status: 'לביצוע',
         due_date: today,
