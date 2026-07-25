@@ -51,8 +51,9 @@ export async function createBase44Lead(lead: Base44Lead): Promise<string | null>
 export async function findBase44LeadByPhone(phone: string): Promise<Base44Lead & { id: string } | null> {
   try {
     const normalized = normalizePhone(phone)
+    // שדה הסינון עובר כפרמטר ישיר. תחביר `filters=phone=X` מחזיר תמיד ריק — אל תחזיר אליו.
     const res = await fetch(
-      `${BASE44_API}/apps/${BASE44_APP_ID}/entities/Lead?filters=phone%3D${encodeURIComponent(normalized)}&limit=1`,
+      `${BASE44_API}/apps/${BASE44_APP_ID}/entities/Lead?phone=${encodeURIComponent(normalized)}&limit=1`,
       {
         headers: { 'api_key': BASE44_API_KEY },
       }
@@ -61,6 +62,43 @@ export async function findBase44LeadByPhone(phone: string): Promise<Base44Lead &
     const data = await res.json()
     return data?.[0] ?? null
   } catch {
+    return null
+  }
+}
+
+export interface Base44Task {
+  description: string
+  priority?: string
+  status?: string
+  due_date?: string
+  lead_id?: string
+  case_id?: string
+  task_type?: string
+}
+
+/** פותח משימה ב-CRM (Legal Flow / tevet-crm) — זה מה שאוהד רואה בפועל */
+export async function createBase44Task(task: Base44Task): Promise<string | null> {
+  try {
+    const res = await fetch(`${BASE44_API}/apps/${BASE44_APP_ID}/entities/Task`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api_key': BASE44_API_KEY,
+      },
+      body: JSON.stringify({
+        priority: 'רגיל',
+        status: 'לביצוע',
+        ...task,
+      }),
+    })
+    if (!res.ok) {
+      console.error('[BASE44] Create task error:', await res.text())
+      return null
+    }
+    const data = await res.json()
+    return data.id ?? null
+  } catch (e) {
+    console.error('[BASE44] Task exception:', e)
     return null
   }
 }

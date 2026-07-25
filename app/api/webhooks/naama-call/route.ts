@@ -17,6 +17,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import {
   createBase44Lead,
+  createBase44Task,
   findBase44LeadByPhone,
   updateBase44Lead,
   normalizePhone,
@@ -201,10 +202,12 @@ export async function POST(req: NextRequest) {
     console.error('[naama] Supabase exception:', e)
   }
 
-  // ── 4b. BASE44 — עדכון אם קיים, אחרת יצירה ────────────────────
+  // ── 4b. BASE44 (Legal Flow CRM) — עדכון אם קיים, אחרת יצירה ────
+  let base44LeadId: string | null = null
   try {
     const existing = await findBase44LeadByPhone(phoneNorm)
     if (existing?.id) {
+      base44LeadId = existing.id
       await updateBase44Lead(existing.id, {
         status: isHot ? statusHot : statusCold,
         notes: `${existing.notes ?? ''}\n\n${notes}`.trim(),
@@ -212,7 +215,7 @@ export async function POST(req: NextRequest) {
       })
       console.log('[naama] Updated BASE44 lead:', existing.id)
     } else {
-      await createBase44Lead({
+      base44LeadId = await createBase44Lead({
         full_name: leadName,
         phone: phoneNorm,
         source: 'שיחת נעמה AI',
@@ -228,20 +231,36 @@ export async function POST(req: NextRequest) {
   }
 
   // ── 5. משימת "שיחה חוזרת" לאוהד (רק לליד חם) ──────────────────
+  // נפתחת בשני המקומות: BASE44 הוא ה-CRM שאוהד עובד איתו בפועל (tevet-crm),
+  // ו-Supabase משמש את הדשבורד של דף הנחיתה.
   if (isHot) {
+    const desc =
+      `שיחה חוזרת: ${leadName} (${rawPhone})` +
+      (callbackTime ? ` — מבקש חזרה ${callbackTime}` : '') +
+      ' | סונן ע"י נעמה'
+
+    try {
+      await createBase44Task({
+        description: desc,
+        priority: 'גבוה',
+        status: 'לביצוע',
+        due_date: today,
+        ...(base44LeadId ? { lead_id: base44LeadId } : {}),
+      })
+      console.log('[naama] BASE44 callback task created')
+    } catch (e) {
+      console.error('[naama] BASE44 task exception:', e)
+    }
+
     try {
       const supabase = createServiceClient()
-      const desc =
-        `שיחה חוזרת: ${leadName} (${rawPhone})` +
-        (callbackTime ? ` — מבקש חזרה ${callbackTime}` : '') +
-        ' | סונן ע"י נעמה'
       await supabase.from('tasks').insert({
         description: desc,
         priority: 'גבוה',
         status: 'לביצוע',
         due_date: today,
       })
-      console.log('[naama] Callback task created')
+      console.log('[naama] Supabase callback task created')
     } catch (e) {
       console.error('[naama] Task exception:', e)
     }
