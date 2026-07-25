@@ -245,7 +245,12 @@ export async function POST(req: NextRequest) {
       summary ? `\n📝 *סיכום נעמה:*\n${summary}` : '',
       ``,
       `🕐 ${now}`,
-      phoneNorm ? `▶️ להשיב: https://wa.me/${phoneNorm}` : '',
+      phoneNorm ? `▶️ להשיב בוואטסאפ: https://wa.me/${phoneNorm}` : '',
+      phoneNorm ? `📱 להתקשר: tel:+${phoneNorm}` : '',
+      // קישור ישיר להקלטה ולתמלול המלא בקונסולה של ElevenLabs
+      conversationId
+        ? `🎧 להאזין לשיחה: https://elevenlabs.io/app/conversational-ai/history/${conversationId}`
+        : '',
     ].filter(Boolean).join('\n')
 
     await sendWhatsApp(OHAD_WA, ohadMsg)
