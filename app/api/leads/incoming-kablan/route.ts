@@ -116,6 +116,21 @@ export async function POST(req: NextRequest) {
   let campaign_name = body.campaign_name || ''
   let lead_id = body.lead_id || ''
 
+  // Make.com מעביר את שאלות הטופס תחת raw_data (אובייקט חופשי, מכיל מפתחות
+  // בעברית עם תווים מיוחדים שקשה למפות אחד-אחד ב-Make עצמו) — לכן פרסור לפי
+  // מילות מפתח, לא לפי שם שדה מדויק.
+  if (body.raw_data && typeof body.raw_data === 'object' && !Array.isArray(body.raw_data)) {
+    const raw: Record<string, string> = {}
+    for (const [k, v] of Object.entries(body.raw_data as Record<string, unknown>)) {
+      raw[k.toLowerCase()] = Array.isArray(v) ? String(v[0] ?? '') : String(v ?? '')
+    }
+    if (!full_name) full_name = raw['full_name'] || findByKeyword(raw, 'name', 'שם')
+    if (!phone) phone = raw['phone_number'] || findByKeyword(raw, 'phone', 'טלפון')
+    if (!has_experience) has_experience = findByKeyword(raw, 'ניסיון')
+    if (!is_resident) is_resident = findByKeyword(raw, 'תושב')
+    if (!in_sector) in_sector = findByKeyword(raw, 'בנייה', 'תשתיות')
+  }
+
   if (Array.isArray(body.field_data) && body.field_data.length > 0) {
     const fd = parseFieldData(body.field_data)
     if (!full_name) full_name = fd['full_name'] || findByKeyword(fd, 'name', 'שם')
