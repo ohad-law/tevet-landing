@@ -2,6 +2,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Search, X } from 'lucide-react'
+import { STATUS_BADGE, isClosed } from '@/lib/case-statuses'
 
 type Case = {
   id: string
@@ -15,19 +16,6 @@ type Case = {
   defendant_name?: string | null
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  'תיק נכנס': 'bg-slate-100 text-slate-600',
-  'עריכת כתב תביעה': 'bg-yellow-100 text-yellow-700',
-  'מעקב מספר הליך בנט': 'bg-blue-100 text-blue-700',
-  'מסירה אישית/דואר ישראל': 'bg-orange-100 text-orange-700',
-  'הודעה על המצאה': 'bg-purple-100 text-purple-700',
-  'תצהיר גילוי מסמכים': 'bg-indigo-100 text-indigo-700',
-  'תצהיר עדות ראשית': 'bg-pink-100 text-pink-700',
-  'הוכחות': 'bg-red-100 text-red-700',
-  'סיכומים': 'bg-amber-100 text-amber-700',
-  'פסק דין': 'bg-green-100 text-green-700',
-  'ארכיון': 'bg-slate-100 text-slate-400',
-}
 
 type Props = {
   cases: Case[]
@@ -45,8 +33,8 @@ export default function CasesTable({ cases, clientMap }: Props) {
     return Array.from(types).sort()
   }, [cases])
 
-  const active = useMemo(() => cases.filter(c => c.status !== 'ארכיון' && c.status !== 'פסק דין'), [cases])
-  const archived = useMemo(() => cases.filter(c => c.status === 'ארכיון' || c.status === 'פסק דין'), [cases])
+  const active = useMemo(() => cases.filter(c => !isClosed(c.status)), [cases])
+  const archived = useMemo(() => cases.filter(c => isClosed(c.status)), [cases])
 
   const activeStatuses = useMemo(() => {
     const pool = view === 'active' ? active : view === 'archive' ? archived : cases
@@ -174,7 +162,7 @@ export default function CasesTable({ cases, clientMap }: Props) {
                   </td>
                   <td className="px-5 py-3.5 text-slate-500 text-xs">{c.case_type ?? '—'}</td>
                   <td className="px-5 py-3.5">
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_COLOR[c.status] ?? 'bg-slate-100 text-slate-500'}`}>
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_BADGE[c.status] ?? 'bg-slate-100 text-slate-500'}`}>
                       {c.status}
                     </span>
                   </td>

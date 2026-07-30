@@ -4,11 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 
-const CASE_STATUSES = [
-  'תיק נכנס', 'עריכת כתב תביעה', 'מעקב מספר הליך בנט',
-  'מסירה אישית/דואר ישראל', 'הודעה על המצאה', 'תצהיר גילוי מסמכים',
-  'תצהיר עדות ראשית', 'הוכחות', 'סיכומים', 'פסק דין', 'ארכיון',
-]
+import { CASE_STATUSES } from '@/lib/case-statuses'
 
 type Client = { id: string; full_name: string }
 

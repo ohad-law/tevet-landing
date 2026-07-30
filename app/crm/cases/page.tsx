@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import CasesTable from '@/components/crm/CasesTable'
 import ExportCsvButton from '@/components/crm/ExportCsvButton'
+import { isClosed } from '@/lib/case-statuses'
 
 export const revalidate = 0
 
@@ -14,7 +15,7 @@ export default async function CasesPage() {
   ])
 
   const clientMap = Object.fromEntries((clients ?? []).map(c => [c.id, c.full_name]))
-  const activeCases = (cases ?? []).filter(c => c.status !== 'ארכיון' && c.status !== 'פסק דין')
+  const activeCases = (cases ?? []).filter(c => !isClosed(c.status))
 
   const exportData = (cases ?? []).map(c => ({
     'מספר תיק': c.case_number ?? '',

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Search, FolderOpen, Users, CheckSquare, Calendar } from 'lucide-react'
+import { STATUS_BADGE } from '@/lib/case-statuses'
 
 export const revalidate = 0
 
@@ -65,16 +66,6 @@ export default async function SearchPage({
   }
 
   const totalResults = (cases?.length ?? 0) + (clients?.length ?? 0) + (tasks?.length ?? 0) + (hearings?.length ?? 0)
-
-  const statusColor: Record<string, string> = {
-    'תיק נכנס': 'bg-slate-100 text-slate-600',
-    'עריכת כתב תביעה': 'bg-yellow-100 text-yellow-700',
-    'מעקב מספר הליך בנט': 'bg-blue-100 text-blue-700',
-    'הוכחות': 'bg-red-100 text-red-700',
-    'סיכומים': 'bg-amber-100 text-amber-700',
-    'פסק דין': 'bg-green-100 text-green-700',
-    'ארכיון': 'bg-slate-100 text-slate-400',
-  }
 
   return (
     <div className="space-y-6" style={{ fontFamily: 'Assistant, sans-serif' }}>
@@ -141,7 +132,7 @@ export default async function SearchPage({
                     <span className="font-mono">#{c.case_number}</span>
                   </p>
                 </div>
-                <span className={`text-xs px-2.5 py-1 rounded-full font-medium shrink-0 ${statusColor[c.status] ?? 'bg-slate-100 text-slate-500'}`}>
+                <span className={`text-xs px-2.5 py-1 rounded-full font-medium shrink-0 ${STATUS_BADGE[c.status] ?? 'bg-slate-100 text-slate-500'}`}>
                   {c.status}
                 </span>
               </Link>

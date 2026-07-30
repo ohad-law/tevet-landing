@@ -32,6 +32,23 @@ async function findLead(
   return null
 }
 
+// לקוח (להבדיל מליד) שביקש הסרה — עוצר בקשות ביקורת עתידיות על כל תיקיו
+async function optOutClientReviews(
+  supabase: ReturnType<typeof createServiceClient>,
+  phone972: string
+) {
+  const local = '0' + phone972.slice(3)
+  const { data: client } = await supabase
+    .from('clients')
+    .select('id')
+    .or(`phone.eq.${phone972},phone.eq.${local}`)
+    .maybeSingle()
+  if (!client) return
+
+  await supabase.from('cases').update({ review_opted_out: true }).eq('client_id', client.id)
+  await sendWhatsApp(phone972, 'הוסרת מרשימת ההודעות שלנו. תודה, ובהצלחה! 🙏')
+}
+
 export async function POST(req: NextRequest) {
   let body: Record<string, unknown>
   try {
@@ -79,14 +96,18 @@ export async function POST(req: NextRequest) {
     const supabase = createServiceClient()
     const lead = await findLead(supabase, senderPhone)
 
-    if (!lead) {
-      // לא ליד מוכר — לא שולחים לאוהד
-      return NextResponse.json({ ok: true })
-    }
-
     // ── טקסט ההודעה ───────────────────────────────────────────────
     const textData = messageData.textMessageData as Record<string, string> | undefined
     const msgText = textData?.textMessage || '[הודעה שאינה טקסט]'
+
+    if (!lead) {
+      // לא ליד מוכר. עדיין ייתכן שזה לקוח שקיבל בקשת ביקורת ומבקש הסרה.
+      if (isOptOut(msgText)) {
+        await optOutClientReviews(supabase, senderPhone)
+      }
+      // מעבר לזה לא שולחים לאוהד
+      return NextResponse.json({ ok: true })
+    }
 
     // ── בקשת הסרה → עצירה מלאה + אישור לליד ────────────────────
     // אין התראה לאוהד (לבקשתו) — הרעש מיותר; ההודעה ממילא נכנסת לצ'אט שלו.

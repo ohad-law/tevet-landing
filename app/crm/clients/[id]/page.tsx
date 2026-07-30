@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowRight, Phone, Mail, MapPin, Hash, CheckSquare, Scale, Pencil, MessageCircle, Banknote } from 'lucide-react'
 import ClientNotesEditor from '@/components/crm/ClientNotesEditor'
+import { STATUS_BADGE } from '@/lib/case-statuses'
 
 export const revalidate = 0
 
@@ -27,16 +28,6 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   const totalPaid = paidIncome.reduce((s, i) => s + (Number(i.amount) || 0), 0)
   const pendingIncome = (income ?? []).filter(i => i.status === 'ממתין')
   const totalPending = pendingIncome.reduce((s, i) => s + (Number(i.amount) || 0), 0)
-
-  const statusColor: Record<string, string> = {
-    'תיק נכנס': 'bg-slate-100 text-slate-600',
-    'עריכת כתב תביעה': 'bg-amber-100 text-amber-700',
-    'מעקב מספר הליך בנט': 'bg-blue-100 text-blue-700',
-    'הוכחות': 'bg-red-100 text-red-700',
-    'סיכומים': 'bg-violet-100 text-violet-700',
-    'פסק דין': 'bg-green-100 text-green-700',
-    'ארכיון': 'bg-slate-100 text-slate-400',
-  }
 
   return (
     <div className="space-y-6" style={{ fontFamily: 'Assistant, sans-serif' }}>
@@ -175,7 +166,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                   </p>
                 </div>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${
-                  statusColor[c.status] ?? 'bg-slate-100 text-slate-500'
+                  STATUS_BADGE[c.status] ?? 'bg-slate-100 text-slate-500'
                 }`}>
                   {c.status}
                 </span>
