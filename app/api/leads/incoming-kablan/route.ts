@@ -98,10 +98,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const rawText = await req.text()
   let body: Record<string, any>
   try {
-    body = await req.json()
-  } catch {
+    body = JSON.parse(rawText)
+  } catch (e) {
+    console.error('[incoming-kablan] Invalid JSON. Raw body was:', rawText)
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
