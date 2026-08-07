@@ -15,10 +15,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { normalizePhone } from '@/lib/base44'
-import { sendWhatsApp } from '@/lib/whatsapp'
+import { sendWhatsApp, sendWhatsAppVideo } from '@/lib/whatsapp'
 
 const OHAD_WA = '972542274497'
 const WEBHOOK_SECRET = process.env.LEADS_WEBHOOK_SECRET!
+// כבוי כברירת מחדל — הבוט האינטראקטיבי (סרטון + שאלות עיסוק/ניסיון) ממתין לסרטון של אוהד.
+// כשה-2 האלה מוגדרים ב-Vercel, שולחים סרטון + שאלה ראשונה במקום הודעת החימום הבודדת הישנה.
+const KABLAN_BOT_ENABLED = process.env.KABLAN_BOT_ENABLED === 'true'
+const KABLAN_VIDEO_URL = process.env.KABLAN_VIDEO_URL || ''
 
 function extractLeadgenId(body: Record<string, any>): string {
   return (
@@ -186,6 +190,7 @@ export async function POST(req: NextRequest) {
       notes: `ניסיון מוכח: ${has_experience} | תושב ישראל: ${is_resident} | עובד בענף הבנייה/תשתיות: ${in_sector}`,
       status: 'חדש',
       is_viewed: false,
+      kablan_bot_step: (KABLAN_BOT_ENABLED && KABLAN_VIDEO_URL) ? 'awaiting_occupation' : null,
     }).select('id').maybeSingle()
     console.log('[incoming-kablan] Saved to Supabase:', full_name)
   } catch (e) {
@@ -222,11 +227,17 @@ export async function POST(req: NextRequest) {
     console.error('[incoming-kablan] WhatsApp to Ohad error:', e)
   }
 
-  // ── 3. הודעת חימום חד-פעמית ללקוח ──────────────────────────────
+  // ── 3. חימום ללקוח: בוט אינטראקטיבי (סרטון + שאלות) אם מופעל, אחרת הודעה חד-פעמית ──
   if (phoneNorm && phoneNorm.length >= 10) {
     try {
-      await sendWhatsApp(phoneNorm, buildKablanWarmMessage(full_name))
-      console.log('[incoming-kablan] Warm WhatsApp sent to lead:', phoneNorm)
+      if (KABLAN_BOT_ENABLED && KABLAN_VIDEO_URL) {
+        await sendWhatsAppVideo(phoneNorm, KABLAN_VIDEO_URL, buildKablanWarmMessage(full_name))
+        await sendWhatsApp(phoneNorm, 'אשמח להכיר אותך קצת לפני שנדבר — מה בדיוק העיסוק שלך?')
+        console.log('[incoming-kablan] Bot conversation started for lead:', phoneNorm)
+      } else {
+        await sendWhatsApp(phoneNorm, buildKablanWarmMessage(full_name))
+        console.log('[incoming-kablan] Warm WhatsApp sent to lead:', phoneNorm)
+      }
     } catch (e) {
       console.error('[incoming-kablan] WhatsApp to lead error:', e)
     }

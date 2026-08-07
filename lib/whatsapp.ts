@@ -26,6 +26,26 @@ export async function sendWhatsApp(phone: string, message: string): Promise<bool
   }
 }
 
+/** Send a video by URL (Green API downloads and forwards it) */
+export async function sendWhatsAppVideo(phone: string, videoUrl: string, caption?: string): Promise<boolean> {
+  if (!GREEN_INSTANCE || !GREEN_TOKEN) {
+    console.warn('[WhatsApp] Green API not configured')
+    return false
+  }
+  try {
+    const chatId = phone.includes('@') ? phone : `${phone}@c.us`
+    const res = await fetch(`${BASE_URL()}/sendFileByUrl/${GREEN_TOKEN}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chatId, urlFile: videoUrl, fileName: 'ohad.mp4', caption: caption || '' }),
+    })
+    return res.ok
+  } catch (e) {
+    console.error('[WhatsApp] Send video error:', e)
+    return false
+  }
+}
+
 /** Set the incoming messages webhook URL in Green API */
 export async function setIncomingWebhook(webhookUrl: string): Promise<boolean> {
   try {
