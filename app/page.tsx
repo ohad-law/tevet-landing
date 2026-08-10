@@ -7,6 +7,12 @@ import Image from "next/image";
 const OHAD_PHOTO =
   "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692364cc62edd448d4415194/33ca10aa6_image.png";
 
+// פרופיל Google של המשרד — נבדק ידנית מול Google Maps ב-10/08/2026.
+// לעדכן את המספרים כשהם משתנים; הם מוצגים לגולש כעובדה.
+const GOOGLE_PROFILE_URL = "https://g.page/r/Cf-b2dk5FCCuEBM";
+const GOOGLE_RATING = 5.0;
+const GOOGLE_REVIEW_COUNT = 15;
+
 const PROOF_CLIENTS = [
   { initials: "ד.כ", name: "ד. כהן", role: "עובד ותיק · 31 שנה\nללא זכויות סוציאליות", pronoun: "קיבל", amount: "700,000 ₪" },
   { initials: "מ.ל", name: "מ. לוי", role: "נהג הובלות · 6 שנים\nהסדר פשרה לאחר שנה בלבד", pronoun: "קיבל", amount: "210,000 ₪" },
@@ -185,7 +191,12 @@ export default function Home() {
                     onChange={e => setFiles(e.target.files)}
                   />
                 </label>
-                <p className="upload-note">* ללא תלוש — לא ניתן לבצע בדיקה · המידע מאובטח ולא מועבר לשום גורם</p>
+                <p className="upload-note">
+                  * ללא תלוש — לא ניתן לבצע בדיקה
+                  <br />
+                  🔒 התלושים נשמרים באחסון פרטי ומוצפן, נצפים על ידי עו&quot;ד אוהד טבת בלבד,
+                  לא מועברים לאף גורם — וימחקו לבקשתך בכל שלב.
+                </p>
 
                 <div className="privacy-consent">
                   <input
@@ -334,10 +345,24 @@ export default function Home() {
                 <div className="proof-role" style={{ whiteSpace: "pre-line" }}>{c.role}</div>
                 <div className="proof-result-label">{c.pronoun}</div>
                 <div className="proof-amount">{c.amount}</div>
-                <div className="proof-stars">★★★★★</div>
               </div>
             ))}
           </div>
+
+          {/* דירוג גוגל — הוכחה שאפשר לאמת, בניגוד לכרטיסיות שמעליה */}
+          <a
+            className="google-rating"
+            href={GOOGLE_PROFILE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span className="google-rating-score">{GOOGLE_RATING.toFixed(1)}</span>
+            <span className="google-rating-stars" aria-hidden="true">★★★★★</span>
+            <span className="google-rating-text">
+              {GOOGLE_REVIEW_COUNT} ביקורות בפרופיל Google של המשרד
+            </span>
+            <span className="google-rating-link">לצפייה בביקורות →</span>
+          </a>
         </div>
       </section>
 

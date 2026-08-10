@@ -279,7 +279,24 @@ section { padding: 5rem 1.5rem; }
 .proof-role { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.9rem; line-height: 1.4; }
 .proof-result-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(201,168,76,0.55); margin-bottom: 0.3rem; }
 .proof-amount { font-size: 1.15rem; font-weight: 900; color: var(--gold); margin-bottom: 0.6rem; line-height: 1.2; }
-.proof-stars { color: var(--gold); font-size: 0.75rem; letter-spacing: 2px; }
+/* פס דירוג Google — הוכחה חיצונית שאפשר ללחוץ ולאמת */
+.google-rating {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: 0.6rem 0.85rem; margin-top: 2rem; padding: 0.9rem 1.4rem;
+  background: rgba(201,168,76,0.07); border: 1px solid var(--gold-border);
+  border-radius: 12px; text-decoration: none; color: inherit; transition: border-color 0.2s;
+}
+.google-rating:hover { border-color: rgba(201,168,76,0.5); }
+.google-rating-score { font-size: 1.5rem; font-weight: 900; color: var(--gold); line-height: 1; }
+.google-rating-stars { color: var(--gold); font-size: 0.95rem; letter-spacing: 2px; }
+.google-rating-text { font-size: 0.85rem; color: var(--text-dim); }
+.google-rating-link { font-size: 0.8rem; font-weight: 700; color: var(--gold); white-space: nowrap; }
+
+@media (max-width: 560px) {
+  .google-rating { gap: 0.4rem 0.7rem; padding: 0.85rem 1rem; }
+  .google-rating-text { width: 100%; text-align: center; order: 3; }
+  .google-rating-link { width: 100%; text-align: center; order: 4; }
+}
 
 .faq { background: var(--navy); }
 .faq-list { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.75rem; }
