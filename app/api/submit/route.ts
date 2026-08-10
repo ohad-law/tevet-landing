@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import { createServiceClient } from "@/lib/supabase/service";
+import { scoreLead, buildLeadNotes } from "@/lib/leadScore";
+
+const PAYSLIP_BUCKET = "lead-payslips";
+/** תוקף הקישור לתלושים שנשלח לאוהד ונשמר ב-CRM */
+const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24 * 365;
 
 const GREEN_API_INSTANCE = process.env.GREEN_API_INSTANCE_ID ?? "7105435035";
 const GREEN_API_TOKEN = process.env.GREEN_API_TOKEN ?? "25e05f98851f4262b11be4110f31a462306a88d0d7dd490695";
@@ -59,15 +65,25 @@ function createTransport() {
   });
 }
 
-async function sendWhatsApp(name: string, phone: string, years: string, situation: string) {
+async function sendWhatsApp(
+  name: string,
+  phone: string,
+  years: string,
+  situation: string,
+  payslipUrls: string[] = []
+) {
   if (!OHAD_WHATSAPP) return;
   const chatId = OHAD_WHATSAPP.replace(/\D/g, "") + "@c.us";
+  const { score, tier } = scoreLead({ years, situation });
   const message =
     `📋 *ליד חדש — בדיקת תלוש שכר*\n\n` +
     `👤 שם: ${name}\n` +
     `📞 טלפון: ${phone}\n` +
     `📅 שנות עבודה: ${years}\n` +
-    `💼 סיטואציה: ${situation || "לא צוין"}`;
+    `💼 סיטואציה: ${situation || "לא צוין"}\n` +
+    `⭐ דירוג: ${tier} (${score})\n` +
+    `📎 תלושים: ${payslipUrls.length}` +
+    (payslipUrls[0] ? `\n${payslipUrls[0]}` : "");
 
   const url = `${GREEN_API_HOST}/waInstance${GREEN_API_INSTANCE}/sendMessage/${GREEN_API_TOKEN}`;
   await fetch(url, {
@@ -75,6 +91,79 @@ async function sendWhatsApp(name: string, phone: string, years: string, situatio
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ chatId, message }),
   });
+}
+
+/**
+ * שומר את הליד ב-Supabase ומעלה את התלושים לאחסון פרטי.
+ * זה קורה לפני כל שליחת התראה — כדי שנפילה של מייל או וואטסאפ
+ * לא תאבד ליד. זו בדיוק הסיבה שלידים מדף הנחיתה נעלמו בעבר.
+ */
+async function saveLead(params: {
+  name: string;
+  phone: string;
+  years: string;
+  situation: string;
+  files: File[];
+  referer: string;
+}): Promise<{ id: string | null; payslipUrls: string[] }> {
+  const supabase = createServiceClient();
+  const { score } = scoreLead({ years: params.years, situation: params.situation });
+
+  const { data: lead, error } = await supabase
+    .from("leads")
+    .insert({
+      full_name: params.name,
+      phone: params.phone,
+      source: "דף נחיתה",
+      campaign_name: "טבת | דף נחיתה | בדיקת תלושי שכר",
+      status: "חדש",
+      notes: buildLeadNotes({ years: params.years, situation: params.situation }),
+      lead_score: score,
+      landing_page: params.referer,
+      is_viewed: false,
+    })
+    .select("id")
+    .single();
+
+  if (error || !lead) {
+    console.error("saveLead insert failed:", error);
+    return { id: null, payslipUrls: [] };
+  }
+
+  const payslipUrls: string[] = [];
+  const storedPaths: string[] = [];
+
+  for (const [i, file] of params.files.entries()) {
+    const safeName = file.name.replace(/[^\w.\-֐-׿]/g, "_");
+    const path = `${lead.id}/${String(i + 1).padStart(2, "0")}_${safeName}`;
+    const { error: upErr } = await supabase.storage
+      .from(PAYSLIP_BUCKET)
+      .upload(path, Buffer.from(await file.arrayBuffer()), {
+        contentType: file.type || "application/octet-stream",
+        upsert: true,
+      });
+    if (upErr) {
+      console.error("payslip upload failed:", path, upErr);
+      continue;
+    }
+    storedPaths.push(path);
+    const { data: signed } = await supabase.storage
+      .from(PAYSLIP_BUCKET)
+      .createSignedUrl(path, SIGNED_URL_TTL_SECONDS);
+    if (signed?.signedUrl) payslipUrls.push(signed.signedUrl);
+  }
+
+  if (storedPaths.length > 0) {
+    await supabase
+      .from("leads")
+      .update({
+        uploaded_files: storedPaths.map((p, i) => ({ path: p, url: payslipUrls[i] ?? null })),
+        drive_link: payslipUrls[0] ?? null,
+      })
+      .eq("id", lead.id);
+  }
+
+  return { id: lead.id, payslipUrls };
 }
 
 export async function POST(req: NextRequest) {
@@ -96,6 +185,46 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "נא להעלות לפחות תלוש אחד" }, { status: 400 });
     }
 
+    const referer = req.headers.get("referer") ?? "https://tevet-landing.vercel.app";
+
+    // שלב 1 — שמירה. חייב להצליח, וקורה לפני כל התראה.
+    const { id: leadId, payslipUrls } = await saveLead({
+      name,
+      phone,
+      years,
+      situation,
+      files: fileEntries,
+      referer,
+    });
+
+    if (!leadId) {
+      return NextResponse.json(
+        { error: "שגיאה בשמירת הפנייה, נסו שוב" },
+        { status: 500 }
+      );
+    }
+
+    // שלב 2 — התראות. נכשלות בשקט, הליד כבר שמור.
+    void notify({ name, phone, years, situation, fileEntries, payslipUrls, referer });
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("submit error:", err);
+    return NextResponse.json({ error: "שגיאה פנימית" }, { status: 500 });
+  }
+}
+
+async function notify(p: {
+  name: string;
+  phone: string;
+  years: string;
+  situation: string;
+  fileEntries: File[];
+  payslipUrls: string[];
+  referer: string;
+}) {
+  const { name, phone, years, situation, fileEntries, payslipUrls, referer } = p;
+  try {
     const attachments = await Promise.all(
       fileEntries.map(async (file) => ({
         filename: file.name,
@@ -118,6 +247,8 @@ export async function POST(req: NextRequest) {
             <tr><td style="padding:8px;font-weight:bold;color:#555;">שנות עבודה:</td><td style="padding:8px;">${years}</td></tr>
             <tr style="background:#f9f9f9;"><td style="padding:8px;font-weight:bold;color:#555;">סיטואציה:</td><td style="padding:8px;">${situation || "לא צוין"}</td></tr>
             <tr><td style="padding:8px;font-weight:bold;color:#555;">מספר תלושים:</td><td style="padding:8px;">${fileEntries.length}</td></tr>
+            <tr style="background:#f9f9f9;"><td style="padding:8px;font-weight:bold;color:#555;">דירוג:</td><td style="padding:8px;">${scoreLead({ years, situation }).tier} (${scoreLead({ years, situation }).score})</td></tr>
+            ${payslipUrls.length ? `<tr><td style="padding:8px;font-weight:bold;color:#555;">תלושים ב-CRM:</td><td style="padding:8px;">${payslipUrls.map((u, i) => `<a href="${u}">תלוש ${i + 1}</a>`).join(" · ")}</td></tr>` : ""}
           </table>
           <p style="margin-top:20px;color:#888;font-size:13px;">הגיע דרך דף הנחיתה · ${new Date().toLocaleString("he-IL")}</p>
         </div>
@@ -125,14 +256,10 @@ export async function POST(req: NextRequest) {
       attachments,
     });
 
-    await sendWhatsApp(name, phone, years, situation).catch(() => null);
-
-    const referer = req.headers.get("referer") ?? "https://tevet-landing.vercel.app";
-    sendMetaCAPI(phone, name, referer).catch(() => null);
-
-    return NextResponse.json({ ok: true });
+    await sendWhatsApp(name, phone, years, situation, payslipUrls).catch(() => null);
+    await sendMetaCAPI(phone, name, referer).catch(() => null);
   } catch (err) {
-    console.error("submit error:", err);
-    return NextResponse.json({ error: "שגיאה פנימית" }, { status: 500 });
+    // הליד כבר שמור ב-CRM — כישלון התראה לא מאבד אותו
+    console.error("notify failed (lead already saved):", err);
   }
 }

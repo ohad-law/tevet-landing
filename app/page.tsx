@@ -155,6 +155,7 @@ export default function Home() {
                   <select value={situation} onChange={e => setSituation(e.target.value)}>
                     <option value="" disabled>הסיטואציה שלך?</option>
                     <option>פוטרתי לאחרונה</option>
+                    <option>התפטרתי</option>
                     <option>עדיין עובד, רוצה לבדוק</option>
                     <option>שכר במזומן / ללא תיעוד</option>
                     <option>שעות נוספות שלא שולמו</option>
