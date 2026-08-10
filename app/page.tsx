@@ -10,6 +10,10 @@ const OHAD_PHOTO =
 // פרופיל Google של המשרד — נבדק ידנית מול Google Maps ב-10/08/2026.
 // לעדכן את המספרים כשהם משתנים; הם מוצגים לגולש כעובדה.
 const GOOGLE_PROFILE_URL = "https://g.page/r/Cf-b2dk5FCCuEBM";
+
+// המספר העסקי שמחובר ל-Green API. כל הודעה שנכנסת לכאן מועברת
+// אוטומטית לנייד האישי של אוהד, ולכן זה המספר שמוצג ללקוחות.
+const OHAD_WHATSAPP_PUBLIC = "972515937329";
 const GOOGLE_RATING = 5.0;
 const GOOGLE_REVIEW_COUNT = 15;
 
@@ -159,7 +163,7 @@ export default function Home() {
                       כדי שנוכל לבדוק את השכר שלך, שלח 2-3 תלושי שכר ב-WhatsApp:
                     </p>
                     <a
-                      href={`https://wa.me/972545960645?text=${encodeURIComponent("היי אוהד, שלחתי פנייה דרך האתר. מצרף תלושי שכר לבדיקה:")}`}
+                      href={`https://wa.me/${OHAD_WHATSAPP_PUBLIC}?text=${encodeURIComponent("היי אוהד, שלחתי פנייה דרך האתר. מצרף תלושי שכר לבדיקה:")}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="whatsapp-btn"
