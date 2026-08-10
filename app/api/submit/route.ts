@@ -82,7 +82,9 @@ async function sendWhatsApp(
     `📅 שנות עבודה: ${years}\n` +
     `💼 סיטואציה: ${situation || "לא צוין"}\n` +
     `⭐ דירוג: ${tier} (${score})\n` +
-    `📎 תלושים: ${payslipUrls.length}` +
+    (payslipUrls.length
+      ? `📎 תלושים: ${payslipUrls.length}`
+      : `⚠️ *ללא תלושים* — לבקש בשיחה`) +
     (payslipUrls[0] ? `\n${payslipUrls[0]}` : "");
 
   const url = `${GREEN_API_HOST}/waInstance${GREEN_API_INSTANCE}/sendMessage/${GREEN_API_TOKEN}`;
@@ -117,7 +119,9 @@ async function saveLead(params: {
       source: "דף נחיתה",
       campaign_name: "טבת | דף נחיתה | בדיקת תלושי שכר",
       status: "חדש",
-      notes: buildLeadNotes({ years: params.years, situation: params.situation }),
+      notes:
+        buildLeadNotes({ years: params.years, situation: params.situation }) +
+        (params.files.length === 0 ? " | ⚠️ ללא תלושים — לבקש בשיחה" : ""),
       lead_score: score,
       landing_page: params.referer,
       is_viewed: false,
@@ -181,9 +185,8 @@ export async function POST(req: NextRequest) {
     if (years === "פחות משנה") {
       return NextResponse.json({ error: "לא מייצגים עובדים עם פחות משנה" }, { status: 400 });
     }
-    if (fileEntries.length === 0) {
-      return NextResponse.json({ error: "נא להעלות לפחות תלוש אחד" }, { status: 400 });
-    }
+    // תלושים אינם חובה: הדפדפן הפנימי של טיקטוק חוסם העלאת קבצים,
+    // ופנייה בלי תלושים היא עדיין ליד — רודפים אחרי התלושים בשיחה.
 
     const referer = req.headers.get("referer") ?? "https://tevet-landing.vercel.app";
 

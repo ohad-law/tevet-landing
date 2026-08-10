@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -40,6 +40,16 @@ export default function Home() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isTikTokBrowser, setIsTikTokBrowser] = useState(false);
+
+  useEffect(() => {
+    const ua = navigator.userAgent || "";
+    setIsTikTokBrowser(/musical_ly|tiktok|bytedance|bytedancewebview/i.test(ua));
+  }, []);
+
+  function handleUploadClick() {
+    fileInputRef.current?.click();
+  }
 
   function handleYearsChange(val: string) {
     setYears(val);
@@ -53,7 +63,6 @@ export default function Home() {
     if (!name.trim() || !phone.trim()) { setError("נא למלא שם וטלפון"); return; }
     if (!years) { setError("נא לבחור כמה שנים עבדת"); return; }
     if (isUnderYear) { setError("אנחנו מייצגים עובדים שעבדו לפחות שנה"); return; }
-    if (!files || files.length === 0) { setError("נא להעלות לפחות תלוש שכר אחד"); return; }
     if (!privacyChecked) { setError("נא לאשר את מדיניות הפרטיות"); return; }
 
     setSubmitting(true);
@@ -63,7 +72,9 @@ export default function Home() {
       fd.append("phone", phone.trim());
       fd.append("years", years);
       fd.append("situation", situation);
-      for (let i = 0; i < files.length; i++) fd.append("files", files[i]);
+      // התלושים אופציונליים — מי שלא הצליח להעלות (למשל בדפדפן של טיקטוק)
+      // עדיין נשלח, ומקבל מסלול WhatsApp במסך התודה
+      if (files) for (let i = 0; i < files.length; i++) fd.append("files", files[i]);
 
       const res = await fetch("/api/submit", { method: "POST", body: fd });
       if (!res.ok) {
@@ -140,7 +151,26 @@ export default function Home() {
                 <strong style={{ fontSize: "1.1rem", display: "block", marginBottom: "0.5rem" }}>
                   תודה! הפנייה התקבלה.
                 </strong>
-                עו&quot;ד אוהד טבת יבדוק את התלושים ויחזור אליך תוך 24-48 שעות עם האינדיקציה.
+                {files && files.length > 0 ? (
+                  <p>עו&quot;ד אוהד טבת יבדוק את התלושים ויחזור אליך תוך 24-48 שעות עם האינדיקציה.</p>
+                ) : (
+                  <>
+                    <p style={{ marginBottom: "0.75rem" }}>
+                      כדי שנוכל לבדוק את השכר שלך, שלח 2-3 תלושי שכר ב-WhatsApp:
+                    </p>
+                    <a
+                      href={`https://wa.me/972545960645?text=${encodeURIComponent("היי אוהד, שלחתי פנייה דרך האתר. מצרף תלושי שכר לבדיקה:")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="whatsapp-btn"
+                    >
+                      שלח תלושים ב-WhatsApp
+                    </a>
+                    <p style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)", marginTop: "0.5rem" }}>
+                      אוהד יחזור אליך תוך 24-48 שעות עם האינדיקציה
+                    </p>
+                  </>
+                )}
               </div>
             ) : (
               <form onSubmit={handleSubmit} noValidate>
@@ -172,27 +202,50 @@ export default function Home() {
                   <p className="filter-note">* עבדת פחות משנה? לצערנו לא נוכל לעזור לך</p>
                 )}
 
-                <label
+                {isTikTokBrowser && (
+                  <div className="webview-banner">
+                    <strong>העלאת קבצים לא נתמכת בדפדפן טיקטוק</strong>
+                    <button
+                      type="button"
+                      className="open-browser-btn"
+                      onClick={() => {
+                        window.location.href = "intent://tevet-landing.vercel.app#Intent;scheme=https;package=com.android.chrome;end";
+                        setTimeout(() => { window.open(window.location.href, "_system"); }, 300);
+                      }}
+                    >
+                      פתח בדפדפן חיצוני
+                    </button>
+                    <p style={{ fontSize: "0.72rem", marginTop: "0.35rem", opacity: 0.6 }}>
+                      לחץ על ⋮ למעלה ובחר &quot;פתח בדפדפן&quot;
+                    </p>
+                  </div>
+                )}
+
+                <div
                   className="upload-label"
+                  role="button"
+                  tabIndex={0}
+                  onClick={handleUploadClick}
+                  onKeyDown={e => { if (e.key === "Enter" || e.key === " ") handleUploadClick(); }}
                   style={files && files.length > 0 ? { borderColor: "var(--gold)", color: "rgba(255,255,255,0.8)" } : {}}
                 >
                   <strong>
                     {files && files.length > 0
                       ? `✓ ${files.length} קבצים נבחרו`
-                      : "העלה 2-3 תלושי שכר (חובה)"}
+                      : "העלה תלושי שכר (אופציונלי)"}
                   </strong>
-                  PDF, JPG או PNG · עד 10MB לקובץ
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    multiple
-                    style={{ display: "none" }}
-                    onChange={e => setFiles(e.target.files)}
-                  />
-                </label>
+                  PDF, JPG או PNG · ניתן גם לשלוח ב-WhatsApp אחרי השליחה
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,image/*"
+                  multiple
+                  style={{ display: "none" }}
+                  onChange={e => setFiles(e.target.files)}
+                />
                 <p className="upload-note">
-                  * ללא תלוש — לא ניתן לבצע בדיקה
+                  * בלי תלושים לא נוכל לחשב כמה מגיע לך — אפשר לשלוח אותם גם ב-WhatsApp אחרי השליחה
                   <br />
                   🔒 התלושים נשמרים באחסון פרטי ומוצפן, נצפים על ידי עו&quot;ד אוהד טבת בלבד,
                   לא מועברים לאף גורם — וימחקו לבקשתך בכל שלב.
