@@ -91,6 +91,19 @@ function buildKablanWarmMessage(fullName: string | null): string {
   ].join('\n')
 }
 
+/**
+ * ניקוד ליד קבלן — שלוש שאלות הסינון, במשקל שווה.
+ * שלוש תשובות חיוביות = 100, וכל תשובה חסרה או שלילית מורידה.
+ * מי שלא ענה בכלל מקבל 60 כדי שלא ייפול לתחתית התור בטעות.
+ */
+function kablanScore(experience: string, resident: string, sector: string): number {
+  const yes = (v: string) => /yes|כן/i.test(v || '')
+  const answered = [experience, resident, sector].filter((v) => v && v !== '—').length
+  if (answered === 0) return 60
+  const positives = [experience, resident, sector].filter(yes).length
+  return Math.round((positives / 3) * 100)
+}
+
 export async function POST(req: NextRequest) {
   const secret = req.headers.get('x-webhook-secret')?.trim()
   if (WEBHOOK_SECRET && secret !== WEBHOOK_SECRET) {
@@ -141,7 +154,10 @@ export async function POST(req: NextRequest) {
   }
 
   if (!lead_id) lead_id = extractLeadgenId(body)
-  const needsGraph = (!phone || !full_name) && lead_id
+  // גם תשובות חסרות מצדיקות פנייה לגרף — ליד שהגיע בלי שאלות הסינון
+  // נכנס בלי ניקוד אמיתי, ואז הוא נופל לתחתית התור בלי סיבה.
+  const missingAnswers = !has_experience || !is_resident || !in_sector
+  const needsGraph = (!phone || !full_name || missingAnswers) && lead_id
   if (needsGraph) {
     const fd = await fetchLeadFromGraph(lead_id)
     if (fd) {
@@ -182,6 +198,9 @@ export async function POST(req: NextRequest) {
       source: 'facebook_lead_form_kablan_rashum',
       campaign_name: ad_name || campaign_name,
       notes: `ניסיון מוכח: ${has_experience} | תושב ישראל: ${is_resident} | עובד בענף הבנייה/תשתיות: ${in_sector}`,
+      // בלי קו מוצר הליד לא מופיע באף לשונית במסך המכירות
+      product_line: 'קבלן רשום',
+      lead_score: kablanScore(has_experience, is_resident, in_sector),
       status: 'חדש',
       is_viewed: false,
     }).select('id').maybeSingle()

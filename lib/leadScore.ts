@@ -7,10 +7,19 @@
 
 export type LeadTier = "A" | "B" | "C" | "D";
 
+/**
+ * הניקוד בסולם 0–100, ולא בסולם פנימי שרירותי.
+ * ה-CRM מסמן "ליד חם" מ-75 ומעלה, ולכן הסולם מכויל כך שכל ליד
+ * שיחסי העבודה שלו הסתיימו ויש לו ותק של שלוש שנים ומעלה
+ * חוצה את הסף מעצמו (50 + 25).
+ */
+const ENDED_POINTS = 50;
+const SECTOR_POINTS = 15;
+
 const TENURE_POINTS: Record<string, { minYears: number; points: number }> = {
-  "מעל 7 שנים": { minYears: 7, points: 3 },
-  "3 עד 7 שנים": { minYears: 3, points: 2 },
-  "שנה עד 3 שנים": { minYears: 1, points: 1 },
+  "מעל 7 שנים": { minYears: 7, points: 35 },
+  "3 עד 7 שנים": { minYears: 3, points: 25 },
+  "שנה עד 3 שנים": { minYears: 1, points: 15 },
   "פחות משנה": { minYears: 0, points: 0 },
 };
 
@@ -43,7 +52,9 @@ export function scoreLead(input: {
   const hotSector = HIGH_VALUE_SECTORS.some((s) => field.includes(s));
 
   const score =
-    (ended ? 9 : 0) + (tenure?.points ?? 0) * 2 + (hotSector ? 2 : 0);
+    (ended ? ENDED_POINTS : 0) +
+    (tenure?.points ?? 0) +
+    (hotSector ? SECTOR_POINTS : 0);
 
   let tier: LeadTier;
   if (!ended) tier = "D";

@@ -23,6 +23,8 @@ export interface Base44Lead {
   first_contact_date?: string
   is_viewed?: boolean
   lead_score?: number
+  /** קבלן רשום / דיני עבודה — קובע באיזו לשונית הליד מופיע במסך המכירות */
+  product_line?: string
 }
 
 export async function createBase44Lead(lead: Base44Lead): Promise<string | null> {

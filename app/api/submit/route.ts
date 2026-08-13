@@ -118,6 +118,7 @@ async function saveLead(params: {
       phone: params.phone,
       source: "דף נחיתה",
       campaign_name: "טבת | דף נחיתה | בדיקת תלושי שכר",
+      product_line: "דיני עבודה",
       status: "חדש",
       notes:
         buildLeadNotes({ years: params.years, situation: params.situation }) +

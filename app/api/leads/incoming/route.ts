@@ -270,6 +270,7 @@ export async function POST(req: NextRequest) {
       first_contact_date: today,
       is_viewed: false,
       lead_score: leadScoreFromYears(years_worked),
+      product_line: 'דיני עבודה',
     })
     console.log('[incoming] Created in BASE44:', full_name)
   } catch (e) {
