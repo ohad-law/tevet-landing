@@ -55,9 +55,12 @@ async function fetchLeadFromGraph(leadgenId: string): Promise<Record<string, str
   const META_TOKEN = process.env.META_ACCESS_TOKEN!
   if (!META_TOKEN || !leadgenId) return null
   try {
+    // בלי הגבלת זמן, קריאה תקועה מחזיקה את כל הבקשה ומייק מוותר אחרי 40 שניות
+    // ומנסה שוב, וזה מה שיצר כפילות. ליד עם פרטים חסרים עדיף על ליד שלא נכנס.
     const res = await fetch(
       `https://graph.facebook.com/v21.0/${leadgenId}` +
-      `?fields=id,field_data,ad_name,campaign_name,created_time&access_token=${META_TOKEN}`
+      `?fields=id,field_data,ad_name,campaign_name,created_time&access_token=${META_TOKEN}`,
+      { signal: AbortSignal.timeout(5000) }
     )
     const data = await res.json()
     if (data.error) {
@@ -188,6 +191,27 @@ export async function POST(req: NextRequest) {
   const phoneNorm = normalizePhone(phone)
   const now = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' })
 
+  // ── 0. חסימת כפילות ───────────────────────────────────────────
+  // מייק מנסה שוב אחרי timeout, ואז אותו אדם נכנס פעמיים.
+  // חלון של 10 דקות מכסה כל ניסיון חוזר בלי לחסום פנייה אמיתית חוזרת.
+  if (phoneNorm) {
+    try {
+      const since = new Date(Date.now() - 10 * 60 * 1000).toISOString()
+      const { data: recent } = await createServiceClient()
+        .from('leads')
+        .select('id')
+        .eq('phone', phoneNorm)
+        .gte('created_at', since)
+        .limit(1)
+      if (recent && recent.length > 0) {
+        console.log('[incoming-kablan] Duplicate within 10min, skipping:', phoneNorm)
+        return NextResponse.json({ ok: true, duplicate: true })
+      }
+    } catch (e) {
+      console.error('[incoming-kablan] Duplicate check failed, continuing:', e)
+    }
+  }
+
   // ── 1. Supabase ───────────────────────────────────────────────
   // מסומן source ייעודי, בלי followup_stage — אין רצף אוטומטי לזווית הזו (ראו הערת הקובץ).
   try {
@@ -209,7 +233,12 @@ export async function POST(req: NextRequest) {
     console.error('[incoming-kablan] Supabase exception:', e)
   }
 
+  // ההתראות רצות אחרי שהתשובה כבר יצאה — ראה notifyKablan למטה.
+  void notifyKablan()
+  return NextResponse.json({ ok: true })
+
   // ── 2. WhatsApp לאוהד (למספר האישי) ────────────────────────────
+  async function notifyKablan() {
   try {
     const displayPhone = phone || phoneNorm
     const ohadMsg = [
@@ -249,5 +278,5 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true })
+  }
 }
