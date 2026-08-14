@@ -100,6 +100,21 @@ export async function POST(req: NextRequest) {
     const textData = messageData.textMessageData as Record<string, string> | undefined
     const msgText = textData?.textMessage || '[הודעה שאינה טקסט]'
 
+    // ── שמירת ההודעה לשיחה ────────────────────────────────────────
+    // נשמר גם כשהשולח אינו ליד מוכר: טריגר בבסיס הנתונים משייך לפי
+    // טלפון, וכך הודעה שקדמה ליצירת הליד תתחבר אליו כשייווצר.
+    try {
+      await supabase.from('whatsapp_messages').insert({
+        phone: senderPhone,
+        direction: 'נכנסת',
+        body: msgText,
+        provider_message_id: (body.idMessage as string) || null,
+        is_read: false,
+      })
+    } catch (e) {
+      console.error('[whatsapp-incoming] Failed to store message:', e)
+    }
+
     if (!lead) {
       // לא ליד מוכר. עדיין ייתכן שזה לקוח שקיבל בקשת ביקורת ומבקש הסרה.
       if (isOptOut(msgText)) {
