@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     console.error('[kablan-landing-page] Supabase exception:', e)
   }
 
-  void notifyOhad()
+  await notifyOhad()
   return NextResponse.json({ ok: true })
 
   async function notifyOhad() {
