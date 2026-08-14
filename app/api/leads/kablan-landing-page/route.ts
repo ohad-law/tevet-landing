@@ -4,11 +4,56 @@
  * ציבורי בכוונה (בלי סוד וובהוק) — נקרא מדפדפן הלקוח.
  */
 import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
 import { createServiceClient } from '@/lib/supabase/service'
 import { normalizePhone } from '@/lib/base44'
 import { sendWhatsApp } from '@/lib/whatsapp'
 
 const OHAD_WA = '972542274497'
+const META_PIXEL_ID = process.env.META_PIXEL_ID ?? '1395969088227775'
+const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN ?? process.env.META_ADS_ACCESS_TOKEN ?? ''
+
+function sha256(value: string): string {
+  return crypto.createHash('sha256').update(value.trim().toLowerCase()).digest('hex')
+}
+
+// שולח את אירוע ה-Lead גם ל-CAPI בצד שרת, לא רק לפיקסל בדפדפן — חוסן נגד
+// אד-בלוקרים ומצבים שבהם ה-JS בדפדפן לא הספיק לרוץ (ראו api/submit/route.ts, אותו דפוס).
+async function sendMetaCAPI(phone: string, name: string, sourceUrl: string) {
+  if (!META_ACCESS_TOKEN) return
+  const nameParts = name.trim().split(/\s+/)
+  const firstName = nameParts[0] ?? ''
+  const lastName = nameParts.slice(1).join(' ') ?? ''
+  const phoneNorm = phone.replace(/\D/g, '')
+
+  const payload = {
+    data: [
+      {
+        event_name: 'Lead',
+        event_time: Math.floor(Date.now() / 1000),
+        action_source: 'website',
+        event_source_url: sourceUrl,
+        user_data: {
+          ph: [sha256(phoneNorm)],
+          fn: firstName ? [sha256(firstName)] : undefined,
+          ln: lastName ? [sha256(lastName)] : undefined,
+        },
+      },
+    ],
+    access_token: META_ACCESS_TOKEN,
+  }
+
+  try {
+    await fetch(`https://graph.facebook.com/v21.0/${META_PIXEL_ID}/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    console.log('[kablan-landing-page] Sent Meta CAPI Lead event')
+  } catch (e) {
+    console.error('[kablan-landing-page] Meta CAPI error:', e)
+  }
+}
 
 export async function POST(req: NextRequest) {
   let body: Record<string, any>
@@ -47,7 +92,10 @@ export async function POST(req: NextRequest) {
     console.error('[kablan-landing-page] Supabase exception:', e)
   }
 
-  await notifyOhad()
+  await Promise.all([
+    notifyOhad(),
+    sendMetaCAPI(phone, full_name, req.headers.get('referer') || 'https://tevet-landing.vercel.app/kablan-rashum.html'),
+  ])
   return NextResponse.json({ ok: true })
 
   async function notifyOhad() {
