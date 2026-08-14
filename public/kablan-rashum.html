@@ -4,54 +4,66 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>קבלן רשום — ואז מה? | עו"ד אוהד טבת</title>
-<meta name="description" content="הוצאת רישיון קבלן רשום זו רק ההתחלה. משרד עו&quot;ד אוהד טבת מלווה קבלנים גם אחרי הרישיון — עיצומים כספיים, ביקורות בטיחות, תביעות עובדים.">
+<meta name="description" content="הוצאת רישיון קבלן רשום זו רק ההתחלה. עו&quot;ד אוהד טבת מלווה קבלנים גם אחרי הרישיון — עיצומים כספיים, ביקורות בטיחות, תביעות עובדים.">
 <meta name="robots" content="noindex">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Rubik', sans-serif; color: #1a2b3c; background: #fff; line-height: 1.6; }
+  img { max-width: 100%; display: block; }
   .navy { background: #0e2a47; color: #fff; }
   .gold { color: #c9a24b; }
-  .bg-gold { background: #c9a24b; }
   .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
-  header.hero { padding: 56px 0 64px; text-align: center; }
+  header.hero { padding: 48px 0 56px; text-align: center; }
+  .hero-photo { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; margin: 0 auto 18px; border: 3px solid #c9a24b; }
   .badge { display: inline-block; background: rgba(201,162,74,0.15); color: #c9a24b; border: 1px solid #c9a24b; border-radius: 999px; padding: 6px 18px; font-size: 14px; font-weight: 600; margin-bottom: 20px; }
-  h1 { font-size: 40px; font-weight: 800; line-height: 1.25; margin-bottom: 18px; }
-  .hero p.sub { font-size: 19px; color: #cfd8e3; max-width: 620px; margin: 0 auto 32px; }
-  .cta-btn { display: inline-block; background: #c9a24b; color: #0e2a47; font-weight: 700; font-size: 18px; padding: 16px 36px; border-radius: 10px; text-decoration: none; }
+  h1 { font-size: 36px; font-weight: 800; line-height: 1.3; margin-bottom: 18px; }
+  .hero p.sub { font-size: 18px; color: #cfd8e3; max-width: 620px; margin: 0 auto 32px; }
+  .cta-btn { display: inline-block; background: #c9a24b; color: #0e2a47; font-weight: 700; font-size: 18px; padding: 16px 36px; border-radius: 10px; text-decoration: none; border: none; cursor: pointer; }
   .cta-btn:hover { background: #dab668; }
-  section { padding: 56px 0; }
+  section { padding: 48px 0; }
   section.light { background: #f7f8fa; }
-  h2 { font-size: 28px; font-weight: 800; margin-bottom: 28px; text-align: center; color: #0e2a47; }
-  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 32px; }
-  .stat-card { background: #fff; border: 1px solid #e5e8ec; border-radius: 12px; padding: 22px; text-align: center; }
-  .stat-card .num { font-size: 26px; font-weight: 800; color: #0e2a47; margin-bottom: 4px; }
-  .stat-card .label { font-size: 14px; color: #667; }
-  .warn-box { background: #fdf3e7; border-right: 4px solid #c9a24b; border-radius: 8px; padding: 24px 28px; margin: 28px 0; font-size: 17px; }
+  h2 { font-size: 26px; font-weight: 800; margin-bottom: 28px; text-align: center; color: #0e2a47; }
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+  .stat-card { background: #fff; border: 1px solid #e5e8ec; border-radius: 12px; padding: 20px 14px; text-align: center; }
+  .stat-card .num { font-size: 23px; font-weight: 800; color: #0e2a47; margin-bottom: 4px; }
+  .stat-card .label { font-size: 13px; color: #667; }
+  .warn-box { background: #fdf3e7; border-right: 4px solid #c9a24b; border-radius: 8px; padding: 20px 24px; margin: 28px 0; font-size: 16px; }
   .warn-box b { color: #0e2a47; }
-  .reform-box { background: #0e2a47; color: #fff; border-radius: 12px; padding: 32px; margin-top: 20px; }
+  .reform-box { background: #0e2a47; color: #fff; border-radius: 12px; padding: 28px; margin-top: 20px; }
   .reform-box .date { color: #c9a24b; font-weight: 700; font-size: 15px; margin-bottom: 8px; }
-  .reform-box h3 { font-size: 22px; margin-bottom: 12px; }
+  .reform-box h3 { font-size: 20px; margin-bottom: 12px; }
   ul.checks { list-style: none; }
-  ul.checks li { padding-right: 28px; position: relative; margin-bottom: 14px; font-size: 17px; }
+  ul.checks li { padding-right: 26px; position: relative; margin-bottom: 12px; font-size: 16px; }
   ul.checks li:before { content: "✓"; position: absolute; right: 0; color: #c9a24b; font-weight: 800; }
-  .usp { display: flex; gap: 20px; align-items: flex-start; background: #fff; border: 1px solid #e5e8ec; border-radius: 12px; padding: 26px; margin-top: 24px; }
-  .usp .icon { font-size: 30px; }
-  .signature { display: flex; align-items: center; gap: 16px; justify-content: center; margin-top: 20px; }
-  .signature img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; }
-  footer.final-cta { text-align: center; padding: 64px 24px; }
+  .usp { display: flex; gap: 18px; align-items: flex-start; background: #fff; border: 1px solid #e5e8ec; border-radius: 12px; padding: 22px; margin-top: 20px; }
+  .usp .icon { font-size: 28px; flex-shrink: 0; }
+  .signature { display: flex; align-items: center; gap: 14px; justify-content: center; margin-top: 24px; }
+  .signature img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
+  footer.final-cta { text-align: center; padding: 56px 24px; }
   footer.final-cta h2 { color: #fff; }
-  .small { font-size: 14px; color: #8a95a3; margin-top: 18px; }
+  .small { font-size: 13px; color: #8a95a3; margin-top: 20px; }
+  .lead-form { max-width: 420px; margin: 0 auto; text-align: right; }
+  .lead-form input, .lead-form textarea { width: 100%; font-family: inherit; font-size: 16px; padding: 13px 14px; border-radius: 8px; border: none; margin-bottom: 12px; background: #fff; color: #0e2a47; }
+  .lead-form textarea { resize: vertical; min-height: 70px; }
+  .lead-form .cta-btn { width: 100%; }
+  .form-msg { margin-top: 14px; font-size: 15px; min-height: 20px; }
+  @media (max-width: 600px) {
+    h1 { font-size: 28px; }
+    .stat-grid { grid-template-columns: 1fr; }
+    .usp { flex-direction: column; }
+  }
 </style>
 </head>
 <body>
 
 <div class="navy">
   <header class="hero wrap">
+    <img class="hero-photo" src="/ohad_upright.png" alt="עו&quot;ד אוהד טבת">
     <span class="badge">עו"ד אוהד טבת — דיני עבודה</span>
     <h1>קיבלתם רישיון <span class="gold">קבלן רשום?</span><br>זה בקושי ההתחלה.</h1>
-    <p class="sub">קבלן שגדל לא נתקל בפחות בעיות, הוא נתקל ביותר: עיצומים כספיים ממשרד העבודה, ביקורות בטיחות, תביעות עובדים. אנחנו לא רק מוציאים לכם את הרישיון, אנחנו נשארים איתכם לכל מה שבא אחריו.</p>
-    <a class="cta-btn" href="https://wa.me/972542274497?text=שלום%2C%20ראיתי%20את%20הדף%20על%20קבלן%20רשום%20ורוצה%20לשמוע%20עוד" target="_blank" rel="noopener">שיחה עם עו"ד אוהד טבת בוואטסאפ ←</a>
+    <p class="sub">קבלן שגדל לא נתקל בפחות בעיות, הוא נתקל ביותר: עיצומים כספיים ממשרד העבודה, ביקורות בטיחות, תביעות עובדים. אני לא רק מוציא לכם את הרישיון, אני נשאר איתכם לכל מה שבא אחריו.</p>
+    <a class="cta-btn" href="#contact-form">להשארת פרטים ←</a>
   </header>
 </div>
 
@@ -66,7 +78,7 @@
     <div class="warn-box">
       <b>העיצום מחושב לכל עובד ולכל סוג הפרה בנפרד.</b> מעסיק עם 15 עובדים ושתי הפרות בקבוצת החומרה הגבוהה: 15 × 2 × 42,000 ₪ — למעלה ממיליון ורבע שקל. הפרה חוזרת תוך שנתיים? הסכום מוכפל.
     </div>
-    <p style="text-align:center; color:#556; font-size:15px;">מקור: <a href="/Article?id=6a1eca9e8bb9a3f5c8758cb9" target="_blank" style="color:#0e2a47;">המדריך המלא לעיצומים כספיים ממשרד העבודה</a> באתר המשרד</p>
+    <p style="text-align:center; color:#556; font-size:14px;">מקור: <a href="/Article?id=6a1eca9e8bb9a3f5c8758cb9" target="_blank" style="color:#0e2a47;">המדריך המלא לעיצומים כספיים ממשרד העבודה</a> באתר המשרד</p>
   </div>
 </section>
 
@@ -87,7 +99,7 @@
 
 <section>
   <div class="wrap">
-    <h2>למה זה שונה אצלנו</h2>
+    <h2>למה זה שונה אצלי</h2>
     <div class="usp">
       <div class="icon">🔍</div>
       <div>
@@ -103,6 +115,7 @@
       </div>
     </div>
     <div class="signature">
+      <img src="/ohad_upright.png" alt="עו&quot;ד אוהד טבת">
       <div>
         <b>עו"ד אוהד טבת</b><br>
         <span style="color:#667; font-size:14px;">דיני עבודה, קבלנים ותאגידי כוח אדם</span>
@@ -111,14 +124,56 @@
   </div>
 </section>
 
-<div class="navy">
+<div class="navy" id="contact-form">
   <footer class="final-cta wrap">
-    <h2>רוצים ללוות את הרישיון בליווי אמיתי?</h2>
-    <p class="sub" style="margin:0 auto 28px;">כתבו לנו בוואטסאפ, נחזור אליכם בהקדם.</p>
-    <a class="cta-btn" href="https://wa.me/972542274497?text=שלום%2C%20ראיתי%20את%20הדף%20על%20קבלן%20רשום%20ורוצה%20לשמוע%20עוד" target="_blank" rel="noopener">לשיחה בוואטסאפ ←</a>
-    <p class="small">חקימוביץ טבת, משרד עורכי דין · רח' מצדה 9, בני ברק</p>
+    <h2>מעוניינים ברישיון קבלן, וליווי צמוד של המשרד שלנו במסע העסקי שלכם?</h2>
+    <form class="lead-form" id="leadForm">
+      <input type="text" name="full_name" placeholder="שם מלא" required>
+      <input type="tel" name="phone" placeholder="טלפון" required>
+      <input type="email" name="email" placeholder="אימייל (לא חובה)">
+      <textarea name="notes" placeholder="יש משהו שחשוב שנדע מראש? (לא חובה)"></textarea>
+      <button type="submit" class="cta-btn">שלחו לי פרטים ←</button>
+    </form>
+    <p class="form-msg" id="formMsg"></p>
+    <p class="small">עו"ד אוהד טבת · רח' מצדה 9, בני ברק</p>
   </footer>
 </div>
+
+<script>
+  document.getElementById('leadForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const form = e.target;
+    const btn = form.querySelector('button');
+    const msg = document.getElementById('formMsg');
+    const data = {
+      full_name: form.full_name.value.trim(),
+      phone: form.phone.value.trim(),
+      email: form.email.value.trim(),
+      notes: form.notes.value.trim(),
+    };
+    btn.disabled = true;
+    btn.textContent = 'שולח...';
+    try {
+      const res = await fetch('/api/leads/kablan-landing-page', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        form.style.display = 'none';
+        msg.textContent = 'תודה! קיבלנו את הפרטים ונחזור אליכם בהקדם.';
+        msg.style.color = '#c9a24b';
+      } else {
+        throw new Error('bad response');
+      }
+    } catch (err) {
+      msg.textContent = 'משהו השתבש, אפשר לנסות שוב או לפנות בוואטסאפ: 054-227-4497';
+      msg.style.color = '#f0a0a0';
+      btn.disabled = false;
+      btn.textContent = 'שלחו לי פרטים ←';
+    }
+  });
+</script>
 
 </body>
 </html>
