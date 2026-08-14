@@ -12,7 +12,7 @@
  * כי (א) התבניות שם מדברות על תלושי שכר, לא רלוונטי לקבלן רשום,
  * ו-(ב) המספר העסקי חדש ובתהליך רמפה, לא רוצים להוסיף עליו נפח אוטומטי לא מבוקר.
  */
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { normalizePhone } from '@/lib/base44'
 import { sendWhatsApp } from '@/lib/whatsapp'
@@ -233,8 +233,9 @@ export async function POST(req: NextRequest) {
     console.error('[incoming-kablan] Supabase exception:', e)
   }
 
-  // ההתראות רצות אחרי שהתשובה כבר יצאה — ראה notifyKablan למטה.
-  void notifyKablan()
+  // ההתראות רצות אחרי שהתשובה כבר יצאה כדי ש-Make לא יחכה ויתקוף בטיימאאוט —
+  // אבל דרך after(), לא void, כדי שהפונקציה לא תיהרג באמצע לפני שהוואטסאפ נשלח בפועל.
+  after(() => notifyKablan())
   return NextResponse.json({ ok: true })
 
   // ── 2. WhatsApp לאוהד (למספר האישי) ────────────────────────────
