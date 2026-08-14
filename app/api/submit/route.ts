@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -209,7 +209,8 @@ export async function POST(req: NextRequest) {
     }
 
     // שלב 2 — התראות. נכשלות בשקט, הליד כבר שמור.
-    void notify({ name, phone, years, situation, fileEntries, payslipUrls, referer });
+    // after() ולא void — כדי שהשרת לא ייהרג באמצע לפני שהמייל/וואטסאפ/CAPI מספיקים לצאת בפועל.
+    after(() => notify({ name, phone, years, situation, fileEntries, payslipUrls, referer }))
 
     return NextResponse.json({ ok: true });
   } catch (err) {
