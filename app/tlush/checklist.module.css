@@ -8,133 +8,215 @@
  *
  * בנוסף globals.css מגדיר `section { padding: 5rem 1.5rem }`,
  * ולכן אין כאן שום תג section.
+ *
+ * כיוון העיצוב: פחות קופסאות זהות, יותר עיתונות. הרשימה בנויה
+ * כרשומון עם קווי הפרדה במקום כרטיסים, המספרים הגדולים הם
+ * אלמנט גרפי ולא רק ספרה, ולכל רכיב יש פס שכיחות שמראה עד כמה
+ * הוא נפוץ. זה מה שמבדיל בין דף שנראה מתבנית לדף שנראה מעוצב.
  */
 
 .page {
   min-height: 100vh;
-  background: var(--navy);
+  background:
+    radial-gradient(1100px 520px at 82% -8%, rgba(201, 168, 76, 0.11), transparent 62%),
+    radial-gradient(760px 420px at 8% 4%, rgba(30, 58, 110, 0.34), transparent 60%),
+    var(--navy);
   color: var(--white);
 }
 
 /* ── כותרת עליונה ── */
 .top {
-  border-bottom: 1px solid var(--gold-border);
-  background: rgba(13, 21, 38, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(13, 21, 38, 0.88);
   position: sticky;
   top: 0;
-  z-index: 50;
-  backdrop-filter: blur(10px);
+  z-index: 60;
+  backdrop-filter: blur(14px);
 }
 .topInner {
-  max-width: 720px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: 0.85rem 1.25rem;
+  padding: 0.8rem 1.4rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
 }
-.logo {
-  font-size: 1.2rem;
-  font-weight: 900;
-  letter-spacing: 3px;
-  color: var(--gold);
-  text-decoration: none;
-}
-.logo span {
-  display: block;
-  font-size: 0.6rem;
-  opacity: 0.65;
-  font-weight: 600;
-  letter-spacing: 1.5px;
-  margin-top: 3px;
-}
+.logo { display: block; line-height: 0; }
+.logo img { height: 34px; width: auto; }
 .backLink {
-  font-size: 0.8rem;
-  color: var(--text-dim);
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.45);
   text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s ease;
 }
 .backLink:hover { color: rgba(255, 255, 255, 0.85); }
 
+/* מד התקדמות דק בתחתית הכותרת. נותן תחושה שהדף חי. */
+.progress {
+  height: 2px;
+  background: var(--gold);
+  width: 0;
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* ── מעטפת ── */
 .wrap {
-  max-width: 720px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: 0 1.25rem 6rem;
+  padding: 0 1.4rem 6rem;
 }
 
 /* ── פתיחה ── */
-.intro { padding: 3rem 0 2rem; }
+.intro { padding: 3.5rem 0 1.6rem; }
+
 .eyebrow {
-  font-size: 0.68rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 2.5px;
   color: var(--gold);
-  margin-bottom: 0.85rem;
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 100px;
+  padding: 0.36rem 0.85rem;
+  margin-bottom: 1.4rem;
 }
+.eyebrow::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
 .h1 {
-  font-size: clamp(2rem, 7vw, 2.7rem);
+  font-size: clamp(2.1rem, 8vw, 3.1rem);
   font-weight: 900;
-  line-height: 1.15;
-  margin-bottom: 1.35rem;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  margin-bottom: 1.5rem;
 }
-.h1 em { font-style: normal; color: var(--gold); }
+.h1 em {
+  font-style: normal;
+  color: var(--gold);
+  /* קו זהב דק מתחת, במקום עוד גוש צבע */
+  box-shadow: inset 0 -0.18em 0 rgba(201, 168, 76, 0.16);
+}
+
 .lead {
-  font-size: 1.02rem;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.72);
-  margin-bottom: 0.85rem;
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.74);
+  max-width: 46ch;
 }
+
+/* שלושת המספרים מהניתוח, כאלמנט גרפי ולא כמשפט */
+.stats {
+  display: flex;
+  gap: 0;
+  margin: 1.9rem 0 1.1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+.stat {
+  flex: 1;
+  padding: 1rem 0.4rem;
+  text-align: center;
+}
+.stat + .stat { border-right: 1px solid rgba(255, 255, 255, 0.09); }
+.statNum {
+  font-size: 1.85rem;
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+.statLabel {
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.42);
+  margin-top: 0.35rem;
+}
+
 .caveat {
-  font-size: 0.86rem;
-  line-height: 1.65;
-  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.83rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.4);
+  max-width: 52ch;
 }
 
 /* ── תיבת העדכון ── */
 .news {
-  margin-top: 1.75rem;
-  border: 1px solid rgba(201, 168, 76, 0.28);
-  background: rgba(201, 168, 76, 0.07);
-  border-radius: 12px;
-  padding: 1.1rem 1.15rem;
+  margin-top: 1.9rem;
+  border-right: 3px solid var(--gold);
+  background: linear-gradient(
+    90deg,
+    rgba(201, 168, 76, 0.09),
+    rgba(201, 168, 76, 0.01)
+  );
+  border-radius: 0 10px 10px 0;
+  padding: 1.05rem 1.15rem;
 }
 .newsTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
   color: var(--gold);
-  font-weight: 700;
-  font-size: 0.9rem;
-  margin-bottom: 0.4rem;
+  font-weight: 800;
+  font-size: 0.76rem;
+  letter-spacing: 1.2px;
+  margin-bottom: 0.45rem;
 }
 .newsBody {
   font-size: 0.92rem;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.78);
 }
 
-/* ── הרשימה ── */
-.howto {
-  font-size: 0.88rem;
-  color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 0.9rem;
+/* ── כותרת הרשימה ── */
+.listHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 2rem 0 0.25rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
 }
-.list { display: flex; flex-direction: column; gap: 0.7rem; }
+.listTitle { font-size: 1.02rem; font-weight: 800; }
+.listCount {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+}
+.listCount b { color: var(--gold); font-weight: 800; }
+
+.howto {
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0.85rem 0 0.4rem;
+}
+
+/* ── הרשימה. רשומון עם קווי הפרדה, לא ערימת כרטיסים ── */
+.list { display: block; }
 
 .item {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.2s ease;
 }
-.item.marked {
-  border-color: var(--gold);
-  background: rgba(201, 168, 76, 0.1);
-}
+.item:last-child { border-bottom: none; }
+.item.marked { background: rgba(201, 168, 76, 0.055); }
 
 .head {
   width: 100%;
   display: flex;
-  align-items: flex-start;
-  gap: 0.8rem;
-  padding: 1rem 1.05rem;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.2rem 0.35rem;
   background: none;
   border: none;
   color: inherit;
@@ -142,150 +224,225 @@
   text-align: right;
   cursor: pointer;
 }
+
+/* המספר הוא אלמנט גרפי: גדול, דק, ולא ריבוע צבעוני */
 .num {
   flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  display: grid;
-  place-items: center;
-  font-size: 0.8rem;
+  width: 34px;
+  font-size: 1.7rem;
   font-weight: 900;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.6);
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.16);
+  letter-spacing: -1px;
+  transition: color 0.2s ease;
 }
-.marked .num { background: var(--gold); color: var(--navy); }
+.marked .num { color: var(--gold); }
 
-.headText { flex: 1; }
-/* שניהם span בתוך כפתור, ולכן חייבים block מפורש כדי שלא ידבקו */
-.itemTitle { display: block; font-size: 1.05rem; font-weight: 700; }
-.itemFreq {
+.headText { flex: 1; min-width: 0; }
+.itemTitle {
   display: block;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.45);
-  margin-top: 2px;
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: -0.2px;
 }
+
+/* פס השכיחות. מראה בעין עד כמה הרכיב נפוץ, במקום רק אחוז */
+.freqRow {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.4rem;
+}
+.freqBar {
+  flex: 0 0 62px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.freqFill {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  opacity: 0.62;
+  border-radius: 2px;
+}
+.freqText {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.42);
+}
+
 .chev {
   flex: 0 0 auto;
-  font-size: 1.15rem;
-  color: rgba(255, 255, 255, 0.3);
-  line-height: 1.2;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  display: grid;
+  place-items: center;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.5);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.chevOpen { transform: rotate(180deg); border-color: rgba(255, 255, 255, 0.3); }
+
+/* ── גוף הפריט ── */
+.body {
+  padding: 0 0.35rem 1.4rem;
+  animation: reveal 0.25s ease-out;
+}
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
 }
 
-.body { padding: 0 1.05rem 1.05rem; }
 .blockLabel {
   color: var(--gold);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  margin-bottom: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  margin-bottom: 0.35rem;
 }
 .blockText {
-  font-size: 0.93rem;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.75);
-  margin-bottom: 0.9rem;
+  font-size: 0.94rem;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.78);
+  margin-bottom: 1.15rem;
+  max-width: 56ch;
 }
+
 .fact {
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 9px;
-  padding: 0.85rem 0.9rem;
-  margin-bottom: 0.9rem;
+  border-right: 2px solid rgba(255, 255, 255, 0.13);
+  padding: 0.15rem 0.9rem 0.15rem;
+  margin-bottom: 1.2rem;
 }
 .factText {
   font-size: 0.87rem;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 58ch;
 }
 .factSource {
-  font-size: 0.72rem;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.3);
-  margin-top: 0.5rem;
+  font-size: 0.71rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.28);
+  margin-top: 0.55rem;
 }
 
 .mark {
-  width: 100%;
-  padding: 0.7rem;
-  border-radius: 9px;
-  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.62rem 1.15rem;
+  border-radius: 100px;
+  font-size: 0.88rem;
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: transparent;
   color: rgba(255, 255, 255, 0.72);
+  transition: all 0.15s ease;
 }
-.mark:hover { background: rgba(255, 255, 255, 0.12); }
+.mark:hover { border-color: rgba(255, 255, 255, 0.4); color: #fff; }
 .markOn {
   background: var(--gold);
   border-color: var(--gold);
   color: var(--navy);
 }
-.markOn:hover { background: var(--gold); }
+.markOn:hover { background: #d4b662; border-color: #d4b662; color: var(--navy); }
 
 /* ── תוצאה ── */
-.result { margin-top: 2rem; }
+.result { margin-top: 2.6rem; }
 .resultHint {
   text-align: center;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.32);
+  padding: 1rem 0;
 }
 .resultSoft {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 12px;
-  padding: 1.25rem;
+  border-right: 3px solid rgba(255, 255, 255, 0.2);
+  padding: 0.2rem 1.15rem;
   font-size: 0.97rem;
-  line-height: 1.75;
-  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.75);
+  max-width: 56ch;
 }
+
 .resultHot {
-  border: 1px solid var(--gold);
-  background: rgba(201, 168, 76, 0.1);
-  border-radius: 12px;
-  padding: 1.5rem 1.35rem;
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  background:
+    radial-gradient(520px 240px at 80% 0%, rgba(201, 168, 76, 0.13), transparent 70%),
+    rgba(255, 255, 255, 0.025);
+  border-radius: 16px;
+  padding: 1.9rem 1.5rem 1.6rem;
 }
 .hotLabel {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
   color: var(--gold);
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 2px;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.8rem;
+}
+.hotBig {
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  line-height: 1;
 }
 .hotBody {
-  font-size: 1.02rem;
-  line-height: 1.75;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.01rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.86);
+  max-width: 52ch;
 }
 .cta {
-  display: block;
-  margin-top: 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  margin-top: 1.5rem;
   width: 100%;
-  text-align: center;
   background: var(--gold);
   color: var(--navy);
   font-weight: 900;
   font-size: 1.02rem;
-  padding: 1.05rem;
+  padding: 1.1rem;
   border-radius: 12px;
   text-decoration: none;
+  box-shadow: 0 10px 30px -12px rgba(201, 168, 76, 0.6);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 34px -12px rgba(201, 168, 76, 0.75);
 }
 .ctaNote {
   text-align: center;
-  font-size: 0.78rem;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.4);
-  margin-top: 0.8rem;
+  font-size: 0.77rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.38);
+  margin-top: 0.85rem;
 }
 
 /* ── תחתית ── */
 .foot {
-  margin-top: 3.5rem;
-  padding-top: 1.5rem;
+  margin-top: 4rem;
+  padding-top: 1.6rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 0.78rem;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.77rem;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.32);
+  max-width: 60ch;
 }
-.foot p + p { margin-top: 0.5rem; }
+.foot p + p { margin-top: 0.55rem; }
+.footName { color: rgba(255, 255, 255, 0.55); font-weight: 600; }
+
+@media (max-width: 420px) {
+  .statNum { font-size: 1.55rem; }
+  .statLabel { font-size: 0.67rem; }
+  .num { width: 28px; font-size: 1.45rem; }
+}

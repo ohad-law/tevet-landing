@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { ITEMS, STATS, VERIFIED_ON } from "./data";
 import s from "./checklist.module.css";
@@ -71,33 +72,79 @@ export default function Checklist() {
     <div className={s.page}>
       <div className={s.top}>
         <div className={s.topInner}>
-          <a href="/" className={s.logo}>
-            טבת<span>משרד עורכי דין</span>
+          <a href="/" className={s.logo} aria-label="משרד עורכי דין טבת">
+            <Image
+              src="/tevet-logo.png"
+              alt="טבת משרד עורכי דין"
+              width={888}
+              height={274}
+              priority
+            />
           </a>
           <a href="/" className={s.backLink}>
             לאתר המשרד
           </a>
         </div>
+        {/* מתמלא ככל שהגולש מסמן. נותן תחושת התקדמות. */}
+        <div
+          className={s.progress}
+          style={{ width: `${(count / ITEMS.length) * 100}%` }}
+        />
       </div>
 
       <main className={s.wrap}>
         {/* ── פתיחה ── */}
         <div className={s.intro}>
           <div className={s.eyebrow}>בדיקה עצמית · שתי דקות</div>
+
           <h1 className={s.h1}>
             <N>5</N> הרכיבים שהכי חסרים
             <br />
             <em>בתלוש שכר</em>
           </h1>
+
           <p className={s.lead}>
-            הוצאתי את זה מתוך <N>{STATS.cases}</N> תיקים שנבדקו במשרד.
-            בחציון התיקים חסרו <N>{STATS.medianMissing}</N> רכיבים,
-            וב־<N>{STATS.threeOrMore}%</N> מהם חסרו שלושה ומעלה.
+            הוצאתי את זה מתוך התיקים שעברו אצלי במשרד. אלה חמשת
+            הדברים שחוזרים הכי הרבה, ואת רובם אפשר לזהות לבד תוך
+            שתי דקות מול התלוש.
           </p>
+
+          <div className={s.stats}>
+            <div className={s.stat}>
+              <div className={s.statNum}>
+                <N>{STATS.cases}</N>
+              </div>
+              <div className={s.statLabel}>
+                תיקים
+                <br />
+                שנבדקו
+              </div>
+            </div>
+            <div className={s.stat}>
+              <div className={s.statNum}>
+                <N>{STATS.medianMissing}</N>
+              </div>
+              <div className={s.statLabel}>
+                רכיבים חסרים
+                <br />
+                בחציון התיקים
+              </div>
+            </div>
+            <div className={s.stat}>
+              <div className={s.statNum}>
+                <N>{STATS.threeOrMore}%</N>
+              </div>
+              <div className={s.statLabel}>
+                מהתיקים עם
+                <br />
+                שלושה ומעלה
+              </div>
+            </div>
+          </div>
+
           <p className={s.caveat}>
             אלה תיקים של אנשים שכבר חשדו ופנו לעורך דין, ולכן זו לא
-            תמונה של המשק כולו. עדיין, אלה חמשת הדברים שחוזרים הכי
-            הרבה, וכדאי לבדוק אותם.
+            תמונה של המשק כולו. עדיין, זה מה שכדאי לבדוק.
           </p>
 
           <div className={s.news}>
@@ -112,8 +159,16 @@ export default function Checklist() {
         </div>
 
         {/* ── הרשימה ── */}
+        <div className={s.listHead}>
+          <div className={s.listTitle}>הרשימה</div>
+          <div className={s.listCount}>
+            סימנת <b><N>{count}</N></b> מתוך <N>{ITEMS.length}</N>
+          </div>
+        </div>
+
         <p className={s.howto}>
-          תפתח את התלוש האחרון שלך וסמן כל דבר שלא מצאת.
+          תפתח את התלוש האחרון שלך. על כל רכיב, תלחץ, תקרא מה
+          מחפשים, ותסמן אם לא מצאת אותו.
         </p>
 
         <div className={s.list}>
@@ -133,13 +188,25 @@ export default function Checklist() {
                   <span className={s.num}>
                     <N>{it.n}</N>
                   </span>
+
                   <span className={s.headText}>
                     <span className={s.itemTitle}>{it.title}</span>
-                    <span className={s.itemFreq}>
-                      חסר ב־<N>{it.freq}%</N> מהתיקים שנבדקו
+                    <span className={s.freqRow}>
+                      <span className={s.freqBar}>
+                        <span
+                          className={s.freqFill}
+                          style={{ width: `${it.freq}%` }}
+                        />
+                      </span>
+                      <span className={s.freqText}>
+                        חסר ב־<N>{it.freq}%</N> מהתיקים
+                      </span>
                     </span>
                   </span>
-                  <span className={s.chev}>{isOpen ? "−" : "+"}</span>
+
+                  <span className={`${s.chev} ${isOpen ? s.chevOpen : ""}`}>
+                    ⌄
+                  </span>
                 </button>
 
                 {isOpen && (
@@ -188,7 +255,12 @@ export default function Checklist() {
           {count >= 3 && (
             <div className={s.resultHot}>
               <div className={s.hotLabel}>
-                סימנת <N>{count}</N> מתוך <N>5</N>
+                <span className={s.hotBig}>
+                  <N>
+                    {count}/{ITEMS.length}
+                  </N>
+                </span>
+                <span>סימנת</span>
               </div>
               <p className={s.hotBody}>
                 זה בדיוק המצב שחזר ב־<N>{STATS.threeOrMore}%</N> מהתיקים
@@ -218,7 +290,10 @@ export default function Checklist() {
             לגופו. הנתונים הרגולטוריים אומתו ב־<N>{VERIFIED_ON}</N> מול
             נוסח החוק וצווי ההרחבה.
           </p>
-          <p>אוהד טבת, עורך דין ובודק שכר מוסמך.</p>
+          <p>
+            <span className={s.footName}>אוהד טבת</span>, עורך דין
+            לדיני עבודה ובודק שכר מוסמך מטעם משרד העבודה.
+          </p>
         </div>
       </main>
     </div>
