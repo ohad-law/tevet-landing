@@ -45,7 +45,7 @@
 .logo { display: block; line-height: 0; }
 .logo img { height: 34px; width: auto; }
 .backLink {
-  font-size: 0.78rem;
+  font-size: 0.88rem;
   color: rgba(255, 255, 255, 0.45);
   text-decoration: none;
   white-space: nowrap;
@@ -75,7 +75,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.7rem;
+  font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 2.5px;
   color: var(--gold);
@@ -93,7 +93,7 @@
 }
 
 .h1 {
-  font-size: clamp(2.1rem, 8vw, 3.1rem);
+  font-size: clamp(2.45rem, 9.5vw, 3.4rem);
   font-weight: 900;
   line-height: 1.1;
   letter-spacing: -0.5px;
@@ -107,10 +107,10 @@
 }
 
 .lead {
-  font-size: 1.05rem;
-  line-height: 1.75;
-  color: rgba(255, 255, 255, 0.74);
-  max-width: 46ch;
+  font-size: 1.2rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.8);
+  max-width: 40ch;
 }
 
 /* שלושת המספרים מהניתוח, כאלמנט גרפי ולא כמשפט */
@@ -128,21 +128,21 @@
 }
 .stat + .stat { border-right: 1px solid rgba(255, 255, 255, 0.09); }
 .statNum {
-  font-size: 1.85rem;
+  font-size: 2.15rem;
   font-weight: 900;
   color: var(--gold);
   line-height: 1.1;
   letter-spacing: -0.5px;
 }
 .statLabel {
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   line-height: 1.45;
   color: rgba(255, 255, 255, 0.42);
   margin-top: 0.35rem;
 }
 
 .caveat {
-  font-size: 0.83rem;
+  font-size: 0.95rem;
   line-height: 1.7;
   color: rgba(255, 255, 255, 0.4);
   max-width: 52ch;
@@ -166,12 +166,12 @@
   gap: 0.45rem;
   color: var(--gold);
   font-weight: 800;
-  font-size: 0.76rem;
+  font-size: 0.84rem;
   letter-spacing: 1.2px;
   margin-bottom: 0.45rem;
 }
 .newsBody {
-  font-size: 0.92rem;
+  font-size: 1.02rem;
   line-height: 1.75;
   color: rgba(255, 255, 255, 0.78);
 }
@@ -186,16 +186,16 @@
   padding-bottom: 0.7rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.09);
 }
-.listTitle { font-size: 1.02rem; font-weight: 800; }
+.listTitle { font-size: 1.15rem; font-weight: 800; }
 .listCount {
-  font-size: 0.78rem;
+  font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.4);
   white-space: nowrap;
 }
 .listCount b { color: var(--gold); font-weight: 800; }
 
 .howto {
-  font-size: 0.85rem;
+  font-size: 1rem;
   line-height: 1.65;
   color: rgba(255, 255, 255, 0.45);
   margin: 0.85rem 0 0.4rem;
@@ -216,7 +216,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1.2rem 0.35rem;
+  padding: 1.45rem 0.35rem;
   background: none;
   border: none;
   color: inherit;
@@ -228,8 +228,8 @@
 /* המספר הוא אלמנט גרפי: גדול, דק, ולא ריבוע צבעוני */
 .num {
   flex: 0 0 auto;
-  width: 34px;
-  font-size: 1.7rem;
+  width: 38px;
+  font-size: 2rem;
   font-weight: 900;
   line-height: 1;
   color: rgba(255, 255, 255, 0.16);
@@ -241,7 +241,7 @@
 .headText { flex: 1; min-width: 0; }
 .itemTitle {
   display: block;
-  font-size: 1.08rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.2px;
 }
@@ -268,7 +268,7 @@
   border-radius: 2px;
 }
 .freqText {
-  font-size: 0.75rem;
+  font-size: 0.87rem;
   color: rgba(255, 255, 255, 0.42);
 }
 
@@ -298,17 +298,17 @@
 
 .blockLabel {
   color: var(--gold);
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 1.6px;
   margin-bottom: 0.35rem;
 }
 .blockText {
-  font-size: 0.94rem;
-  line-height: 1.75;
-  color: rgba(255, 255, 255, 0.78);
-  margin-bottom: 1.15rem;
-  max-width: 56ch;
+  font-size: 1.08rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.82);
+  margin-bottom: 1.3rem;
+  max-width: 48ch;
 }
 
 .fact {
@@ -317,13 +317,13 @@
   margin-bottom: 1.2rem;
 }
 .factText {
-  font-size: 0.87rem;
-  line-height: 1.75;
-  color: rgba(255, 255, 255, 0.6);
-  max-width: 58ch;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.68);
+  max-width: 50ch;
 }
 .factSource {
-  font-size: 0.71rem;
+  font-size: 0.82rem;
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.28);
   margin-top: 0.55rem;
@@ -333,9 +333,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.62rem 1.15rem;
+  padding: 0.78rem 1.4rem;
   border-radius: 100px;
-  font-size: 0.88rem;
+  font-size: 1rem;
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
@@ -356,14 +356,14 @@
 .result { margin-top: 2.6rem; }
 .resultHint {
   text-align: center;
-  font-size: 0.88rem;
+  font-size: 1rem;
   color: rgba(255, 255, 255, 0.32);
   padding: 1rem 0;
 }
 .resultSoft {
   border-right: 3px solid rgba(255, 255, 255, 0.2);
   padding: 0.2rem 1.15rem;
-  font-size: 0.97rem;
+  font-size: 1.1rem;
   line-height: 1.8;
   color: rgba(255, 255, 255, 0.75);
   max-width: 56ch;
@@ -394,7 +394,7 @@
   line-height: 1;
 }
 .hotBody {
-  font-size: 1.01rem;
+  font-size: 1.15rem;
   line-height: 1.8;
   color: rgba(255, 255, 255, 0.86);
   max-width: 52ch;
@@ -422,7 +422,7 @@
 }
 .ctaNote {
   text-align: center;
-  font-size: 0.77rem;
+  font-size: 0.88rem;
   line-height: 1.65;
   color: rgba(255, 255, 255, 0.38);
   margin-top: 0.85rem;
@@ -430,10 +430,10 @@
 
 /* ── תחתית ── */
 .foot {
-  margin-top: 4rem;
+  margin-top: 3rem;
   padding-top: 1.6rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 0.77rem;
+  font-size: 0.88rem;
   line-height: 1.75;
   color: rgba(255, 255, 255, 0.32);
   max-width: 60ch;
@@ -441,8 +441,60 @@
 .foot p + p { margin-top: 0.55rem; }
 .footName { color: rgba(255, 255, 255, 0.55); font-weight: 600; }
 
-@media (max-width: 420px) {
-  .statNum { font-size: 1.55rem; }
-  .statLabel { font-size: 0.67rem; }
-  .num { width: 28px; font-size: 1.45rem; }
+@media (max-width: 400px) {
+  .statNum { font-size: 1.9rem; }
+  .statLabel { font-size: 0.76rem; }
+  .num { width: 34px; font-size: 1.8rem; }
+  .itemTitle { font-size: 1.18rem; }
+}
+
+
+/* ── מי עומד מאחורי זה ──
+   מישהו שנחת מטיקטוק לא יודע מי אוהד. הבלוק הזה יושב אחרי
+   הצ'קליסט ולא לפניו, בכוונה: לפניו הוא פיץ', אחריו הוא הקשר
+   למי שכבר החליט לפנות. */
+.who {
+  margin-top: 2.8rem;
+  padding: 1.5rem 1.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.022);
+  display: flex;
+  gap: 1.15rem;
+  align-items: flex-start;
+}
+.whoPhoto {
+  flex: 0 0 auto;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(201, 168, 76, 0.45);
+}
+.whoPhoto img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+.whoBody { flex: 1; min-width: 0; }
+.whoName { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.2px; }
+.whoRole {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 0.15rem;
+}
+.creds { list-style: none; margin-top: 0.9rem; }
+.creds li {
+  display: flex;
+  gap: 0.55rem;
+  align-items: baseline;
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.78);
+}
+/* הטקסט חייב להיות עטוף בפריט אחד, אחרת כל מספר בתוכו
+   הופך לפריט flex נפרד והמשפט נשבר לגזרים */
+.creds li > span { flex: 1; min-width: 0; }
+.creds li + li { margin-top: 0.45rem; }
+.creds li::before { content: "✓"; color: var(--gold); font-weight: 900; flex: 0 0 auto; }
+
+@media (max-width: 380px) {
+  .who { flex-direction: column; align-items: flex-start; gap: 0.9rem; }
 }

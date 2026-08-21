@@ -98,7 +98,9 @@ export default function Checklist() {
           <div className={s.eyebrow}>בדיקה עצמית · שתי דקות</div>
 
           <h1 className={s.h1}>
-            <N>5</N> הרכיבים שהכי חסרים
+            <N>5</N> הרכיבים
+            <br />
+            שהכי חסרים
             <br />
             <em>בתלוש שכר</em>
           </h1>
@@ -284,15 +286,40 @@ export default function Checklist() {
           )}
         </div>
 
+        {/* ── מי עומד מאחורי זה ──
+            יושב אחרי הצ'קליסט ולא לפניו. מישהו שנחת מטיקטוק לא
+            יודע מי אוהד, אבל אם נפתח בזה זה פיץ' ולא כלי. */}
+        <div className={s.who}>
+          <div className={s.whoPhoto}>
+            <Image
+              src="/ohad.png"
+              alt="עו״ד אוהד טבת"
+              width={467}
+              height={702}
+            />
+          </div>
+          <div className={s.whoBody}>
+            <div className={s.whoName}>אוהד טבת</div>
+            <div className={s.whoRole}>
+              מי שכתב את הרשימה הזאת
+            </div>
+            <ul className={s.creds}>
+              <li><span>עורך דין לדיני עבודה</span></li>
+              <li><span>בודק שכר מוסמך מטעם משרד העבודה</span></li>
+              <li>
+                <span>
+                  היה בעצמו מעסיק של יותר מ־<N>50</N> עובדים
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
         <div className={s.foot}>
           <p>
             הדף הזה הוא מידע כללי ולא ייעוץ משפטי. כל מקרה נבדק
             לגופו. הנתונים הרגולטוריים אומתו ב־<N>{VERIFIED_ON}</N> מול
             נוסח החוק וצווי ההרחבה.
-          </p>
-          <p>
-            <span className={s.footName}>אוהד טבת</span>, עורך דין
-            לדיני עבודה ובודק שכר מוסמך מטעם משרד העבודה.
           </p>
         </div>
       </main>
