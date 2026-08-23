@@ -232,6 +232,10 @@ export async function POST(req: NextRequest) {
       source: 'facebook_lead_form',
       campaign_name: ad_name || campaign_name,
       notes: `שנות עבודה: ${years_worked} | תחום: ${work_sector}${work_sector_detail ? ` (${work_sector_detail})` : ''} | סיטואציה: ${situation}`,
+      // בלי product_line הליד לא מופיע באף לשונית במסך המכירות, והניקוד נשלח
+      // עד היום רק ל-BASE44 שנטוש. שניהם חסרו כאן מאז יום המעבר (25/07/2026).
+      product_line: 'דיני עבודה',
+      lead_score: leadScoreFromYears(years_worked),
       status: 'חדש',
       is_viewed: false,
       followup_stage: 0,
