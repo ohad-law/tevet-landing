@@ -95,16 +95,47 @@ function buildKablanWarmMessage(fullName: string | null): string {
 }
 
 /**
- * ניקוד ליד קבלן — שלוש שאלות הסינון, במשקל שווה.
- * שלוש תשובות חיוביות = 100, וכל תשובה חסרה או שלילית מורידה.
- * מי שלא ענה בכלל מקבל 60 כדי שלא ייפול לתחתית התור בטעות.
+ * ניקוד ליד קבלן — טופס v4 (מיון עסקי).
+ *
+ * שלושה צירים, לא במשקל שווה:
+ *  - ותק: המסלול של עיסוק עצמי דורש 5 מתוך 10 שנים, אז מתחת ל-5 הליד כנראה לא זכאי בכלל.
+ *  - גודל: כמה עובדים, כלומר עסק אמיתי מול אדם לבד. גם מדד לפוטנציאל ריטיינר.
+ *  - יזמים: מי שעובד מול קבלנים גדולים ויזמים הוא המועמד החזק ביותר לליווי מתמשך.
+ *
+ * מטא מחזירה את הערך המוצג (עברית), אבל ב-Make אפשר לקבל גם את מפתח האפשרות,
+ * ולכן ההתאמה נעשית על שניהם.
  */
-function kablanScore(experience: string, resident: string, sector: string): number {
+/** ניקוד טופס v3 הישן, שלוש שאלות כן/לא במשקל שווה. נשאר לתאימות לאחור. */
+function kablanScoreV3(experience: string, resident: string, sector: string): number {
   const yes = (v: string) => /yes|כן/i.test(v || '')
   const answered = [experience, resident, sector].filter((v) => v && v !== '—').length
   if (answered === 0) return 60
-  const positives = [experience, resident, sector].filter(yes).length
-  return Math.round((positives / 3) * 100)
+  return Math.round(([experience, resident, sector].filter(yes).length / 3) * 100)
+}
+
+function kablanScore(years: string, employees: string, developers: string): number {
+  const has = (v: string, ...pats: string[]) =>
+    pats.some((p) => (v || '').toLowerCase().includes(p.toLowerCase()))
+
+  const answered = [years, employees, developers].filter((v) => v && v !== '—').length
+  if (answered === 0) return 60 // לא ענה בכלל, לא לקבור אותו בתחתית התור
+
+  let score = 0
+
+  if (has(years, 'gt10', 'מעל 10')) score += 40
+  else if (has(years, 'y5_10', '5 עד 10')) score += 35
+  else if (has(years, 'lt5', 'פחות מ-5')) score += 5
+
+  if (has(employees, 'e10p', 'מעל 10')) score += 30
+  else if (has(employees, 'e4_10', '4 עד 10')) score += 25
+  else if (has(employees, 'e1_3', '1 עד 3')) score += 15
+  else if (has(employees, 'solo', 'לבד')) score += 8
+
+  if (has(developers, 'yes_regular', 'באופן קבוע')) score += 30
+  else if (has(developers, 'sometimes', 'לפעמים')) score += 18
+  else if (has(developers, 'no', 'לא')) score += 5
+
+  return Math.min(100, score)
 }
 
 export async function POST(req: NextRequest) {
@@ -125,6 +156,12 @@ export async function POST(req: NextRequest) {
 
   let full_name = body.full_name || body['Full Name'] || ''
   let phone = body.phone || body.phone_number || ''
+  // טופס v4 (מיון עסקי) — ראה kablanScore
+  let occupation = body.occupation || ''
+  let employees = body.employees || ''
+  let years_experience = body.years_experience || ''
+  let works_with_developers = body.works_with_developers || ''
+  // טופס v3 הישן — נשמר לתאימות לאחור, לידים ישנים עדיין יכולים להגיע
   let has_experience = body.has_experience || ''
   let is_resident = body.is_resident || ''
   let in_sector = body.in_sector || ''
@@ -142,6 +179,10 @@ export async function POST(req: NextRequest) {
     }
     if (!full_name) full_name = raw['full_name'] || findByKeyword(raw, 'name', 'שם')
     if (!phone) phone = raw['phone_number'] || findByKeyword(raw, 'phone', 'טלפון')
+    if (!occupation) occupation = raw['occupation'] || findByKeyword(raw, 'עיסוק')
+    if (!employees) employees = raw['employees'] || findByKeyword(raw, 'עובדים')
+    if (!years_experience) years_experience = raw['years_experience'] || findByKeyword(raw, 'שנים')
+    if (!works_with_developers) works_with_developers = raw['works_with_developers'] || findByKeyword(raw, 'יזמים')
     if (!has_experience) has_experience = findByKeyword(raw, 'ניסיון')
     if (!is_resident) is_resident = findByKeyword(raw, 'תושב')
     if (!in_sector) in_sector = findByKeyword(raw, 'בנייה', 'תשתיות')
@@ -151,6 +192,10 @@ export async function POST(req: NextRequest) {
     const fd = parseFieldData(body.field_data)
     if (!full_name) full_name = fd['full_name'] || findByKeyword(fd, 'name', 'שם')
     if (!phone) phone = fd['phone_number'] || findByKeyword(fd, 'phone', 'טלפון')
+    if (!occupation) occupation = fd['occupation'] || findByKeyword(fd, 'עיסוק')
+    if (!employees) employees = fd['employees'] || findByKeyword(fd, 'עובדים')
+    if (!years_experience) years_experience = fd['years_experience'] || findByKeyword(fd, 'שנים')
+    if (!works_with_developers) works_with_developers = fd['works_with_developers'] || findByKeyword(fd, 'יזמים')
     if (!has_experience) has_experience = findByKeyword(fd, 'ניסיון')
     if (!is_resident) is_resident = findByKeyword(fd, 'תושב')
     if (!in_sector) in_sector = findByKeyword(fd, 'בנייה', 'תשתיות')
@@ -159,13 +204,17 @@ export async function POST(req: NextRequest) {
   if (!lead_id) lead_id = extractLeadgenId(body)
   // גם תשובות חסרות מצדיקות פנייה לגרף — ליד שהגיע בלי שאלות הסינון
   // נכנס בלי ניקוד אמיתי, ואז הוא נופל לתחתית התור בלי סיבה.
-  const missingAnswers = !has_experience || !is_resident || !in_sector
+  const missingAnswers = !occupation || !employees || !years_experience || !works_with_developers
   const needsGraph = (!phone || !full_name || missingAnswers) && lead_id
   if (needsGraph) {
     const fd = await fetchLeadFromGraph(lead_id)
     if (fd) {
       if (!full_name) full_name = fd['full_name'] || findByKeyword(fd, 'name', 'שם')
       if (!phone) phone = fd['phone_number'] || findByKeyword(fd, 'phone', 'טלפון')
+      if (!occupation) occupation = fd['occupation'] || findByKeyword(fd, 'עיסוק')
+      if (!employees) employees = fd['employees'] || findByKeyword(fd, 'עובדים')
+      if (!years_experience) years_experience = fd['years_experience'] || findByKeyword(fd, 'שנים')
+      if (!works_with_developers) works_with_developers = fd['works_with_developers'] || findByKeyword(fd, 'יזמים')
       if (!has_experience) has_experience = findByKeyword(fd, 'ניסיון')
       if (!is_resident) is_resident = findByKeyword(fd, 'תושב')
       if (!in_sector) in_sector = findByKeyword(fd, 'בנייה', 'תשתיות')
@@ -184,9 +233,17 @@ export async function POST(req: NextRequest) {
   }
 
   if (!full_name) full_name = '—'
+  if (!occupation) occupation = '—'
+  if (!employees) employees = '—'
+  if (!years_experience) years_experience = '—'
+  if (!works_with_developers) works_with_developers = '—'
   if (!has_experience) has_experience = '—'
   if (!is_resident) is_resident = '—'
   if (!in_sector) in_sector = '—'
+
+  // איזה טופס מילא הליד. הקמפיין הישן (טופס v3) עדיין רץ במקביל.
+  const isV4 = [occupation, employees, years_experience, works_with_developers]
+    .some((v) => v && v !== '—')
 
   const phoneNorm = normalizePhone(phone)
   const now = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' })
@@ -221,10 +278,14 @@ export async function POST(req: NextRequest) {
       phone: phoneNorm,
       source: 'facebook_lead_form_kablan_rashum',
       campaign_name: ad_name || campaign_name,
-      notes: `ניסיון מוכח: ${has_experience} | תושב ישראל: ${is_resident} | עובד בענף הבנייה/תשתיות: ${in_sector}`,
+      notes: isV4
+        ? `עיסוק: ${occupation} | עובדים: ${employees} | ותק: ${years_experience} | עובד מול יזמים: ${works_with_developers}`
+        : `ניסיון מוכח: ${has_experience} | תושב ישראל: ${is_resident} | עובד בענף הבנייה/תשתיות: ${in_sector}`,
       // בלי קו מוצר הליד לא מופיע באף לשונית במסך המכירות
       product_line: 'קבלן רשום',
-      lead_score: kablanScore(has_experience, is_resident, in_sector),
+      lead_score: isV4
+        ? kablanScore(years_experience, employees, works_with_developers)
+        : kablanScoreV3(has_experience, is_resident, in_sector),
       status: 'חדש',
       is_viewed: false,
     }).select('id').maybeSingle()
@@ -249,9 +310,18 @@ export async function POST(req: NextRequest) {
       `📞 *טלפון:* ${displayPhone}`,
       ``,
       `📋 *פרטים:*`,
-      `• ניסיון מוכח: ${has_experience}`,
-      `• תושב ישראל: ${is_resident}`,
-      `• עובד בענף הבנייה/תשתיות: ${in_sector}`,
+      ...(isV4
+        ? [
+            `• עיסוק: ${occupation}`,
+            `• עובדים: ${employees}`,
+            `• ותק בענף: ${years_experience}`,
+            `• עובד מול קבלנים גדולים/יזמים: ${works_with_developers}`,
+          ]
+        : [
+            `• ניסיון מוכח: ${has_experience}`,
+            `• תושב ישראל: ${is_resident}`,
+            `• עובד בענף הבנייה/תשתיות: ${in_sector}`,
+          ]),
       ``,
       `📢 *מודעה:* ${ad_name || campaign_name || '—'}`,
       `🕐 ${now}`,
