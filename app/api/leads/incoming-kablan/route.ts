@@ -12,7 +12,7 @@
  * כי (א) התבניות שם מדברות על תלושי שכר, לא רלוונטי לקבלן רשום,
  * ו-(ב) המספר העסקי חדש ובתהליך רמפה, לא רוצים להוסיף עליו נפח אוטומטי לא מבוקר.
  */
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { normalizePhone } from '@/lib/base44'
 import { sendWhatsApp } from '@/lib/whatsapp'
@@ -234,7 +234,8 @@ export async function POST(req: NextRequest) {
   }
 
   // ההתראות רצות אחרי שהתשובה כבר יצאה — ראה notifyKablan למטה.
-  void notifyKablan()
+  // after() ולא void: בלעדיו ורסל הורגת את הפונקציה לפני שהוואטסאפ נשלח בפועל.
+  after(() => notifyKablan())
   return NextResponse.json({ ok: true })
 
   // ── 2. WhatsApp לאוהד (למספר האישי) ────────────────────────────
