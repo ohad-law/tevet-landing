@@ -24,7 +24,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
   if (req.status === 'expired') return NextResponse.json({ error: 'הקישור פג תוקף' }, { status: 410 })
   if (new Date(req.expires_at) < new Date()) {
     await supabase.from('signature_requests').update({ status: 'expired' }).eq('token', token)
-    return NextResponse.json({ error: 'הקישור פג תוקף — פנה למשרד' }, { status: 410 })
+    return NextResponse.json({ error: 'הקישור פג תוקף, פנה למשרד' }, { status: 410 })
   }
 
   // הורד PDF מ-Storage כ-base64

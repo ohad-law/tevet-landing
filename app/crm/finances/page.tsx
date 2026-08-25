@@ -82,7 +82,7 @@ export default async function FinancesPage() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Income — interactive list with mark-as-paid */}
+        {/* Income, interactive list with mark-as-paid */}
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <h2 className="font-bold text-slate-800">הכנסות</h2>

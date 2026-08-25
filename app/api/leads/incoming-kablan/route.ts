@@ -81,7 +81,7 @@ async function fetchLeadFromGraph(leadgenId: string): Promise<Record<string, str
 }
 
 function buildKablanWarmMessage(fullName: string | null): string {
-  const name = fullName && fullName !== '—' ? fullName.split(' ')[0] : ''
+  const name = fullName && fullName !== 'לא צוין' ? fullName.split(' ')[0] : ''
   const greeting = name ? `היי ${name},` : 'היי,'
   return [
     `${greeting}`,
@@ -95,7 +95,7 @@ function buildKablanWarmMessage(fullName: string | null): string {
 }
 
 /**
- * ניקוד ליד קבלן — טופס v4 (מיון עסקי).
+ * ניקוד ליד קבלן, טופס v4 (מיון עסקי).
  *
  * שלושה צירים, לא במשקל שווה:
  *  - ותק: המסלול של עיסוק עצמי דורש 5 מתוך 10 שנים, אז מתחת ל-5 הליד כנראה לא זכאי בכלל.
@@ -108,7 +108,7 @@ function buildKablanWarmMessage(fullName: string | null): string {
 /** ניקוד טופס v3 הישן, שלוש שאלות כן/לא במשקל שווה. נשאר לתאימות לאחור. */
 function kablanScoreV3(experience: string, resident: string, sector: string): number {
   const yes = (v: string) => /yes|כן/i.test(v || '')
-  const answered = [experience, resident, sector].filter((v) => v && v !== '—').length
+  const answered = [experience, resident, sector].filter((v) => v && v !== 'לא צוין').length
   if (answered === 0) return 60
   return Math.round(([experience, resident, sector].filter(yes).length / 3) * 100)
 }
@@ -117,7 +117,7 @@ function kablanScore(years: string, employees: string, developers: string): numb
   const has = (v: string, ...pats: string[]) =>
     pats.some((p) => (v || '').toLowerCase().includes(p.toLowerCase()))
 
-  const answered = [years, employees, developers].filter((v) => v && v !== '—').length
+  const answered = [years, employees, developers].filter((v) => v && v !== 'לא צוין').length
   if (answered === 0) return 60 // לא ענה בכלל, לא לקבור אותו בתחתית התור
 
   let score = 0
@@ -156,12 +156,12 @@ export async function POST(req: NextRequest) {
 
   let full_name = body.full_name || body['Full Name'] || ''
   let phone = body.phone || body.phone_number || ''
-  // טופס v4 (מיון עסקי) — ראה kablanScore
+  // טופס v4 (מיון עסקי), ראה kablanScore
   let occupation = body.occupation || ''
   let employees = body.employees || ''
   let years_experience = body.years_experience || ''
   let works_with_developers = body.works_with_developers || ''
-  // טופס v3 הישן — נשמר לתאימות לאחור, לידים ישנים עדיין יכולים להגיע
+  // טופס v3 הישן, נשמר לתאימות לאחור, לידים ישנים עדיין יכולים להגיע
   let has_experience = body.has_experience || ''
   let is_resident = body.is_resident || ''
   let in_sector = body.in_sector || ''
@@ -170,7 +170,7 @@ export async function POST(req: NextRequest) {
   let lead_id = body.lead_id || ''
 
   // Make.com מעביר את שאלות הטופס תחת raw_data (אובייקט חופשי, מכיל מפתחות
-  // בעברית עם תווים מיוחדים שקשה למפות אחד-אחד ב-Make עצמו) — לכן פרסור לפי
+  // בעברית עם תווים מיוחדים שקשה למפות אחד-אחד ב-Make עצמו), לכן פרסור לפי
   // מילות מפתח, לא לפי שם שדה מדויק.
   if (body.raw_data && typeof body.raw_data === 'object' && !Array.isArray(body.raw_data)) {
     const raw: Record<string, string> = {}
@@ -202,7 +202,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (!lead_id) lead_id = extractLeadgenId(body)
-  // גם תשובות חסרות מצדיקות פנייה לגרף — ליד שהגיע בלי שאלות הסינון
+  // גם תשובות חסרות מצדיקות פנייה לגרף, ליד שהגיע בלי שאלות הסינון
   // נכנס בלי ניקוד אמיתי, ואז הוא נופל לתחתית התור בלי סיבה.
   const missingAnswers = !occupation || !employees || !years_experience || !works_with_developers
   const needsGraph = (!phone || !full_name || missingAnswers) && lead_id
@@ -232,18 +232,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, warning: 'no_phone_resolved' })
   }
 
-  if (!full_name) full_name = '—'
-  if (!occupation) occupation = '—'
-  if (!employees) employees = '—'
-  if (!years_experience) years_experience = '—'
-  if (!works_with_developers) works_with_developers = '—'
-  if (!has_experience) has_experience = '—'
-  if (!is_resident) is_resident = '—'
-  if (!in_sector) in_sector = '—'
+  if (!full_name) full_name = 'לא צוין'
+  if (!occupation) occupation = 'לא צוין'
+  if (!employees) employees = 'לא צוין'
+  if (!years_experience) years_experience = 'לא צוין'
+  if (!works_with_developers) works_with_developers = 'לא צוין'
+  if (!has_experience) has_experience = 'לא צוין'
+  if (!is_resident) is_resident = 'לא צוין'
+  if (!in_sector) in_sector = 'לא צוין'
 
   // איזה טופס מילא הליד. הקמפיין הישן (טופס v3) עדיין רץ במקביל.
   const isV4 = [occupation, employees, years_experience, works_with_developers]
-    .some((v) => v && v !== '—')
+    .some((v) => v && v !== 'לא צוין')
 
   const phoneNorm = normalizePhone(phone)
   const now = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' })
@@ -270,7 +270,7 @@ export async function POST(req: NextRequest) {
   }
 
   // ── 1. Supabase ───────────────────────────────────────────────
-  // מסומן source ייעודי, בלי followup_stage — אין רצף אוטומטי לזווית הזו (ראו הערת הקובץ).
+  // מסומן source ייעודי, בלי followup_stage, אין רצף אוטומטי לזווית הזו (ראו הערת הקובץ).
   try {
     const supabase = createServiceClient()
     await supabase.from('leads').insert({
@@ -294,7 +294,7 @@ export async function POST(req: NextRequest) {
     console.error('[incoming-kablan] Supabase exception:', e)
   }
 
-  // ההתראות רצות אחרי שהתשובה כבר יצאה — ראה notifyKablan למטה.
+  // ההתראות רצות אחרי שהתשובה כבר יצאה, ראה notifyKablan למטה.
   // after() ולא void: בלעדיו ורסל הורגת את הפונקציה לפני שהוואטסאפ נשלח בפועל.
   after(() => notifyKablan())
   return NextResponse.json({ ok: true })
@@ -304,7 +304,7 @@ export async function POST(req: NextRequest) {
   try {
     const displayPhone = phone || phoneNorm
     const ohadMsg = [
-      `🟢 *ליד חדש — קבלן רשום*`,
+      `🟢 *ליד חדש, קבלן רשום*`,
       ``,
       `👤 *שם:* ${full_name}`,
       `📞 *טלפון:* ${displayPhone}`,
@@ -323,7 +323,7 @@ export async function POST(req: NextRequest) {
             `• עובד בענף הבנייה/תשתיות: ${in_sector}`,
           ]),
       ``,
-      `📢 *מודעה:* ${ad_name || campaign_name || '—'}`,
+      `📢 *מודעה:* ${ad_name || campaign_name || 'לא צוין'}`,
       `🕐 ${now}`,
       phoneNorm ? `\n▶️ לחץ להשיב: https://wa.me/${phoneNorm}` : '',
     ].filter(l => l !== undefined).join('\n')

@@ -1,5 +1,5 @@
 /**
- * Vercel Cron — שעון הפולואפ האוטומטי (רץ פעם ביום)
+ * Vercel Cron, שעון הפולואפ האוטומטי (רץ פעם ביום)
  *
  * שולף לידים שלא ענו ומגיע להם פולואפ, שולח את ההודעה המתאימה לשלב,
  * ומקדם אותם ברצף. עוצר אוטומטית בשלב 3 (מיצוי), או קודם אם הליד ענה
@@ -12,7 +12,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { sendWhatsApp } from '@/lib/whatsapp'
 import { buildFollowupMessage, buildWarmMessage, daysUntilNextFollowup } from '@/lib/followup-templates'
 
-const DAILY_CAP = 30 // תקרת הודעות יומית — הגנה על המספר
+const DAILY_CAP = 30 // תקרת הודעות יומית, הגנה על המספר
 const PACE_MS = 4000 // מרווח בין הודעות (קצב אנושי)
 const OHAD_PHONE = (process.env.OHAD_WHATSAPP_NUMBER || process.env.OHAD_WHATSAPP || '972542274497').replace(/\D/g, '')
 
@@ -124,7 +124,7 @@ export async function GET(req: NextRequest) {
       last_followup_at: new Date().toISOString(),
     }
     if (nextDays === null) {
-      update.followup_stopped = true // הגענו לשלב 3 — סיימנו את הרצף
+      update.followup_stopped = true // הגענו לשלב 3, סיימנו את הרצף
       update.followup_next_at = null
     } else {
       update.followup_next_at = new Date(Date.now() + nextDays * 24 * 60 * 60 * 1000).toISOString()

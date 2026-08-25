@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
 
     const supabase = createServiceClient()
 
-    // שליפת פרטי לקוח (רק לשם — phone/email מגיעים מהטופס)
+    // שליפת פרטי לקוח (רק לשם, phone/email מגיעים מהטופס)
     const { data: client } = await supabase
       .from('clients')
       .select('full_name, phone, email')
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
 
     if (!client) return NextResponse.json({ error: 'לקוח לא נמצא' }, { status: 404 })
 
-    // אם הוזנו פרטים חדשים — עדכן בDB
+    // אם הוזנו פרטים חדשים, עדכן בDB
     if (overridePhone && overridePhone !== client.phone) {
       await supabase.from('clients').update({ phone: overridePhone }).eq('id', clientId)
       client.phone = overridePhone

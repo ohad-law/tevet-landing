@@ -36,7 +36,7 @@ async function retrieveRelevantChunks(instruction: string, topK = 8): Promise<st
 
     return `\n\n=== מסמכי ייחוס מספריית המשרד (${results.length} קטעים רלוונטיים) ===\n${formatted}\n=== סוף מסמכי ייחוס ===\n`
   } catch {
-    return '' // RAG לא קריטי — ממשיך בלעדיו
+    return '' // RAG לא קריטי, ממשיך בלעדיו
   }
 }
 
@@ -119,20 +119,20 @@ export async function POST(request: NextRequest) {
             thinking: { type: 'adaptive' },
             system: `אתה סוכן משפטי מומחה, העובד בלעדית עבור משרד עו"ד אוהד טבת המתמחה בדיני עבודה בישראל.
 
-תפקידך: לקבל נתוני תיק מלאים מה-CRM של המשרד, לקרוא מסמכי PDF שצורפו (אם יש), ולהשתמש במסמכי הייחוס מספריית המשרד (אם סופקו) — ולבצע את ההוראה המשפטית שניתנת לך.
+תפקידך: לקבל נתוני תיק מלאים מה-CRM של המשרד, לקרוא מסמכי PDF שצורפו (אם יש), ולהשתמש במסמכי הייחוס מספריית המשרד (אם סופקו), ולבצע את ההוראה המשפטית שניתנת לך.
 
 כללי שימוש בספריית הייחוס:
-- אם סופקו מסמכי ייחוס ("מסמכי ייחוס מספריית המשרד") — השתמש בהם כדוגמאות לסגנון, מבנה וניסוח
+- אם סופקו מסמכי ייחוס ("מסמכי ייחוס מספריית המשרד"), השתמש בהם כדוגמאות לסגנון, מבנה וניסוח
 - אמץ את הסגנון הייחודי של המשרד כפי שבא לידי ביטוי במסמכים
-- אל תעתיק מילה במילה — השתמש כהשראה ותבנית
-- אם אין מסמכי ייחוס — כתוב על בסיס ידע משפטי כללי
+- אל תעתיק מילה במילה, השתמש כהשראה ותבנית
+- אם אין מסמכי ייחוס, כתוב על בסיס ידע משפטי כללי
 
 כללי כתיבה:
 - כתוב בעברית תקנית ורהוטה
 - סגנון משפטי מקצועי, ממוקד ותמציתי
-- הפלט מוכן לשימוש — ניסוח מלא, מוכן לעריכה סופית בלבד
+- הפלט מוכן לשימוש, ניסוח מלא, מוכן לעריכה סופית בלבד
 - RTL, פסקאות ברורות, ללא פגמים לשוניים
-- כאשר מצטט תאריכים או סכומים — השתמש בנתונים מה-CRM בדיוק`,
+- כאשר מצטט תאריכים או סכומים, השתמש בנתונים מה-CRM בדיוק`,
             messages: [{ role: 'user', content: userContent }],
           })
 
@@ -178,9 +178,9 @@ function buildCaseContext(
   const lines: string[] = []
 
   lines.push('=== נתוני תיק מ-CRM משרד טבת ===')
-  lines.push(`שם תיק: ${c.case_name ?? '—'}`)
+  lines.push(`שם תיק: ${c.case_name ?? 'לא צוין'}`)
   lines.push(`מספר תיק: ${c.case_number ?? 'לא הוזן'}`)
-  lines.push(`סטטוס נוכחי: ${c.status ?? '—'}`)
+  lines.push(`סטטוס נוכחי: ${c.status ?? 'לא צוין'}`)
   lines.push(`סוג תיק: ${c.case_type ?? 'לא צוין'}`)
   if (c.value) lines.push(`ערך תביעה: ₪${Number(c.value).toLocaleString()}`)
   if (c.defendant_name) lines.push(`נתבע: ${c.defendant_name}`)
@@ -193,7 +193,7 @@ function buildCaseContext(
 
   if (client) {
     lines.push('\n=== פרטי לקוח ===')
-    lines.push(`שם מלא: ${client.full_name ?? '—'}`)
+    lines.push(`שם מלא: ${client.full_name ?? 'לא צוין'}`)
     if (client.id_number) lines.push(`ת.ז.: ${client.id_number}`)
     if (client.phone) lines.push(`טלפון: ${client.phone}`)
     if (client.email) lines.push(`אימייל: ${client.email}`)
@@ -224,7 +224,7 @@ function buildCaseContext(
     const recentEvents = timeline.slice(-15)
     lines.push('\n=== היסטוריית תיק (15 אחרונות) ===')
     recentEvents.forEach(e => {
-      const date = typeof e.created_at === 'string' ? e.created_at.split('T')[0] : '—'
+      const date = typeof e.created_at === 'string' ? e.created_at.split('T')[0] : 'לא צוין'
       lines.push(`- ${date} | ${e.action_type ?? ''}: ${e.description ?? ''}`)
     })
   }

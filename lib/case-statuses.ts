@@ -39,7 +39,7 @@ export const CLOSED_STATUSES: readonly string[] = [
 export const isClosed = (status: string | null | undefined): boolean =>
   !!status && CLOSED_STATUSES.includes(status)
 
-/** צבעי תגית לכל סטטוס — גרסת bg+text בלבד (טבלאות ורשימות) */
+/** צבעי תגית לכל סטטוס, גרסת bg+text בלבד (טבלאות ורשימות) */
 export const STATUS_BADGE: Record<string, string> = {
   'תיק נכנס': 'bg-slate-100 text-slate-600',
   'עריכת כתב תביעה': 'bg-yellow-100 text-yellow-700',
@@ -56,7 +56,7 @@ export const STATUS_BADGE: Record<string, string> = {
   'ארכיון': 'bg-slate-100 text-slate-400',
 }
 
-/** צבעי תגית מורחבים עם נקודה — למסך התיק ולבורר הסטטוס */
+/** צבעי תגית מורחבים עם נקודה, למסך התיק ולבורר הסטטוס */
 export const STATUS_COLOR: Record<string, { bg: string; text: string; dot: string }> = {
   'תיק נכנס': { bg: 'bg-slate-100', text: 'text-slate-600', dot: 'bg-slate-400' },
   'עריכת כתב תביעה': { bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-500' },

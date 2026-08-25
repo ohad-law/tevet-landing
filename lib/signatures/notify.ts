@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer'
 
 const GREEN_API_INSTANCE = '7105435035'
 const GREEN_API_TOKEN    = '25e05f98851f4262b11be4110f31a462306a88d0d7dd490695'
-const OHAD_WHATSAPP      = '972542274497' // hard-coded — אסור לשנות דרך env var למניעת דליפה
+const OHAD_WHATSAPP      = '972542274497' // hard-coded, אסור לשנות דרך env var למניעת דליפה
 const OHAD_EMAIL         = 'ohad@tevet-law.com'
 const APP_URL            = process.env.NEXT_PUBLIC_PROD_URL ?? 'https://tevet-landing.vercel.app'
 
@@ -45,7 +45,7 @@ export async function notifyClientEmail(email: string, clientName: string, docNa
   await transport.sendMail({
     from: `"משרד עו"ד אוהד טבת" <${process.env.SMTP_USER}>`,
     to: email,
-    subject: `מסמך לחתימה דיגיטלית — ${docName}`,
+    subject: `מסמך לחתימה דיגיטלית, ${docName}`,
     html: `
       <div dir="rtl" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#1e293b;">
         <div style="background:#0f172a;padding:24px;border-radius:8px 8px 0 0;text-align:center;">

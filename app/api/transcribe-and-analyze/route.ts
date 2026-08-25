@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     tmpPath = join(tmpdir(), `call_${Date.now()}.${ext}`);
     await writeFile(tmpPath, buffer);
 
-    // 1 — Transcribe with Whisper
+    // 1, Transcribe with Whisper
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const transcription = await openai.audio.transcriptions.create({
       file: createReadStream(tmpPath) as unknown as File,
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     });
     const transcript = transcription as unknown as string;
 
-    // 2 — Analyze with Claude
+    // 2, Analyze with Claude
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-6",

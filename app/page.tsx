@@ -7,7 +7,7 @@ import Image from "next/image";
 const OHAD_PHOTO =
   "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692364cc62edd448d4415194/33ca10aa6_image.png";
 
-// פרופיל Google של המשרד — נבדק ידנית מול Google Maps ב-10/08/2026.
+// פרופיל Google של המשרד, נבדק ידנית מול Google Maps ב-10/08/2026.
 // לעדכן את המספרים כשהם משתנים; הם מוצגים לגולש כעובדה.
 const GOOGLE_PROFILE_URL = "https://g.page/r/Cf-b2dk5FCCuEBM";
 
@@ -76,7 +76,7 @@ export default function Home() {
       fd.append("phone", phone.trim());
       fd.append("years", years);
       fd.append("situation", situation);
-      // התלושים אופציונליים — מי שלא הצליח להעלות (למשל בדפדפן של טיקטוק)
+      // התלושים אופציונליים, מי שלא הצליח להעלות (למשל בדפדפן של טיקטוק)
       // עדיין נשלח, ומקבל מסלול WhatsApp במסך התודה
       if (files) for (let i = 0; i < files.length; i++) fd.append("files", files[i]);
 
@@ -125,27 +125,27 @@ export default function Home() {
       {/* §1 HERO */}
       <div className="hero">
         <div className="hero-inner">
-          <div className="h1-setup">אתה עבדת שנים —</div>
+          <div className="h1-setup">אתה עבדת שנים ,</div>
           <div className="h1-main">
             ואף פעם לא ידעת<br />
             <span className="gold">כמה כסף באמת מגיע לך.</span>
           </div>
           <div className="h1-bridge">
             כי הסתכלת על שורת הנטו בלבד.<br />
-            <strong>הכסף האמיתי נמצא בין שאר השורות בתלוש</strong> — שורות שאף אחד לא לימד אותך לקרוא.
+            <strong>הכסף האמיתי נמצא בין שאר השורות בתלוש</strong>, שורות שאף אחד לא לימד אותך לקרוא.
           </div>
 
           <div className="revelation">
             בבית הדין לעבודה <strong>לא מדברים בנטו. מדברים ברוטו.</strong><br />
-            ואת ההפרש הזה — <span className="gold">מגיע לך לקבל. זה הכסף שלך.</span>
+            ואת ההפרש הזה, <span className="gold">מגיע לך לקבל. זה הכסף שלך.</span>
             <span className="emotional">אתה זה שעבד קשה כל השנים האלה.</span>
           </div>
 
           <div className="promise-line">
-            שלח 2-3 תלושי שכר — ותקבל <span className="gold">אינדיקציה מדויקת</span> על החוסרים בשכר שלך לאורך השנים.
+            שלח 2-3 תלושי שכר, ותקבל <span className="gold">אינדיקציה מדויקת</span> על החוסרים בשכר שלך לאורך השנים.
           </div>
           <div className="promise-detail">
-            אוהד טבת — עו&quot;ד לדיני עבודה ובודק שכר מוסמך · עונה תוך 24 שעות
+            אוהד טבת, עו&quot;ד לדיני עבודה ובודק שכר מוסמך · עונה תוך 24 שעות
           </div>
 
           <div className="form-box" id="form">
@@ -178,7 +178,7 @@ export default function Home() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} noValidate>
-                <h3>→ מלא פרטים והעלה תלושים —<br />אוהד יחזור אליך עם האינדיקציה <span style={{ whiteSpace: "nowrap" }}>תוך 24 שעות</span></h3>
+                <h3>→ מלא פרטים והעלה תלושים ,<br />אוהד יחזור אליך עם האינדיקציה <span style={{ whiteSpace: "nowrap" }}>תוך 24 שעות</span></h3>
 
                 <div className="form-grid">
                   <input type="text" placeholder="שם מלא" value={name} onChange={e => setName(e.target.value)} />
@@ -249,10 +249,10 @@ export default function Home() {
                   onChange={e => setFiles(e.target.files)}
                 />
                 <p className="upload-note">
-                  * בלי תלושים לא נוכל לחשב כמה מגיע לך — אפשר לשלוח אותם גם ב-WhatsApp אחרי השליחה
+                  * בלי תלושים לא נוכל לחשב כמה מגיע לך, אפשר לשלוח אותם גם ב-WhatsApp אחרי השליחה
                   <br />
                   🔒 התלושים נשמרים באחסון פרטי ומוצפן, נצפים על ידי עו&quot;ד אוהד טבת בלבד,
-                  לא מועברים לאף גורם — וימחקו לבקשתך בכל שלב.
+                  לא מועברים לאף גורם, וימחקו לבקשתך בכל שלב.
                 </p>
 
                 <div className="privacy-consent">
@@ -278,7 +278,7 @@ export default function Home() {
           </div>
 
           <div className="proof-strip">
-            עובד שעבד <strong>מעל 30 שנה</strong> ללא זכויות סוציאליות — בדקנו את תלושיו
+            עובד שעבד <strong>מעל 30 שנה</strong> ללא זכויות סוציאליות, בדקנו את תלושיו
             והשבנו לו <strong>700,000 ש&quot;ח.</strong> הוא לא ידע שמגיע לו. <strong>אתה יודע?</strong>
           </div>
         </div>
@@ -321,29 +321,29 @@ export default function Home() {
                   <div className="usp-num">01</div>
                   <div>
                     <h4>עו&quot;ד מוסמך לדיני עבודה</h4>
-                    <p>יודע בדיוק מה ניתן לתבוע, כמה, ואיך — בבית הדין לעבודה ומול המעסיק.</p>
+                    <p>יודע בדיוק מה ניתן לתבוע, כמה, ואיך, בבית הדין לעבודה ומול המעסיק.</p>
                   </div>
                 </div>
                 <div className="usp-card">
                   <div className="usp-num">02</div>
                   <div>
-                    <h4>בודק שכר מוסמך — קורא תלושים לעומק</h4>
+                    <h4>בודק שכר מוסמך, קורא תלושים לעומק</h4>
                     <span className="badge-tag">מוסמך מטעם משרד העבודה</span>
-                    <p style={{ marginTop: "0.45rem" }}>5 שנות ניסיון במשרד רואה חשבון. מוצא את הפערים שאחרים מפספסים — בכל שורה.</p>
+                    <p style={{ marginTop: "0.45rem" }}>5 שנות ניסיון במשרד רואה חשבון. מוצא את הפערים שאחרים מפספסים, בכל שורה.</p>
                   </div>
                 </div>
                 <div className="usp-card">
                   <div className="usp-num">03</div>
                   <div>
                     <h4>היה מעסיק של 50+ עובדים</h4>
-                    <p>מכיר את שני הצדדים מבפנים. יודע איפה מעסיקים חוסכים — ואיפה זה לא חוקי.</p>
+                    <p>מכיר את שני הצדדים מבפנים. יודע איפה מעסיקים חוסכים, ואיפה זה לא חוקי.</p>
                   </div>
                 </div>
                 <div className="usp-stat">
                   <span className="usp-stat-num">אלפי</span>
                   <div className="usp-stat-text">
                     <strong>בדיקות תלושי שכר שביצע אוהד</strong>
-                    ניסיון שמאפשר לאתר חריגות בתוך דקות — גם כשהמעסיק חושב שהכל מסודר
+                    ניסיון שמאפשר לאתר חריגות בתוך דקות, גם כשהמעסיק חושב שהכל מסודר
                   </div>
                 </div>
               </div>
@@ -360,7 +360,7 @@ export default function Home() {
         <div className="container" style={{ textAlign: "center" }}>
           <div className="section-label">התהליך</div>
           <h2 className="section-title">
-            איך זה עובד — <span className="gold">3 שלבים פשוטים</span>
+            איך זה עובד, <span className="gold">3 שלבים פשוטים</span>
           </h2>
           <div className="divider" style={{ margin: "0 auto 0.5rem" }} />
           <p style={{ color: "var(--text-dim)", fontSize: "0.9rem", marginBottom: "1rem" }}>
@@ -381,7 +381,7 @@ export default function Home() {
             <div className="step">
               <div className="step-num">3</div>
               <h4>מקבל אינדיקציה + ייעוץ</h4>
-              <p>תדע כמה כסף חסר לך ומה ניתן לתבוע. ייעוץ ראשוני — ללא עלות.</p>
+              <p>תדע כמה כסף חסר לך ומה ניתן לתבוע. ייעוץ ראשוני, ללא עלות.</p>
             </div>
           </div>
         </div>
@@ -392,7 +392,7 @@ export default function Home() {
         <div className="container">
           <div className="header-row">
             <h2><span className="gold">מאות לקוחות</span> שייצגנו.<br />הנה 8 מהם.</h2>
-            <p>כל אחד מהם לא ידע כמה כסף מגיע לו — עד שבדקנו.</p>
+            <p>כל אחד מהם לא ידע כמה כסף מגיע לו, עד שבדקנו.</p>
           </div>
           <div className="proof-grid">
             {PROOF_CLIENTS.map((c) => (
@@ -406,7 +406,7 @@ export default function Home() {
             ))}
           </div>
 
-          {/* דירוג גוגל — הוכחה שאפשר לאמת, בניגוד לכרטיסיות שמעליה */}
+          {/* דירוג גוגל, הוכחה שאפשר לאמת, בניגוד לכרטיסיות שמעליה */}
           <a
             className="google-rating"
             href={GOOGLE_PROFILE_URL}
@@ -435,7 +435,7 @@ export default function Home() {
             <div className="faq-item">
               <div className="faq-q">האם זה עולה לי כסף?</div>
               <div className="faq-a">
-                הייעוץ הראשוני והבדיקה הראשונית הם <strong>ללא עלות</strong> — עו&quot;ד טבת בודק, מנתח ומחזיר לך תמונה ברורה על מה שמגיע לך.
+                הייעוץ הראשוני והבדיקה הראשונית הם <strong>ללא עלות</strong>, עו&quot;ד טבת בודק, מנתח ומחזיר לך תמונה ברורה על מה שמגיע לך.
                 <br /><br />
                 במידה וימצאו ליקויים וחוסרים בבדיקה המקימים עילת תביעה, <strong>שכר הטרחה בנוי מאחוזים בסוף ההליך ותשלום ראשוני טרם הגשת התביעה.</strong>
               </div>
@@ -448,25 +448,25 @@ export default function Home() {
               </div>
             </div>
             <div className="faq-item">
-              <div className="faq-q">עבדתי בלי חוזה / חלק מהשכר שולם במזומן — האם אפשר בכל זאת?</div>
+              <div className="faq-q">עבדתי בלי חוזה / חלק מהשכר שולם במזומן, האם אפשר בכל זאת?</div>
               <div className="faq-a">
-                כן, בהחלט. גם ללא חוזה כתוב יש לך זכויות. בדיקת התלושים — גם אם חלקיים — לרוב <strong>מספיקה כדי לקבוע מה מגיע לך</strong> ולבנות תביעה מוצקה.
+                כן, בהחלט. גם ללא חוזה כתוב יש לך זכויות. בדיקת התלושים, גם אם חלקיים, לרוב <strong>מספיקה כדי לקבוע מה מגיע לך</strong> ולבנות תביעה מוצקה.
               </div>
             </div>
             <div className="faq-item">
               <div className="faq-q">כמה זמן לוקח התהליך?</div>
               <div className="faq-a">
-                הבדיקה הראשונית — תוך <strong>24-48 שעות</strong> מקבלת התלושים. הליך משפטי מול בית הדין לעבודה — תלוי במקרה ובמורכבות התיק.
+                הבדיקה הראשונית, תוך <strong>24-48 שעות</strong> מקבלת התלושים. הליך משפטי מול בית הדין לעבודה, תלוי במקרה ובמורכבות התיק.
               </div>
             </div>
             <div className="faq-item">
-              <div className="faq-q">עבדתי פחות משנה — האם אני זכאי?</div>
+              <div className="faq-q">עבדתי פחות משנה, האם אני זכאי?</div>
               <div className="faq-a">אנחנו מייצגים עובדים שעבדו לכל הפחות שנה.</div>
             </div>
             <div className="faq-item">
               <div className="faq-q">מה קורה אם לא מצאתם ליקויים בבדיקה?</div>
               <div className="faq-a">
-                איזה כיף — לפחות גילית שעבדת במקום עבודה שנתן לך את כל מה שמגיע לך. זה ממש לא מובן מאליו, ואנחנו שמחים לבשר לך את זה.
+                איזה כיף, לפחות גילית שעבדת במקום עבודה שנתן לך את כל מה שמגיע לך. זה ממש לא מובן מאליו, ואנחנו שמחים לבשר לך את זה.
               </div>
             </div>
           </div>
@@ -482,7 +482,7 @@ export default function Home() {
             <span className="gold">לא צריך להמשיך לעבוד בלי לדעת.</span>
           </h2>
           <p>
-            שלח 2-3 תלושים — תקבל אינדיקציה מדויקת על מה שחסר לך.<br />
+            שלח 2-3 תלושים, תקבל אינדיקציה מדויקת על מה שחסר לך.<br />
             ללא התחייבות. תוך 24 שעות.
           </p>
           <button className="cta-btn" onClick={scrollToForm}>

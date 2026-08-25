@@ -152,7 +152,7 @@ export default function SignaturesPage() {
                   </p>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     <span className="text-xs" style={{ color: '#64748b' }}>
-                      {req.clients?.full_name ?? '—'}
+                      {req.clients?.full_name ?? 'לא צוין'}
                     </span>
                     {req.cases && (
                       <span className="text-xs" style={{ color: '#94a3b8' }}>

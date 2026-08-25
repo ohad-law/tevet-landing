@@ -15,7 +15,7 @@ import { createBase44Lead, normalizePhone } from '@/lib/base44'
 import { sendWhatsApp } from '@/lib/whatsapp'
 import { buildWarmMessage } from '@/lib/followup-templates'
 
-// מספר אוהד — hard-coded כדי למנוע דליפת מידע לליד שגוי דרך env var שגוי
+// מספר אוהד, hard-coded כדי למנוע דליפת מידע לליד שגוי דרך env var שגוי
 const OHAD_WA = '972542274497'
 const WEBHOOK_SECRET = process.env.LEADS_WEBHOOK_SECRET!
 const META_TOKEN = process.env.META_ACCESS_TOKEN!
@@ -61,7 +61,7 @@ async function fetchLeadFromGraph(leadgenId: string): Promise<Record<string, str
   }
 }
 
-// פרסור field_data של פייסבוק — מחזיר מפה של name→value
+// פרסור field_data של פייסבוק, מחזיר מפה של name→value
 function parseFieldData(
   fieldData: Array<{ name?: string; values?: string[]; value?: string }>
 ): Record<string, string> {
@@ -74,7 +74,7 @@ function parseFieldData(
   return map
 }
 
-// חיפוש במפה לפי מילת מפתח — מחזיר ערך ראשון שנמצא
+// חיפוש במפה לפי מילת מפתח, מחזיר ערך ראשון שנמצא
 function findByKeyword(map: Record<string, string>, ...keywords: string[]): string {
   for (const key of Object.keys(map)) {
     if (keywords.some(k => key.includes(k.toLowerCase()))) {
@@ -114,7 +114,7 @@ function toHebrew(field: string, raw: string): string {
   return m[raw.trim()] ?? raw
 }
 
-// ציון דחיפות לפי ותק — ככל שהוותק גבוה יותר, איכות הליד גבוהה יותר.
+// ציון דחיפות לפי ותק, ככל שהוותק גבוה יותר, איכות הליד גבוהה יותר.
 // מקבל גם קוד אנגלי וגם תווית עברית.
 function leadScoreFromYears(years: string): number {
   const y = years || ''
@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
 
   console.log('[incoming] Received lead:', JSON.stringify(body))
 
-  // ── פרסור שדות — שלב 1: שדות ישירים ──────────────────────────
+  // ── פרסור שדות, שלב 1: שדות ישירים ──────────────────────────
   let full_name = body.full_name || body['Full Name'] || body.name || ''
   let phone = body.phone || body['Phone Number'] || body.phone_number || body['phone_number'] || ''
   let years_worked = body.years_worked || body['years_worked'] || body.years || ''
@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
   let campaign_name = body.campaign_name || body['Campaign Name'] || body['campaign_name'] || ''
   let lead_id = body.lead_id || body['Lead ID'] || body.id || ''
 
-  // ── פרסור שדות — שלב 2: field_data של פייסבוק ─────────────────
+  // ── פרסור שדות, שלב 2: field_data של פייסבוק ─────────────────
   // Make.com לפעמים מעביר את הנתונים כמערך {name, values[]} במקום שדות ישירים
   if (Array.isArray(body.field_data) && body.field_data.length > 0) {
     const fd = parseFieldData(body.field_data)
@@ -171,12 +171,12 @@ export async function POST(req: NextRequest) {
     if (!lead_id) lead_id = fd['lead_id'] || ''
   }
 
-  // ── פרסור שדות — שלב 3: משיכה ישירה מ-Meta Graph API ─────────
-  // אם Make.com שלח חבילה ריקה (רק מזהה / כלום) — נמשוך את הפרטים מ-Meta בעצמנו.
+  // ── פרסור שדות, שלב 3: משיכה ישירה מ-Meta Graph API ─────────
+  // אם Make.com שלח חבילה ריקה (רק מזהה / כלום), נמשוך את הפרטים מ-Meta בעצמנו.
   if (!lead_id) lead_id = extractLeadgenId(body)
   const needsGraph = (!phone || !full_name) && lead_id
   if (needsGraph) {
-    console.log(`[incoming] Fields missing — fetching from Graph by leadgen_id=${lead_id}`)
+    console.log(`[incoming] Fields missing, fetching from Graph by leadgen_id=${lead_id}`)
     const fd = await fetchLeadFromGraph(lead_id)
     if (fd) {
       if (!full_name) full_name = fd['full_name'] || fd['name'] || findByKeyword(fd, 'name', 'שם')
@@ -190,7 +190,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── אם עדיין אין טלפון — אל תיצור ליד ריק ולא תטריד את אוהד ──
+  // ── אם עדיין אין טלפון, אל תיצור ליד ריק ולא תטריד את אוהד ──
   if (!phone) {
     console.error('[incoming] Could not resolve lead data. Raw body:', JSON.stringify(body))
     await sendWhatsApp(
@@ -206,10 +206,10 @@ export async function POST(req: NextRequest) {
   situation = toHebrew('situation', situation)
 
   // ── ברירות מחדל אחרי כל הפרסורים ──────────────────────────────
-  if (!full_name) full_name = '—'
-  if (!years_worked) years_worked = '—'
-  if (!work_sector) work_sector = '—'
-  if (!situation) situation = '—'
+  if (!full_name) full_name = 'לא צוין'
+  if (!years_worked) years_worked = 'לא צוין'
+  if (!work_sector) work_sector = 'לא צוין'
+  if (!situation) situation = 'לא צוין'
 
   console.log(`[incoming] Parsed: name=${full_name}, phone=${phone}, years=${years_worked}, sector=${work_sector}, situation=${situation}, ad=${ad_name}`)
 
@@ -222,8 +222,9 @@ export async function POST(req: NextRequest) {
   // כי הטופס לא מבחין בחצי שנה (האפשרות הקטנה ביותר היא "פחות משנה").
 
   // ── 1. Supabase ───────────────────────────────────────────────
-  // הליד נכנס לרצף הפולואפ. קיבל חימום עכשיו, הפולואפ הבא ביום 3.
-  const followupNextAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
+  // הליד נכנס לרצף הפולואפ. קיבל הודעת פתיחה עכשיו, והבאה היא הפרידה ביום 7.
+  // היה כאן 3 ימים, לפני שהודעת יום 3 הוסרה. ראה lib/followup-templates.ts
+  const followupNextAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
   try {
     const supabase = createServiceClient()
     const { error } = await supabase.from('leads').insert({
@@ -250,9 +251,9 @@ export async function POST(req: NextRequest) {
   // ── 2. BASE44 ─────────────────────────────────────────────────
   try {
     const notes = [
-      `📋 ליד ממטא — ${now}`,
+      `📋 ליד ממטא, ${now}`,
       `• שנות עבודה: ${years_worked}`,
-      `• תחום: ${work_sector}${work_sector_detail ? ` — ${work_sector_detail}` : ''}`,
+      `• תחום: ${work_sector}${work_sector_detail ? `, ${work_sector_detail}` : ''}`,
       `• סיטואציה: ${situation}`,
       `• מודעה: ${ad_name}`,
       `• קמפיין: ${campaign_name}`,
@@ -285,17 +286,17 @@ export async function POST(req: NextRequest) {
   try {
     const displayPhone = phone || phoneNorm
     const ohadMsg = [
-      `🟢 *ליד חדש — דיני עבודה*`,
+      `🟢 *ליד חדש, דיני עבודה*`,
       ``,
       `👤 *שם:* ${full_name}`,
       `📞 *טלפון:* ${displayPhone}`,
       ``,
       `📋 *פרטים:*`,
       `• שנות עבודה: ${years_worked}`,
-      `• תחום: ${work_sector}${work_sector_detail ? ` — ${work_sector_detail}` : ''}`,
+      `• תחום: ${work_sector}${work_sector_detail ? `, ${work_sector_detail}` : ''}`,
       `• סיטואציה: ${situation}`,
       ``,
-      `📢 *מודעה:* ${ad_name || campaign_name || '—'}`,
+      `📢 *מודעה:* ${ad_name || campaign_name || 'לא צוין'}`,
       `🕐 ${now}`,
       phoneNorm ? `\n▶️ לחץ להשיב: https://wa.me/${phoneNorm}` : '',
     ].filter(l => l !== undefined).join('\n')

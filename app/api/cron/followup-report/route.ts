@@ -1,5 +1,5 @@
 /**
- * Vercel Cron — דוח פולואפ כל 4 ימים
+ * Vercel Cron, דוח פולואפ כל 4 ימים
  * שולח לאוהד WhatsApp עם נתוני תגובות לידים
  * schedule מוגדר ב-vercel.json
  */
@@ -82,7 +82,7 @@ function buildReport(s: Awaited<ReturnType<typeof getFollowupStats>>) {
     `🚫 ביקשו הסרה: ${s.optedOut}`,
     `⏳ עדיין ברצף: ${s.stillActive}`,
     ``,
-    `💡 אם אחוז התגובה מתחת ל-20% — כדאי לשנות נוסח.`,
+    `💡 אם אחוז התגובה מתחת ל-20%, כדאי לשנות נוסח.`,
   )
   return lines.join('\n')
 }

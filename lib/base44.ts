@@ -23,7 +23,7 @@ export interface Base44Lead {
   first_contact_date?: string
   is_viewed?: boolean
   lead_score?: number
-  /** קבלן רשום / דיני עבודה — קובע באיזו לשונית הליד מופיע במסך המכירות */
+  /** קבלן רשום / דיני עבודה, קובע באיזו לשונית הליד מופיע במסך המכירות */
   product_line?: string
 }
 
@@ -53,7 +53,7 @@ export async function createBase44Lead(lead: Base44Lead): Promise<string | null>
 export async function findBase44LeadByPhone(phone: string): Promise<Base44Lead & { id: string } | null> {
   try {
     const normalized = normalizePhone(phone)
-    // שדה הסינון עובר כפרמטר ישיר. תחביר `filters=phone=X` מחזיר תמיד ריק — אל תחזיר אליו.
+    // שדה הסינון עובר כפרמטר ישיר. תחביר `filters=phone=X` מחזיר תמיד ריק, אל תחזיר אליו.
     const res = await fetch(
       `${BASE44_API}/apps/${BASE44_APP_ID}/entities/Lead?phone=${encodeURIComponent(normalized)}&limit=1`,
       {
@@ -78,7 +78,7 @@ export interface Base44Task {
   task_type?: string
 }
 
-/** פותח משימה ב-CRM (Legal Flow / tevet-crm) — זה מה שאוהד רואה בפועל */
+/** פותח משימה ב-CRM (Legal Flow / tevet-crm), זה מה שאוהד רואה בפועל */
 export async function createBase44Task(task: Base44Task): Promise<string | null> {
   try {
     const res = await fetch(`${BASE44_API}/apps/${BASE44_APP_ID}/entities/Task`, {

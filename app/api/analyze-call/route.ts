@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 const ALLOWED_ORIGIN = "https://68dafceada48410b1d774f3f.base44.app";
 
 export async function POST(request: NextRequest) {
-  // CORS — allow BASE44 CRM
+  // CORS, allow BASE44 CRM
   const origin = request.headers.get("origin") || "";
   const headers: Record<string, string> = {
     "Access-Control-Allow-Origin": origin.includes("base44.app") ? origin : ALLOWED_ORIGIN,

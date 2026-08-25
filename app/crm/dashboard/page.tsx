@@ -166,7 +166,7 @@ export default async function DashboardPage() {
               icon={<AlertTriangle size={16} color="#dc2626" />}
               bg="rgba(254,226,226,0.8)"
               border="#fca5a5"
-              title={`${overdueTasks.length} משימות באיחור — דורש טיפול מיידי`}
+              title={`${overdueTasks.length} משימות באיחור, דורש טיפול מיידי`}
               sub={overdueTasks.slice(0, 2).map(t => t.title || t.description || '').join(' · ')}
               href="/crm/tasks"
               linkColor="#dc2626"
@@ -288,7 +288,7 @@ export default async function DashboardPage() {
           hrefLabel="הכל"
         >
           {urgentTasks.length === 0 ? (
-            <EmptyState text="אין משימות דחופות — מצוין! 🎉" />
+            <EmptyState text="אין משימות דחופות, מצוין! 🎉" />
           ) : urgentTasks.slice(0, 6).map(t => (
             <div key={t.id} className="px-4 py-2.5 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
               <p className="text-sm truncate" style={{ color: '#1e293b' }}>{t.title || t.description}</p>
@@ -333,7 +333,7 @@ export default async function DashboardPage() {
                   const sc = statusColor[c.status] ?? { bg: '#f1f5f9', text: '#475569' }
                   return (
                     <tr key={c.id} className="hover:bg-slate-50/70 transition-colors" style={{ borderBottom: '1px solid #f8fafc' }}>
-                      <td className="px-4 py-2.5 font-mono text-xs" style={{ color: '#94a3b8' }}>{c.case_number ?? '—'}</td>
+                      <td className="px-4 py-2.5 font-mono text-xs" style={{ color: '#94a3b8' }}>{c.case_number ?? 'לא צוין'}</td>
                       <td className="px-4 py-2.5">
                         <Link href={`/crm/cases/${c.id}`} className="font-semibold hover:text-blue-600 transition-colors text-sm" style={{ color: '#0f172a' }}>
                           {c.case_name}
@@ -347,7 +347,7 @@ export default async function DashboardPage() {
                           {c.status}
                         </span>
                       </td>
-                      <td className="px-4 py-2.5 text-xs" style={{ color: '#94a3b8' }}>{c.assigned_to ?? '—'}</td>
+                      <td className="px-4 py-2.5 text-xs" style={{ color: '#94a3b8' }}>{c.assigned_to ?? 'לא צוין'}</td>
                     </tr>
                   )
                 })}

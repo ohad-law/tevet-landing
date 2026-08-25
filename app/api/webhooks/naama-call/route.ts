@@ -1,26 +1,26 @@
 /**
  * POST /api/webhooks/naama-call
- * נקרא ע"י ElevenLabs בסיום שיחה של נעמה — הסוכנת הטלפונית של המשרד.
+ * נקרא ע"י ElevenLabs בסיום שיחה של נעמה, הסוכנת הטלפונית של המשרד.
  *
  * היעד הוא ה-CRM החי בלבד (tevet-crm על Supabase). BASE44 נטוש מ-25/07/2026.
  *
  * זרימה:
- *  0. אימות סוד + ודא שזו נעמה בלבד (PayrollAI-Adi יושבת באותו חשבון — לא לערבב!)
- *  1. סינון שיחות ריקות/קצרות — לא יוצרים ליד זבל
+ *  0. אימות סוד + ודא שזו נעמה בלבד (PayrollAI-Adi יושבת באותו חשבון, לא לערבב!)
+ *  1. סינון שיחות ריקות/קצרות, לא יוצרים ליד זבל
  *  2. חילוץ מה שנעמה אספה (data_collection) + הטלפון מתוך ה-metadata של השיחה
  *  3. קביעת חם/קר
  *  4. עדכון/יצירת ליד לפי טלפון (הליד לרוב כבר קיים מהפייסבוק)
  *  5. פתיחת משימת "שיחה חוזרת" דחופה, מקושרת לליד
  *  6. הודעת WhatsApp לאוהד עם סיכום השיחה ושעת החזרה
  *
- * ⚠️ גרסה 1: לא נשלחת שום הודעה אוטומטית ללקוח (החלטת אוהד — קודם מאמתים שהצינור עובד).
+ * ⚠️ גרסה 1: לא נשלחת שום הודעה אוטומטית ללקוח (החלטת אוהד, קודם מאמתים שהצינור עובד).
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { normalizePhone } from '@/lib/base44'
 import { sendWhatsApp } from '@/lib/whatsapp'
 
-// מספר קשיח בכוונה — משתנה הסביבה היה שגוי בעבר וגרם לדליפת פרטי לידים
+// מספר קשיח בכוונה, משתנה הסביבה היה שגוי בעבר וגרם לדליפת פרטי לידים
 // למספר לא נכון. אותה גישה כמו בשאר נתיבי ההתראות.
 const OHAD_WA = '972542274497'
 const WEBHOOK_SECRET = process.env.NAAMA_WEBHOOK_SECRET!
@@ -28,7 +28,7 @@ const WEBHOOK_SECRET = process.env.NAAMA_WEBHOOK_SECRET!
 // מזהה הסוכן של המשרד (נעמה). כל שיחה מ-agent אחר (למשל PayrollAI-Adi) נדחית.
 const NAAMA_AGENT_ID = 'agent_8301kwkt7tmaffpsyb6c4sqsfv8m'
 
-// שיחה אמיתית מינימלית — מתחת לזה זו טעות חיוג / ניתוק, לא יוצרים ליד.
+// שיחה אמיתית מינימלית, מתחת לזה זו טעות חיוג / ניתוק, לא יוצרים ליד.
 const MIN_TURNS = 4
 const MIN_DURATION_SECS = 25
 
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
   }
   const phoneNorm = normalizePhone(rawPhone)
 
-  const leadName = dcStr(dc, 'lead_name') || dynVars.lead_name || '—'
+  const leadName = dcStr(dc, 'lead_name') || dynVars.lead_name || 'לא צוין'
   const yearsWorked = dcStr(dc, 'years_worked')
   const stillEmployed = dcBool(dc, 'still_employed')
   const daysPerWeek = dcStr(dc, 'days_per_week')
@@ -156,8 +156,8 @@ export async function POST(req: NextRequest) {
   ].filter(Boolean)
 
   const notes = [
-    `📞 שיחת נעמה (AI) — ${now}`,
-    isHot ? '🔥 חם — מבקש שיחה חוזרת' : `❄️ לא רלוונטי${coldReason ? ` (${coldReason})` : ''}`,
+    `📞 שיחת נעמה (AI), ${now}`,
+    isHot ? '🔥 חם, מבקש שיחה חוזרת' : `❄️ לא רלוונטי${coldReason ? ` (${coldReason})` : ''}`,
     callbackTime ? `• שעת חזרה מבוקשת: ${callbackTime}` : '',
     ...detailLines,
     summary ? `\nסיכום: ${summary}` : '',
@@ -169,7 +169,7 @@ export async function POST(req: NextRequest) {
   const statusHot = 'יצר קשר'
   const statusCold = 'לא רלוונטי'
 
-  // ── 4. הליד ב-CRM (tevet-crm / Supabase) — עדכון אם קיים, אחרת יצירה ──
+  // ── 4. הליד ב-CRM (tevet-crm / Supabase), עדכון אם קיים, אחרת יצירה ──
   let leadId: string | null = null
   try {
     const supabase = createServiceClient()
@@ -181,13 +181,13 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     const leadRow = {
-      full_name: leadName !== '—' ? leadName : undefined,
+      full_name: leadName !== 'לא צוין' ? leadName : undefined,
       phone: phoneNorm,
       source: 'naama_ai_call',
       status: isHot ? statusHot : statusCold,
       notes,
       is_viewed: false,
-      // v1: לא מכניסים לרצף פולואפ אוטומטי — אוהד מחזיר ידנית לפי המשימה.
+      // v1: לא מכניסים לרצף פולואפ אוטומטי, אוהד מחזיר ידנית לפי המשימה.
     }
 
     if (existing?.id) {
@@ -208,11 +208,11 @@ export async function POST(req: NextRequest) {
   }
 
   // ── 5. משימת "שיחה חוזרת" לאוהד (רק לליד חם) ──────────────────
-  // עדיפות "דחוף" — כך המשימה נכנסת לווידג'ט המשימות הדחופות בדשבורד.
+  // עדיפות "דחוף", כך המשימה נכנסת לווידג'ט המשימות הדחופות בדשבורד.
   if (isHot) {
     const desc =
       `שיחה חוזרת: ${leadName} (${rawPhone})` +
-      (callbackTime ? ` — מבקש חזרה ${callbackTime}` : '') +
+      (callbackTime ? `, מבקש חזרה ${callbackTime}` : '') +
       ' | סונן ע"י נעמה'
 
     try {

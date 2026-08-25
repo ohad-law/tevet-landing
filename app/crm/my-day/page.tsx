@@ -61,7 +61,7 @@ export default async function MyDayPage() {
           <p className="text-sm mt-0.5" style={{ color: '#94a3b8' }}>
             {totalOpen > 0
               ? `${totalOpen} משימות פתוחות${overdueTasks.length > 0 ? ` · ${overdueTasks.length} באיחור` : ''}`
-              : 'כל המשימות עודכנו — יום נהדר! 🎉'}
+              : 'כל המשימות עודכנו, יום נהדר! 🎉'}
           </p>
         </div>
         {(overdueTasks.length > 0) && (
@@ -75,7 +75,7 @@ export default async function MyDayPage() {
         )}
       </div>
 
-      {/* Today's hearings — prominent */}
+      {/* Today's hearings, prominent */}
       {(todayHearings ?? []).length > 0 && (
 <div className="crm-in crm-d2">
         <div
@@ -111,11 +111,11 @@ export default async function MyDayPage() {
 </div>
       )}
 
-      {/* Overdue — urgent */}
+      {/* Overdue, urgent */}
       {overdueTasks.length > 0 && (
         <WorkSection
           icon={<AlertTriangle size={15} color="#dc2626" />}
-          title="באיחור — דורש טיפול מיידי"
+          title="באיחור, דורש טיפול מיידי"
           count={overdueTasks.length}
           accentColor="#fee2e2"
           accentText="#b91c1c"
@@ -147,7 +147,7 @@ export default async function MyDayPage() {
       {urgentNoDate.length > 0 && (
         <WorkSection
           icon={<Zap size={15} color="#7c3aed" />}
-          title="דחוף — ללא תאריך קרוב"
+          title="דחוף, ללא תאריך קרוב"
           count={urgentNoDate.length}
           accentColor="rgba(124,58,237,0.08)"
           accentText="#7c3aed"

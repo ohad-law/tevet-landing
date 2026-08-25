@@ -43,7 +43,7 @@ export default function PrivacyPage() {
             </div>
 
             <div>
-              <h3 style={{ color: "#fff", fontWeight: 800, marginBottom: "0.5rem" }}>4. תלושי שכר — מידע רגיש</h3>
+              <h3 style={{ color: "#fff", fontWeight: 800, marginBottom: "0.5rem" }}>4. תלושי שכר, מידע רגיש</h3>
               <p>
                 תלושי שכר מהווים <strong style={{ color: "#fff" }}>מידע פיננסי רגיש</strong> כמשמעותו בתיקון 13 לחוק הגנת הפרטיות, תשמ&quot;א-1981.
                 המידע מאובטח בהצפנה, מוגן מפני גישה בלתי מורשית, ולא יועבר לצד שלישי כלשהו.
@@ -64,10 +64,10 @@ export default function PrivacyPage() {
               <h3 style={{ color: "#fff", fontWeight: 800, marginBottom: "0.5rem" }}>7. זכויות נושא המידע</h3>
               <p>בהתאם לתיקון 13 לחוק הגנת הפרטיות, עומדות לך הזכויות הבאות:</p>
               <ul style={{ paddingRight: "1.5rem", marginTop: "0.5rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                <li><strong style={{ color: "#fff" }}>זכות עיון</strong> — לדעת אילו נתונים מוחזקים עליך</li>
-                <li><strong style={{ color: "#fff" }}>זכות תיקון</strong> — לבקש תיקון מידע שגוי</li>
-                <li><strong style={{ color: "#fff" }}>זכות מחיקה</strong> — לבקש מחיקת כל המידע שמסרת</li>
-                <li><strong style={{ color: "#fff" }}>זכות התנגדות</strong> — לבקש הפסקת עיבוד נתוניך</li>
+                <li><strong style={{ color: "#fff" }}>זכות עיון</strong>, לדעת אילו נתונים מוחזקים עליך</li>
+                <li><strong style={{ color: "#fff" }}>זכות תיקון</strong>, לבקש תיקון מידע שגוי</li>
+                <li><strong style={{ color: "#fff" }}>זכות מחיקה</strong>, לבקש מחיקת כל המידע שמסרת</li>
+                <li><strong style={{ color: "#fff" }}>זכות התנגדות</strong>, לבקש הפסקת עיבוד נתוניך</li>
               </ul>
               <p style={{ marginTop: "0.75rem" }}>
                 לבקשות פנה ל: <a href="mailto:ohad@tevet-law.com" style={{ color: "var(--gold)" }}>ohad@tevet-law.com</a>

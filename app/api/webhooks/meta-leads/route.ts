@@ -2,18 +2,18 @@
  * Meta Lead Ads Webhook
  * מקבל ליד חדש מטפסי נייטיב → שולח WhatsApp לאוהד
  *
- * GET  — אימות הـwebhook ע"י Meta (נקרא פעם אחת בהגדרה)
- * POST — ליד חדש נכנס
+ * GET , אימות הـwebhook ע"י Meta (נקרא פעם אחת בהגדרה)
+ * POST, ליד חדש נכנס
  */
 import { NextRequest, NextResponse } from 'next/server'
 
 const META_TOKEN = process.env.META_ACCESS_TOKEN!
 const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN ?? 'tevet-leads-2026'
-const GREEN_INSTANCE = process.env.GREEN_API_INSTANCE!   // מספר instance — למשל 7105435035
+const GREEN_INSTANCE = process.env.GREEN_API_INSTANCE!   // מספר instance, למשל 7105435035
 const GREEN_TOKEN = process.env.GREEN_API_TOKEN!         // API token מ-greenapi.com
-const OHAD_WA = '972542274497' // hard-coded — אסור לשנות דרך env var למניעת דליפה
+const OHAD_WA = '972542274497' // hard-coded, אסור לשנות דרך env var למניעת דליפה
 
-// ─── GET — Meta webhook verification ──────────────────────────────────────────
+// ─── GET, Meta webhook verification ──────────────────────────────────────────
 export async function GET(req: NextRequest) {
   const mode      = req.nextUrl.searchParams.get('hub.mode')
   const token     = req.nextUrl.searchParams.get('hub.verify_token')
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 }
 
-// ─── POST — ליד חדש נכנס ──────────────────────────────────────────────────────
+// ─── POST, ליד חדש נכנס ──────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   let body: Record<string, unknown>
   try {
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       const leadgenId = val.leadgen_id as string
       if (!leadgenId) continue
 
-      // בצע async — אל תחסום את ה-response
+      // בצע async, אל תחסום את ה-response
       processLead(leadgenId).catch(err =>
         console.error('[meta-leads] processLead error:', err)
       )
@@ -75,24 +75,24 @@ async function processLead(leadgenId: string) {
     fields[f.name] = f.values?.[0] ?? ''
   }
 
-  const name     = fields['full_name']     || fields['שם מלא']     || '—'
-  const phone    = fields['phone_number']  || fields['טלפון']       || '—'
-  const years    = fields['years_worked']  || '—'
-  const sector   = fields['work_sector']   || '—'
+  const name     = fields['full_name']     || fields['שם מלא']     || 'לא צוין'
+  const phone    = fields['phone_number']  || fields['טלפון']       || 'לא צוין'
+  const years    = fields['years_worked']  || 'לא צוין'
+  const sector   = fields['work_sector']   || 'לא צוין'
   const detail   = fields['work_sector_detail'] || ''
-  const situation= fields['situation']     || '—'
+  const situation= fields['situation']     || 'לא צוין'
 
   // שלב 3: בנה הודעת WhatsApp
   const now = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' })
   const msg = [
-    `🟢 *ליד חדש — דיני עבודה*`,
+    `🟢 *ליד חדש, דיני עבודה*`,
     ``,
     `👤 *שם:* ${name}`,
     `📞 *טלפון:* ${phone}`,
     ``,
     `📋 *פרטים:*`,
     `• שנות עבודה: ${years}`,
-    `• תחום: ${sector}${detail ? ` — ${detail}` : ''}`,
+    `• תחום: ${sector}${detail ? `, ${detail}` : ''}`,
     `• סיטואציה: ${situation}`,
     ``,
     `🕐 ${now}`,
@@ -106,7 +106,7 @@ async function processLead(leadgenId: string) {
 
 async function sendWhatsApp(message: string) {
   if (!GREEN_INSTANCE || !GREEN_TOKEN) {
-    console.warn('[meta-leads] Green API not configured — skipping WhatsApp')
+    console.warn('[meta-leads] Green API not configured, skipping WhatsApp')
     return
   }
 

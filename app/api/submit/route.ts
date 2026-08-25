@@ -11,7 +11,7 @@ const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24 * 365;
 const GREEN_API_INSTANCE = process.env.GREEN_API_INSTANCE_ID ?? "7105435035";
 const GREEN_API_TOKEN = process.env.GREEN_API_TOKEN ?? "25e05f98851f4262b11be4110f31a462306a88d0d7dd490695";
 const GREEN_API_HOST = `https://${GREEN_API_INSTANCE.slice(0, 4)}.api.greenapi.com`;
-const OHAD_WHATSAPP = "972542274497"; // hard-coded — אסור לשנות דרך env var למניעת דליפה
+const OHAD_WHATSAPP = "972542274497"; // hard-coded, אסור לשנות דרך env var למניעת דליפה
 
 const OHAD_EMAIL = "ohad@tevet-law.com";
 
@@ -76,7 +76,7 @@ async function sendWhatsApp(
   const chatId = OHAD_WHATSAPP.replace(/\D/g, "") + "@c.us";
   const { score, tier } = scoreLead({ years, situation });
   const message =
-    `📋 *ליד חדש — בדיקת תלוש שכר*\n\n` +
+    `📋 *ליד חדש, בדיקת תלוש שכר*\n\n` +
     `👤 שם: ${name}\n` +
     `📞 טלפון: ${phone}\n` +
     `📅 שנות עבודה: ${years}\n` +
@@ -84,7 +84,7 @@ async function sendWhatsApp(
     `⭐ דירוג: ${tier} (${score})\n` +
     (payslipUrls.length
       ? `📎 תלושים: ${payslipUrls.length}`
-      : `⚠️ *ללא תלושים* — לבקש בשיחה`) +
+      : `⚠️ *ללא תלושים*, לבקש בשיחה`) +
     (payslipUrls[0] ? `\n${payslipUrls[0]}` : "");
 
   const url = `${GREEN_API_HOST}/waInstance${GREEN_API_INSTANCE}/sendMessage/${GREEN_API_TOKEN}`;
@@ -97,7 +97,7 @@ async function sendWhatsApp(
 
 /**
  * שומר את הליד ב-Supabase ומעלה את התלושים לאחסון פרטי.
- * זה קורה לפני כל שליחת התראה — כדי שנפילה של מייל או וואטסאפ
+ * זה קורה לפני כל שליחת התראה, כדי שנפילה של מייל או וואטסאפ
  * לא תאבד ליד. זו בדיוק הסיבה שלידים מדף הנחיתה נעלמו בעבר.
  */
 async function saveLead(params: {
@@ -122,7 +122,7 @@ async function saveLead(params: {
       status: "חדש",
       notes:
         buildLeadNotes({ years: params.years, situation: params.situation }) +
-        (params.files.length === 0 ? " | ⚠️ ללא תלושים — לבקש בשיחה" : ""),
+        (params.files.length === 0 ? " | ⚠️ ללא תלושים, לבקש בשיחה" : ""),
       lead_score: score,
       landing_page: params.referer,
       is_viewed: false,
@@ -187,11 +187,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "לא מייצגים עובדים עם פחות משנה" }, { status: 400 });
     }
     // תלושים אינם חובה: הדפדפן הפנימי של טיקטוק חוסם העלאת קבצים,
-    // ופנייה בלי תלושים היא עדיין ליד — רודפים אחרי התלושים בשיחה.
+    // ופנייה בלי תלושים היא עדיין ליד, רודפים אחרי התלושים בשיחה.
 
     const referer = req.headers.get("referer") ?? "https://tevet-landing.vercel.app";
 
-    // שלב 1 — שמירה. חייב להצליח, וקורה לפני כל התראה.
+    // שלב 1, שמירה. חייב להצליח, וקורה לפני כל התראה.
     const { id: leadId, payslipUrls } = await saveLead({
       name,
       phone,
@@ -208,7 +208,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // שלב 2 — התראות. נכשלות בשקט, הליד כבר שמור.
+    // שלב 2, התראות. נכשלות בשקט, הליד כבר שמור.
     void notify({ name, phone, years, situation, fileEntries, payslipUrls, referer });
 
     return NextResponse.json({ ok: true });
@@ -241,10 +241,10 @@ async function notify(p: {
     await transport.sendMail({
       from: `"דף נחיתה טבת" <${process.env.SMTP_USER}>`,
       to: OHAD_EMAIL,
-      subject: `ליד חדש — ${name} — בדיקת תלוש שכר`,
+      subject: `ליד חדש, ${name}, בדיקת תלוש שכר`,
       html: `
         <div dir="rtl" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-          <h2 style="color:#c9a84c;border-bottom:2px solid #c9a84c;padding-bottom:10px;">ליד חדש — בדיקת תלוש שכר</h2>
+          <h2 style="color:#c9a84c;border-bottom:2px solid #c9a84c;padding-bottom:10px;">ליד חדש, בדיקת תלוש שכר</h2>
           <table style="width:100%;border-collapse:collapse;">
             <tr><td style="padding:8px;font-weight:bold;color:#555;">שם:</td><td style="padding:8px;">${name}</td></tr>
             <tr style="background:#f9f9f9;"><td style="padding:8px;font-weight:bold;color:#555;">טלפון:</td><td style="padding:8px;"><a href="tel:${phone}">${phone}</a></td></tr>
@@ -263,7 +263,7 @@ async function notify(p: {
     await sendWhatsApp(name, phone, years, situation, payslipUrls).catch(() => null);
     await sendMetaCAPI(phone, name, referer).catch(() => null);
   } catch (err) {
-    // הליד כבר שמור ב-CRM — כישלון התראה לא מאבד אותו
+    // הליד כבר שמור ב-CRM, כישלון התראה לא מאבד אותו
     console.error("notify failed (lead already saved):", err);
   }
 }

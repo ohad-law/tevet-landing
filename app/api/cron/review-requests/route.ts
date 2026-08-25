@@ -1,14 +1,14 @@
 /**
- * Vercel Cron — בקשות ביקורת בגוגל (רץ פעם ביום)
+ * Vercel Cron, בקשות ביקורת בגוגל (רץ פעם ביום)
  *
  * שולף תיקים שהגיעו לסיומם ושהלקוח שלהם עוד לא התבקש לכתוב ביקורת,
  * שולח הודעת וואטסאפ אחת עם הקישור לפרופיל, ומסמן שנשלח.
  *
  * שלוש הגנות מכוונות:
- *   1. מתג ראשי כבוי כברירת מחדל — בלי REVIEW_REQUESTS_ENABLED=true זו הרצה יבשה בלבד.
- *   2. תקרה יומית נמוכה — טפטוף ולא מבול. מגן על מספר הוואטסאפ,
+ *   1. מתג ראשי כבוי כברירת מחדל, בלי REVIEW_REQUESTS_ENABLED=true זו הרצה יבשה בלבד.
+ *   2. תקרה יומית נמוכה, טפטוף ולא מבול. מגן על מספר הוואטסאפ,
  *      וגם נראה טבעי לגוגל (זרם ביקורות פתאומי נחשד כמניפולציה).
- *   3. כל לקוח מקבל בקשה אחת בחיים — review_requested_at חוסם חזרה.
+ *   3. כל לקוח מקבל בקשה אחת בחיים, review_requested_at חוסם חזרה.
  *
  * schedule מוגדר ב-vercel.json
  */
@@ -18,7 +18,7 @@ import { sendWhatsApp } from '@/lib/whatsapp'
 import { buildReviewRequest } from '@/lib/review-templates'
 import { CLOSED_STATUSES } from '@/lib/case-statuses'
 
-const DAILY_CAP = 5 // טפטוף מכוון — ראה הערה למעלה
+const DAILY_CAP = 5 // טפטוף מכוון, ראה הערה למעלה
 const PACE_MS = 8000 // מרווח בין הודעות (קצב אנושי)
 const OHAD_PHONE = (process.env.OHAD_WHATSAPP_NUMBER || process.env.OHAD_WHATSAPP || '972542274497').replace(/\D/g, '')
 const ENABLED = process.env.REVIEW_REQUESTS_ENABLED === 'true'
@@ -80,9 +80,9 @@ export async function GET(req: NextRequest) {
       skipped++; continue
     }
 
-    // ── הרצה יבשה — מציגה למי היה נשלח, בלי לשלוח ────────────────
+    // ── הרצה יבשה, מציגה למי היה נשלח, בלי לשלוח ────────────────
     if (!ENABLED) {
-      preview.push(`${client?.full_name ?? '(ללא שם)'} — ${c.case_name}`)
+      preview.push(`${client?.full_name ?? '(ללא שם)'}, ${c.case_name}`)
       seenPhones.add(phoneNorm)
       sent++
       continue
@@ -102,7 +102,7 @@ export async function GET(req: NextRequest) {
 
     seenPhones.add(phoneNorm)
     sent++
-    preview.push(`${client?.full_name ?? '(ללא שם)'} — ${c.case_name}`)
+    preview.push(`${client?.full_name ?? '(ללא שם)'}, ${c.case_name}`)
     await sleep(PACE_MS)
   }
 

@@ -227,7 +227,7 @@ export default function SignPage({ params }: { params: Promise<{ token: string }
       if (!res.ok || data.error) { setSubmitErr(data.error ?? `שגיאה ${res.status}`); return }
       setDone(true)
     } catch (e) {
-      setSubmitErr(`שגיאת רשת — ${e instanceof Error ? e.message : 'נסה שוב'}`)
+      setSubmitErr(`שגיאת רשת, ${e instanceof Error ? e.message : 'נסה שוב'}`)
     } finally {
       setSubmitting(false)
     }
@@ -390,14 +390,14 @@ export default function SignPage({ params }: { params: Promise<{ token: string }
 
       </div>
 
-      {/* Signature Modal — iOS-safe: ללא backdropFilter, גלילה מובנית */}
+      {/* Signature Modal, iOS-safe: ללא backdropFilter, גלילה מובנית */}
       {modalOpen && (
         <div
           className="fixed inset-0 z-50"
           style={{ background: 'rgba(15,23,42,0.6)' }}
           onClick={() => setModalOpen(false)}
         >
-          {/* Bottom sheet — position:fixed עם overflow:auto כדי שהמקלדת לא תגרום לרעידה */}
+          {/* Bottom sheet, position:fixed עם overflow:auto כדי שהמקלדת לא תגרום לרעידה */}
           <div
             className="absolute bottom-0 left-0 right-0 w-full"
             style={{
@@ -422,7 +422,7 @@ export default function SignPage({ params }: { params: Promise<{ token: string }
                 </button>
               </div>
 
-              {/* שם מלא — autoComplete=off מונע מ-iOS לחסום קלט */}
+              {/* שם מלא, autoComplete=off מונע מ-iOS לחסום קלט */}
               <div>
                 <label className="text-xs font-semibold text-slate-600 mb-1.5 block">שם מלא (חובה)</label>
                 <input

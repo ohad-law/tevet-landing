@@ -2,7 +2,7 @@
  * POST /api/webhooks/whatsapp-incoming
  * Receives incoming WhatsApp messages from Green API.
  *
- * ⚠️ סינון קפדני — מעביר לאוהד רק הודעות ממספרים שהם לידים בסופאבייס.
+ * ⚠️ סינון קפדני, מעביר לאוהד רק הודעות ממספרים שהם לידים בסופאבייס.
  * מסנן: קבוצות, מספרים לא מוכרים, הודעות ישנות, הודעות עצמיות.
  */
 import { NextRequest, NextResponse } from 'next/server'
@@ -11,7 +11,7 @@ import { sendWhatsApp } from '@/lib/whatsapp'
 import { normalizePhone } from '@/lib/base44'
 import { isOptOut } from '@/lib/followup-templates'
 
-const OHAD_WA = '972542274497' // hard-coded — אסור לשנות דרך env var למניעת דליפה
+const OHAD_WA = '972542274497' // hard-coded, אסור לשנות דרך env var למניעת דליפה
 
 type LeadTable = 'leads' | 'leads_talush'
 
@@ -32,7 +32,7 @@ async function findLead(
   return null
 }
 
-// לקוח (להבדיל מליד) שביקש הסרה — עוצר בקשות ביקורת עתידיות על כל תיקיו
+// לקוח (להבדיל מליד) שביקש הסרה, עוצר בקשות ביקורת עתידיות על כל תיקיו
 async function optOutClientReviews(
   supabase: ReturnType<typeof createServiceClient>,
   phone972: string
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── בקשת הסרה → עצירה מלאה + אישור לליד ────────────────────
-    // אין התראה לאוהד (לבקשתו) — הרעש מיותר; ההודעה ממילא נכנסת לצ'אט שלו.
+    // אין התראה לאוהד (לבקשתו), הרעש מיותר; ההודעה ממילא נכנסת לצ'אט שלו.
     if (isOptOut(msgText)) {
       await supabase.from(lead.table)
         .update({ followup_opted_out: true, followup_stopped: true })

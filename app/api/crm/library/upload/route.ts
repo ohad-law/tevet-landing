@@ -30,7 +30,7 @@ function chunkText(text: string): string[] {
 
 async function extractText(buffer: Buffer, fileType: string, filename: string): Promise<string> {
   if (fileType === 'pdf') {
-    // ייבוא ישיר מהספרייה הפנימית — עוקף את קובץ הטסט שלא קיים בסביבת Vercel
+    // ייבוא ישיר מהספרייה הפנימית, עוקף את קובץ הטסט שלא קיים בסביבת Vercel
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const pdfParse = require('pdf-parse/lib/pdf-parse.js') as (buf: Buffer) => Promise<{ text: string }>
     const data = await pdfParse(buffer)
@@ -72,7 +72,7 @@ async function extractText(buffer: Buffer, fileType: string, filename: string): 
           },
           {
             type: 'text',
-            text: 'חלץ את כל הטקסט מהתמונה הזו. החזר רק את הטקסט, ללא הסברים. אם אין טקסט — החזר מחרוזת ריקה.',
+            text: 'חלץ את כל הטקסט מהתמונה הזו. החזר רק את הטקסט, ללא הסברים. אם אין טקסט, החזר מחרוזת ריקה.',
           },
         ],
       }],

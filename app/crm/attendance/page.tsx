@@ -93,10 +93,10 @@ export default async function AttendancePage() {
                 {allRecords!.map(r => (
                   <tr key={r.id} className={`${r.date === today ? 'bg-blue-50/30' : ''}`}>
                     <td className="px-5 py-3 font-mono text-slate-700">{r.date}</td>
-                    <td className="px-5 py-3 font-mono text-emerald-600">{r.check_in ?? '—'}</td>
-                    <td className="px-5 py-3 font-mono text-red-500">{r.check_out ?? '—'}</td>
+                    <td className="px-5 py-3 font-mono text-emerald-600">{r.check_in ?? 'לא צוין'}</td>
+                    <td className="px-5 py-3 font-mono text-red-500">{r.check_out ?? 'לא צוין'}</td>
                     <td className="px-5 py-3 font-bold text-slate-800">
-                      {r.total_hours != null ? `${r.total_hours}ש'` : '—'}
+                      {r.total_hours != null ? `${r.total_hours}ש'` : 'לא צוין'}
                     </td>
                     <td className="px-5 py-3 text-xs text-slate-400">{r.notes ?? ''}</td>
                   </tr>

@@ -146,26 +146,26 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
             <Link href={`/crm/clients/${clientData.id}`} className="text-blue-600 hover:underline font-medium text-sm">
               {clientData.full_name}
             </Link>
-          ) : '—'}
+          ) : 'לא צוין'}
         </InfoCard>
         <InfoCard icon={<Calendar size={15} />} label="תאריך פתיחה">
-          <span className="text-sm font-medium text-slate-800">{c.open_date ?? '—'}</span>
+          <span className="text-sm font-medium text-slate-800">{c.open_date ?? 'לא צוין'}</span>
         </InfoCard>
         <InfoCard icon={<Hash size={15} />} label="מספר הליך בנט">
-          <span className="text-sm font-medium text-slate-800 font-mono">{c.net_hamishpat_number ?? '—'}</span>
+          <span className="text-sm font-medium text-slate-800 font-mono">{c.net_hamishpat_number ?? 'לא צוין'}</span>
         </InfoCard>
         <InfoCard icon={<User size={15} />} label="אחראי תיק">
-          <span className="text-sm font-medium text-slate-800">{c.assigned_to || '—'}</span>
+          <span className="text-sm font-medium text-slate-800">{c.assigned_to || 'לא צוין'}</span>
         </InfoCard>
         <InfoCard icon={<Banknote size={15} />} label="ערך תביעה">
           <span className="text-sm font-medium text-slate-800">
-            {c.value ? `₪${Number(c.value).toLocaleString()}` : '—'}
+            {c.value ? `₪${Number(c.value).toLocaleString()}` : 'לא צוין'}
           </span>
         </InfoCard>
         <InfoCard icon={<Banknote size={15} />} label={'שכ"ט'}>
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-slate-800">
-              {c.fee_amount ? `₪${Number(c.fee_amount).toLocaleString()}` : '—'}
+              {c.fee_amount ? `₪${Number(c.fee_amount).toLocaleString()}` : 'לא צוין'}
             </span>
             <CaseFeeToggle caseId={id} initialStatus={c.fee_status ?? null} />
           </div>
@@ -174,11 +174,11 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
           <span className={`text-sm font-medium ${
             c.target_close_date && c.target_close_date < today ? 'text-red-600' : 'text-slate-800'
           }`}>
-            {c.target_close_date ?? '—'}
+            {c.target_close_date ?? 'לא צוין'}
           </span>
         </InfoCard>
         <InfoCard icon={<User size={15} />} label="נתבע">
-          <span className="text-sm font-medium text-slate-800">{c.defendant_name || '—'}</span>
+          <span className="text-sm font-medium text-slate-800">{c.defendant_name || 'לא צוין'}</span>
         </InfoCard>
       </div>
 

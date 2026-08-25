@@ -188,7 +188,7 @@ export default function LibraryPage() {
         <p className="text-sm mt-1" style={{ color: '#94a3b8' }}>
           {readyCount > 0
             ? `${readyCount} מסמכים מוכנים · ${totalChunks.toLocaleString()} קטעים לחיפוש`
-            : 'העלה מסמכים ממשרדך — כתבי טענות, פסקי דין, מכתבים'}
+            : 'העלה מסמכים ממשרדך, כתבי טענות, פסקי דין, מכתבים'}
         </p>
       </div>
 

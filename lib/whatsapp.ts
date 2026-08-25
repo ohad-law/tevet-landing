@@ -1,5 +1,5 @@
 /**
- * Green API — WhatsApp client
+ * Green API, WhatsApp client
  * Sends messages via Green API (instance 7105435035)
  */
 

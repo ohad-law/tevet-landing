@@ -1,5 +1,5 @@
 /**
- * Vercel Cron — מריץ כל 5 דקות
+ * Vercel Cron, מריץ כל 5 דקות
  * בודק לידים חדשים מטופס נייטיב Meta → שולח WhatsApp לאוהד
  *
  * schedule מוגדר ב-vercel.json
@@ -10,10 +10,10 @@ import { createServiceClient } from '@/lib/supabase/service'
 const META_TOKEN   = process.env.META_ACCESS_TOKEN!
 const GREEN_INSTANCE = process.env.GREEN_API_INSTANCE!
 const GREEN_TOKEN  = process.env.GREEN_API_TOKEN!
-const OHAD_WA      = '972542274497' // hard-coded — אסור לשנות דרך env var למניעת דליפה
+const OHAD_WA      = '972542274497' // hard-coded, אסור לשנות דרך env var למניעת דליפה
 
 // טופסים שיש לסרוק
-const LEAD_FORM_ID = '2003647560270603' // v3 — הפעיל
+const LEAD_FORM_ID = '2003647560270603' // v3, הפעיל
 
 export async function GET(req: NextRequest) {
   // אימות שהקריאה מגיעה מ-Vercel Cron
@@ -70,23 +70,23 @@ export async function GET(req: NextRequest) {
       fields[f.name] = f.values?.[0] ?? ''
     }
 
-    const name      = fields['full_name']          || '—'
-    const phone     = fields['phone_number']        || '—'
-    const years     = fields['years_worked']        || '—'
-    const sector    = fields['work_sector']         || '—'
+    const name      = fields['full_name']          || 'לא צוין'
+    const phone     = fields['phone_number']        || 'לא צוין'
+    const years     = fields['years_worked']        || 'לא צוין'
+    const sector    = fields['work_sector']         || 'לא צוין'
     const detail    = fields['work_sector_detail']  || ''
-    const situation = fields['situation']           || '—'
+    const situation = fields['situation']           || 'לא צוין'
 
     const now = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' })
     const msg = [
-      `🟢 *ליד חדש — דיני עבודה*`,
+      `🟢 *ליד חדש, דיני עבודה*`,
       ``,
       `👤 *שם:* ${name}`,
       `📞 *טלפון:* ${phone}`,
       ``,
       `📋 *פרטים:*`,
       `• שנות עבודה: ${years}`,
-      `• תחום: ${sector}${detail ? ` — ${detail}` : ''}`,
+      `• תחום: ${sector}${detail ? `, ${detail}` : ''}`,
       `• סיטואציה: ${situation}`,
       ``,
       `🕐 ${now}`,

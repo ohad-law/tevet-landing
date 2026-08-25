@@ -16,7 +16,7 @@ export interface SignatureData {
   signedAt:   Date
   fields:     SignatureField[]
   signatureImageBase64: string  // PNG base64
-  idNumber?:  string            // ת"ז — אופציונלי
+  idNumber?:  string            // ת"ז, אופציונלי
 }
 
 export async function stampPdf(
