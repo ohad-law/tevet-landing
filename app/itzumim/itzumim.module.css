@@ -78,7 +78,7 @@
   padding: 0.55rem 1.35rem;
   border-radius: 50px;
   font-weight: 800;
-  font-size: 0.82rem;
+  font-size: 1.06rem;
   font-family: inherit;
   cursor: pointer;
   white-space: nowrap;
@@ -124,7 +124,7 @@
 
 .eyebrow {
   display: inline-block;
-  font-size: 0.7rem;
+  font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 2.6px;
   color: var(--gold);
@@ -147,7 +147,7 @@
   text-decoration-thickness: 3px;
 }
 .sub {
-  font-size: clamp(1rem, 2vw, 1.16rem);
+  font-size: clamp(1.1rem, 2.1vw, 1.25rem);
   line-height: 1.72;
   color: rgba(255, 255, 255, 0.74);
   max-width: 42ch;
@@ -170,7 +170,7 @@
  * הכיוון הלוגי, ולכן ::before נופל בימין ו-::after בשמאל.
  */
 .regQuote {
-  font-size: clamp(1.02rem, 2.1vw, 1.22rem);
+  font-size: clamp(1.12rem, 2.2vw, 1.32rem);
   font-weight: 700;
   line-height: 1.6;
   color: var(--white);
@@ -182,7 +182,7 @@
 }
 .regSrc {
   margin-top: 0.6rem;
-  font-size: 0.76rem;
+  font-size: 0.9rem;
   color: var(--text-dim);
   line-height: 1.55;
 }
@@ -209,7 +209,7 @@
 .videoCap {
   margin-top: 0.7rem;
   text-align: center;
-  font-size: 0.78rem;
+  font-size: 0.92rem;
   line-height: 1.6;
   color: var(--text-dim);
   max-width: 330px;
@@ -231,7 +231,7 @@
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  font-size: 0.79rem;
+  font-size: 1.06rem;
   color: rgba(255, 255, 255, 0.62);
 }
 .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); flex: none; }
@@ -240,7 +240,7 @@
 .block { padding: clamp(2.6rem, 6vw, 4.6rem) clamp(1rem, 4vw, 2rem); }
 .inner { max-width: 940px; margin: 0 auto; }
 .kicker {
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 3px;
   color: var(--gold);
@@ -254,7 +254,7 @@
 }
 .h2 em { font-style: normal; color: var(--gold); }
 .lead {
-  font-size: clamp(0.95rem, 1.8vw, 1.06rem);
+  font-size: clamp(1.06rem, 1.9vw, 1.15rem);
   line-height: 1.78;
   color: rgba(255, 255, 255, 0.66);
   max-width: 62ch;
@@ -280,9 +280,10 @@
   color: var(--alert);
   letter-spacing: -1px;
 }
-.stageDaysUnit { font-size: 0.95rem; font-weight: 700; margin-inline-start: 0.3rem; opacity: 0.8; }
-.stageWhen { margin-top: 0.55rem; font-weight: 800; font-size: 0.98rem; line-height: 1.4; }
-.stageWhat { margin-top: 0.4rem; font-size: 0.83rem; line-height: 1.65; color: var(--text-dim); }
+.stageDaysUnit { font-size: 1.06rem; font-weight: 700; margin-inline-start: 0.3rem; opacity: 0.8; }
+.stageWhen { margin-top: 0.55rem; font-weight: 800; font-size: 1.08rem; line-height: 1.4; }
+.stageWhat {
+  max-width: 44ch; margin-top: 0.4rem; font-size: 1.0rem; line-height: 1.65; color: var(--text-dim); }
 
 .clockNote {
   margin-top: 1.2rem;
@@ -290,7 +291,7 @@
   border-radius: 4px;
   background: var(--alert-dim);
   border: 1px solid var(--alert-border);
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   line-height: 1.7;
 }
 .clockNote strong { color: var(--alert); }
@@ -312,9 +313,10 @@
   letter-spacing: -1px;
 }
 .statNum.warn { color: var(--alert); }
-.statKey { margin-top: 0.6rem; font-size: 0.85rem; line-height: 1.6; color: rgba(255, 255, 255, 0.64); }
+.statKey {
+  max-width: 40ch; margin-top: 0.6rem; font-size: 1.0rem; line-height: 1.6; color: rgba(255, 255, 255, 0.64); }
 .statKey strong { color: var(--white); }
-.srcNote { margin-top: 1.1rem; font-size: 0.74rem; line-height: 1.65; color: var(--text-faint); }
+.srcNote { max-width: 72ch; margin-top: 1.1rem; font-size: 0.88rem; line-height: 1.65; color: var(--text-faint); }
 .srcNote a { color: rgba(201, 168, 76, 0.7); }
 
 /* ── למה אוהד ── */
@@ -328,7 +330,7 @@
   border: 2px solid var(--gold-border);
 }
 .photoName { margin-top: 0.8rem; font-weight: 900; font-size: 1.08rem; }
-.photoRole { margin-top: 0.25rem; font-size: 0.79rem; line-height: 1.55; color: var(--text-dim); }
+.photoRole { margin-top: 0.25rem; font-size: 1.06rem; line-height: 1.55; color: var(--text-dim); }
 
 .creds { display: grid; gap: 0.8rem; }
 .cred {
@@ -341,7 +343,7 @@
   background: rgba(255, 255, 255, 0.025);
 }
 .credNum {
-  font-size: 0.72rem;
+  font-size: 0.86rem;
   font-weight: 900;
   letter-spacing: 1px;
   color: var(--gold);
@@ -349,12 +351,13 @@
   padding-top: 0.22rem;
 }
 .credTitle { font-weight: 800; font-size: 1rem; line-height: 1.4; }
-.credBody { margin-top: 0.35rem; font-size: 0.86rem; line-height: 1.7; color: var(--text-dim); }
+.credBody {
+  max-width: 60ch; margin-top: 0.35rem; font-size: 1.02rem; line-height: 1.7; color: var(--text-dim); }
 .credBody strong { color: rgba(255, 255, 255, 0.86); }
 .tag {
   display: inline-block;
   margin-top: 0.5rem;
-  font-size: 0.7rem;
+  font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.4px;
   color: var(--gold);
@@ -375,7 +378,7 @@
   display: flex;
   flex-direction: column;
 }
-.caseFrom { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 0.4px; }
+.caseFrom { font-size: 0.88rem; color: var(--text-dim); letter-spacing: 0.4px; }
 .caseAmount {
   font-size: 1.55rem;
   font-weight: 800;
@@ -387,7 +390,7 @@
   margin-top: 0.2rem;
 }
 .caseArrow { font-size: 1.1rem; color: var(--gold); margin: 0.5rem 0 0.15rem; }
-.caseTo { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 0.4px; }
+.caseTo { font-size: 0.88rem; color: var(--text-dim); letter-spacing: 0.4px; }
 .caseResult {
   font-size: clamp(1.7rem, 3.6vw, 2.1rem);
   font-weight: 900;
@@ -395,7 +398,7 @@
   color: var(--gold);
   letter-spacing: -1px;
 }
-.caseWhy { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--hair); font-size: 0.8rem; line-height: 1.65; color: var(--text-dim); }
+.caseWhy { max-width: 42ch; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--hair); font-size: 1.06rem; line-height: 1.65; color: var(--text-dim); }
 
 /* ── שלבים ── */
 .steps { display: grid; gap: 0.9rem; margin-top: 1.5rem; }
@@ -412,18 +415,21 @@
   background: var(--gold);
   color: var(--navy);
   font-weight: 900;
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 0.7rem;
 }
 .stepTitle { font-weight: 800; font-size: 1rem; line-height: 1.4; }
-.stepBody { margin-top: 0.4rem; font-size: 0.85rem; line-height: 1.7; color: var(--text-dim); }
+.stepBody {
+  max-width: 46ch; margin-top: 0.4rem; font-size: 1.0rem; line-height: 1.7; color: var(--text-dim); }
 
 /* ── שאלות ── */
 .faqList { display: grid; gap: 0; margin-top: 1.4rem; border-top: 1px solid var(--hair); }
 .faqItem { border-bottom: 1px solid var(--hair); padding: 1.15rem 0; }
-.faqQ { font-weight: 800; font-size: 1rem; line-height: 1.45; margin-bottom: 0.45rem; }
-.faqA { font-size: 0.88rem; line-height: 1.8; color: var(--text-dim); }
+.faqQ {
+  max-width: 62ch; font-weight: 800; font-size: 1rem; line-height: 1.45; margin-bottom: 0.45rem; }
+.faqA {
+  max-width: 66ch; font-size: 1.03rem; line-height: 1.8; color: var(--text-dim); }
 .faqA strong { color: rgba(255, 255, 255, 0.88); }
 .faqA a { color: rgba(201, 168, 76, 0.85); }
 
@@ -446,16 +452,17 @@
 .footerGrid { display: grid; gap: 1.5rem; }
 @media (min-width: 720px) { .footerGrid { grid-template-columns: 1.4fr 1fr 1fr; } }
 .footerLogo { display: block; height: 34px; width: auto; opacity: 0.9; }
-.footerInfo { margin-top: 0.8rem; font-size: 0.8rem; line-height: 1.8; color: var(--text-dim); }
+.footerInfo {
+  max-width: 44ch; margin-top: 0.8rem; font-size: 1.06rem; line-height: 1.8; color: var(--text-dim); }
 .footerInfo a { color: rgba(201, 168, 76, 0.6); }
-.footerCol h4 { font-size: 0.78rem; font-weight: 800; color: rgba(255, 255, 255, 0.8); margin-bottom: 0.55rem; }
-.footerCol a { display: block; font-size: 0.8rem; line-height: 2; color: var(--text-dim); text-decoration: none; }
+.footerCol h4 { font-size: 0.92rem; font-weight: 800; color: rgba(255, 255, 255, 0.8); margin-bottom: 0.55rem; }
+.footerCol a { display: block; font-size: 1.06rem; line-height: 2; color: var(--text-dim); text-decoration: none; }
 .footerCol a:hover { color: var(--gold); }
 .footerBottom {
   margin-top: 1.7rem;
   padding-top: 1.2rem;
   border-top: 1px solid var(--hair);
-  font-size: 0.7rem;
+  font-size: 0.82rem;
   line-height: 1.85;
   color: var(--text-faint);
 }
@@ -471,7 +478,8 @@
   box-shadow: 0 20px 50px -30px rgba(0, 0, 0, 0.9);
 }
 .formTitle { font-size: 1.05rem; font-weight: 800; line-height: 1.5; margin-bottom: 0.35rem; }
-.formSub { font-size: 0.8rem; line-height: 1.6; color: var(--text-dim); margin-bottom: 1rem; }
+.formSub {
+  max-width: 60ch; font-size: 1.06rem; line-height: 1.6; color: var(--text-dim); margin-bottom: 1rem; }
 .grid2 { display: grid; gap: 0.65rem; margin-bottom: 0.65rem; }
 @media (min-width: 560px) { .grid2 { grid-template-columns: 1fr 1fr; } }
 
@@ -483,7 +491,7 @@
   background: rgba(13, 21, 38, 0.7);
   color: var(--white);
   font-family: inherit;
-  font-size: 0.92rem;
+  font-size: 1.06rem;
 }
 .field::placeholder { color: rgba(255, 255, 255, 0.34); }
 .field:focus-visible, .select:focus-visible, .upload:focus-visible, .submit:focus-visible {
@@ -504,11 +512,11 @@
   background: none;
   color: var(--text-dim);
   font-family: inherit;
-  font-size: 0.79rem;
+  font-size: 1.06rem;
   line-height: 1.55;
   margin-bottom: 0.6rem;
 }
-.upload strong { display: block; color: rgba(255, 255, 255, 0.82); font-size: 0.88rem; margin-bottom: 0.15rem; }
+.upload strong { display: block; color: rgba(255, 255, 255, 0.82); font-size: 1.03rem; margin-bottom: 0.15rem; }
 .uploadOn { border-color: var(--gold); border-style: solid; }
 
 .hintUrgent {
@@ -517,14 +525,14 @@
   border-radius: 5px;
   background: var(--alert-dim);
   border: 1px solid var(--alert-border);
-  font-size: 0.82rem;
+  font-size: 1.06rem;
   line-height: 1.6;
 }
 .hintUrgent strong { color: var(--alert); }
 
 .consent { display: flex; gap: 0.55rem; align-items: flex-start; margin: 0.7rem 0 0.9rem; }
 .consent input { margin-top: 0.28rem; accent-color: var(--gold); flex: none; width: 15px; height: 15px; }
-.consent label { font-size: 0.73rem; line-height: 1.65; color: var(--text-dim); }
+.consent label { font-size: 0.88rem; line-height: 1.65; color: var(--text-dim); }
 .consent a { color: rgba(201, 168, 76, 0.85); }
 
 .err {
@@ -533,7 +541,7 @@
   color: #ffc9be;
   padding: 0.6rem 0.8rem;
   border-radius: 5px;
-  font-size: 0.83rem;
+  font-size: 1.0rem;
   margin-bottom: 0.7rem;
 }
 
@@ -550,7 +558,7 @@
   cursor: pointer;
 }
 .submit:disabled { opacity: 0.55; cursor: default; }
-.formNote { margin-top: 0.6rem; text-align: center; font-size: 0.72rem; line-height: 1.6; color: var(--text-faint); }
+.formNote { margin-top: 0.6rem; text-align: center; font-size: 0.86rem; line-height: 1.6; color: var(--text-faint); }
 
 .done { text-align: center; padding: 0.8rem 0.3rem; }
 .doneMark {
@@ -563,14 +571,14 @@
   margin: 0 auto 0.85rem;
 }
 .doneTitle { font-size: 1.12rem; font-weight: 900; margin-bottom: 0.5rem; }
-.doneBody { font-size: 0.88rem; line-height: 1.75; color: var(--text-dim); }
+.doneBody { max-width: 46ch; margin-inline: auto; font-size: 1.03rem; line-height: 1.75; color: var(--text-dim); }
 .waBtn {
   display: inline-block;
   margin-top: 0.9rem;
   background: #25d366;
   color: #072b12;
   font-weight: 800;
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   text-decoration: none;
   padding: 0.72rem 1.4rem;
   border-radius: 50px;
@@ -605,7 +613,7 @@
 .docImg { display: block; width: 100%; height: auto; }
 .docCap {
   margin-top: 0.6rem;
-  font-size: 0.72rem;
+  font-size: 0.86rem;
   line-height: 1.6;
   color: var(--text-faint);
   text-align: center;
@@ -622,10 +630,11 @@
   padding: 0.7rem 0.9rem;
   background: rgba(255, 255, 255, 0.025);
 }
-.findingLaw { font-size: 0.85rem; line-height: 1.5; }
+.findingLaw {
+  max-width: 52ch; font-size: 1.0rem; line-height: 1.5; }
 .findingLaw strong { font-weight: 700; }
 .pill {
-  font-size: 0.7rem;
+  font-size: 0.82rem;
   font-weight: 700;
   white-space: nowrap;
   border-radius: 50px;
@@ -653,7 +662,8 @@
   color: var(--gold);
   letter-spacing: -1px;
 }
-.docVerdictText { margin-top: 0.4rem; font-size: 0.9rem; line-height: 1.7; color: rgba(255, 255, 255, 0.75); }
+.docVerdictText {
+  max-width: 56ch; margin-top: 0.4rem; font-size: 1.05rem; line-height: 1.7; color: rgba(255, 255, 255, 0.75); }
 .docVerdictText strong { color: var(--white); }
 
 /* ═══════════════════════════════════════════════════════════
@@ -663,7 +673,7 @@
 
 /* ── הליד, מיד אחרי הכותרת. לא מוכר, מזדהה ── */
 .lede {
-  font-size: clamp(1rem, 2vw, 1.1rem);
+  font-size: clamp(1.08rem, 2vw, 1.18rem);
   line-height: 1.8;
   color: rgba(255, 255, 255, 0.72);
   max-width: 46ch;
@@ -688,7 +698,7 @@
   gap: 0.5rem 1.6rem;
   text-align: center;
 }
-.urgentItem { display: flex; align-items: baseline; gap: 0.4rem; font-size: 0.86rem; }
+.urgentItem { display: flex; align-items: baseline; gap: 0.4rem; font-size: 1.02rem; }
 .urgentNum { font-weight: 900; font-size: 1.15rem; color: var(--alert); }
 .urgentLabel { color: rgba(255, 255, 255, 0.7); }
 
@@ -702,7 +712,7 @@
   margin-bottom: 0.5rem;
 }
 .storyBody {
-  font-size: clamp(1rem, 2vw, 1.1rem);
+  font-size: clamp(1.08rem, 2vw, 1.18rem);
   line-height: 1.85;
   color: rgba(255, 255, 255, 0.75);
   max-width: 60ch;
@@ -739,14 +749,15 @@
   border-radius: 50%;
   border: 1.5px solid var(--gold);
   color: var(--gold);
-  font-size: 0.72rem;
+  font-size: 0.86rem;
   font-weight: 900;
   display: flex; align-items: center; justify-content: center;
   margin-top: 0.15rem;
   flex: none;
 }
-.offerTitle { font-weight: 800; font-size: 0.97rem; line-height: 1.4; }
-.offerBody { margin-top: 0.3rem; font-size: 0.84rem; line-height: 1.7; color: var(--text-dim); }
+.offerTitle { font-weight: 800; font-size: 1.08rem; line-height: 1.4; }
+.offerBody {
+  max-width: 48ch; margin-top: 0.3rem; font-size: 1.0rem; line-height: 1.7; color: var(--text-dim); }
 .offerBody strong { color: rgba(255, 255, 255, 0.88); }
 .offerKey { border-color: var(--gold-border); background: rgba(201, 168, 76, 0.07); }
 
@@ -764,13 +775,13 @@
   line-height: 1.35;
   margin-bottom: 0.6rem;
 }
-.guaranteeBody { font-size: 0.95rem; line-height: 1.85; color: rgba(255, 255, 255, 0.75); max-width: 58ch; }
+.guaranteeBody { font-size: 1.06rem; line-height: 1.85; color: rgba(255, 255, 255, 0.75); max-width: 58ch; }
 .guaranteeBody strong { color: var(--white); }
 .guaranteeSign {
   margin-top: 1rem;
   padding-top: 0.9rem;
   border-top: 1px solid var(--gold-border);
-  font-size: 0.85rem;
+  font-size: 1.0rem;
   color: var(--gold);
   font-weight: 700;
 }
@@ -790,10 +801,11 @@
   background: rgba(201, 168, 76, 0.08);
   opacity: 1;
 }
-.choiceNum { font-size: 0.72rem; font-weight: 900; letter-spacing: 1.5px; color: var(--text-faint); margin-bottom: 0.5rem; }
+.choiceNum { font-size: 0.86rem; font-weight: 900; letter-spacing: 1.5px; color: var(--text-faint); margin-bottom: 0.5rem; }
 .choicePick .choiceNum { color: var(--gold); }
 .choiceTitle { font-weight: 800; font-size: 1rem; line-height: 1.4; margin-bottom: 0.35rem; }
-.choiceBody { font-size: 0.85rem; line-height: 1.7; color: var(--text-dim); }
+.choiceBody {
+  max-width: 44ch; font-size: 1.0rem; line-height: 1.7; color: var(--text-dim); }
 
 /* ── מסר אישי ── */
 .personal {
@@ -802,7 +814,7 @@
 }
 .personalInner { max-width: 660px; margin: 0 auto; }
 .personalBody {
-  font-size: clamp(0.98rem, 2vw, 1.08rem);
+  font-size: clamp(1.08rem, 2vw, 1.18rem);
   line-height: 1.9;
   color: rgba(255, 255, 255, 0.75);
 }
@@ -814,7 +826,7 @@
   font-size: 1rem;
   color: var(--gold);
 }
-.personalRole { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.15rem; line-height: 1.5; }
+.personalRole { font-size: 1.06rem; color: var(--text-dim); margin-top: 0.15rem; line-height: 1.5; }
 
 /* ── הוכחה משובצת, מפוזרת ולא מרוכזת ── */
 .inlineProof {
@@ -822,7 +834,7 @@
   padding: 0.15rem 0 0.15rem 0;
   padding-inline-start: 0.95rem;
   margin: 1.3rem 0;
-  font-size: 0.92rem;
+  font-size: 1.06rem;
   line-height: 1.75;
   color: rgba(255, 255, 255, 0.7);
   max-width: 58ch;
@@ -832,7 +844,7 @@
 .stepBadge {
   display: inline-block;
   margin-top: 0.7rem;
-  font-size: 0.72rem;
+  font-size: 0.86rem;
   font-weight: 700;
   color: var(--alert);
   border: 1px solid var(--alert-border);
@@ -841,3 +853,31 @@
   padding: 0.2rem 0.75rem;
   line-height: 1.5;
 }
+
+/*
+ * תקרות רוחב לבלוקים שנמדדו כרחבים מדי בפועל.
+ * הטווח הנוח לקריאה הוא 45 עד 75 תווים בשורה. הבלוקים שלמטה
+ * הגיעו ל-107 עד 168, כלומר העין מאבדת את תחילת השורה הבאה.
+ * נמדד על הדף החי ב-30/08/2026.
+ */
+.clockNote { max-width: 68ch; }
+.regSrc { max-width: 52ch; }
+.formNote { max-width: 44ch; margin-inline: auto; }
+.personalRole { max-width: 46ch; }
+.photoRole { max-width: 30ch; margin-inline: auto; }
+.videoCap { max-width: 330px; }
+.docCap { max-width: 46ch; margin-inline: auto; }
+.footerBottom { max-width: 80ch; }
+.guaranteeBody { max-width: 56ch; }
+.consent label { max-width: 60ch; }
+.upload { max-width: 60ch; margin-inline: auto; }
+
+/* גובה שורה גדל יחד עם הגופן, אחרת הטקסט נראה צפוף למרות ההגדלה */
+.faqA, .credBody, .offerBody, .stepBody, .choiceBody, .statKey, .stageWhat, .caseWhy {
+  line-height: 1.75;
+}
+
+
+/* שני בלוקים שנשארו רחבים אחרי המדידה השנייה */
+.storyPunch { max-width: 54ch; }
+.footerBottom { font-size: 0.88rem; max-width: 74ch; }
