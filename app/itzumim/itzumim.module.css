@@ -17,17 +17,36 @@
  *    גדולות, כי המספר הוא מה שמחזיק את הגולש בדף.
  */
 
+/*
+ * פלטה מקומית לדף הזה בלבד.
+ *
+ * הזהב הגלובלי (#c9a84c) הוא צהוב רווי. על דף שלם הוא נקרא ספורטיבי
+ * ולא יוקרתי. כאן הוא מוחלף בפליז עמום ומודהה, ומשמש רק כמבטא
+ * משני: קווים דקים, תוויות קטנות והכפתור. הלוגו של המשרד לבן,
+ * ולכן הלבן החם הוא הצבע הראשי והפליז רק מלווה אותו.
+ *
+ * צבע התראה אחד בלבד, טרהקוטה עמומה, ורק על שלושת המועדים. אין
+ * ירוק ואין צבע שלישי. שני גוונים על רקע כהה זה מה שנראה קלאסי.
+ * ההחלפה מקומית ואינה נוגעת ב-globals.css ולא בדף התלושים.
+ */
 .page {
   min-height: 100vh;
+  --navy: #0b1120;
+  --white: #f1efea;
+  --gold: #b09765;
+  --gold-dim: rgba(176, 151, 101, 0.10);
+  --gold-border: rgba(176, 151, 101, 0.28);
+  --text-dim: rgba(241, 239, 234, 0.52);
+  --text-faint: rgba(241, 239, 234, 0.26);
+  --alert: #a86253;
+  --alert-dim: rgba(168, 98, 83, 0.10);
+  --alert-border: rgba(168, 98, 83, 0.26);
+  --hair: rgba(241, 239, 234, 0.075);
+
   background:
-    radial-gradient(1200px 560px at 80% -10%, rgba(201, 168, 76, 0.10), transparent 60%),
-    radial-gradient(820px 460px at 6% 2%, rgba(30, 58, 110, 0.36), transparent 62%),
+    radial-gradient(1400px 700px at 50% -20%, rgba(176, 151, 101, 0.045), transparent 62%),
     var(--navy);
   color: var(--white);
-  --alert: #d9614a;
-  --alert-dim: rgba(217, 97, 74, 0.13);
-  --alert-border: rgba(217, 97, 74, 0.32);
-  --hair: rgba(255, 255, 255, 0.08);
 }
 
 .num {
@@ -49,21 +68,9 @@
   border-bottom: 1px solid var(--gold-border);
   backdrop-filter: blur(10px);
 }
-.topLogo {
-  font-size: 1.2rem;
-  font-weight: 900;
-  letter-spacing: 3px;
-  color: var(--gold);
-  line-height: 1.1;
-}
-.topLogo span {
-  display: block;
-  font-size: 0.58rem;
-  letter-spacing: 1.4px;
-  font-weight: 600;
-  opacity: 0.62;
-  margin-top: 3px;
-}
+/* הלוגו האמיתי של המשרד, לבן. לא טקסט מוזהב שממציא מותג מחדש. */
+.topLogo { display: block; height: 30px; width: auto; }
+@media (min-width: 640px) { .topLogo { height: 36px; } }
 .topCta {
   background: var(--gold);
   color: var(--navy);
@@ -438,8 +445,7 @@
 .footerInner { max-width: 940px; margin: 0 auto; }
 .footerGrid { display: grid; gap: 1.5rem; }
 @media (min-width: 720px) { .footerGrid { grid-template-columns: 1.4fr 1fr 1fr; } }
-.footerLogo { font-size: 1.05rem; font-weight: 900; letter-spacing: 3px; color: var(--gold); }
-.footerSub { font-size: 0.6rem; letter-spacing: 1.2px; color: var(--gold); opacity: 0.55; margin-top: 3px; }
+.footerLogo { display: block; height: 34px; width: auto; opacity: 0.9; }
 .footerInfo { margin-top: 0.8rem; font-size: 0.8rem; line-height: 1.8; color: var(--text-dim); }
 .footerInfo a { color: rgba(201, 168, 76, 0.6); }
 .footerCol h4 { font-size: 0.78rem; font-weight: 800; color: rgba(255, 255, 255, 0.8); margin-bottom: 0.55rem; }
@@ -627,7 +633,11 @@
   border: 1px solid;
 }
 .pillWarn { color: var(--gold); border-color: var(--gold-border); background: var(--gold-dim); }
-.pillClear { color: #6fca9a; border-color: rgba(111, 202, 154, 0.3); background: rgba(111, 202, 154, 0.1); }
+.pillClear {
+  color: var(--white);
+  border-color: rgba(241, 239, 234, 0.26);
+  background: rgba(241, 239, 234, 0.055);
+}
 
 .docVerdict {
   border: 1px solid var(--gold-border);
@@ -645,3 +655,189 @@
 }
 .docVerdictText { margin-top: 0.4rem; font-size: 0.9rem; line-height: 1.7; color: rgba(255, 255, 255, 0.75); }
 .docVerdictText strong { color: var(--white); }
+
+/* ═══════════════════════════════════════════════════════════
+ * חלקים שנוספו לפי צ'קליסט 11 החלקים של דף מכירה (נקסט לבל).
+ * הדף הקודם היה דף מידע: הסביר נכון, לא מכר.
+ * ═══════════════════════════════════════════════════════════ */
+
+/* ── הליד, מיד אחרי הכותרת. לא מוכר, מזדהה ── */
+.lede {
+  font-size: clamp(1rem, 2vw, 1.1rem);
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.72);
+  max-width: 46ch;
+  margin-top: 1rem;
+}
+.lede p + p { margin-top: 0.85rem; }
+.lede strong { color: var(--white); font-weight: 700; }
+
+/* ── פס דחיפות מתחת להירו. הדחיפות חייבת להיות גבוה, לא באמצע ── */
+.urgentStrip {
+  border-block: 1px solid var(--alert-border);
+  background: var(--alert-dim);
+  padding: 0.9rem clamp(1rem, 4vw, 2rem);
+}
+.urgentInner {
+  max-width: 940px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 1.6rem;
+  text-align: center;
+}
+.urgentItem { display: flex; align-items: baseline; gap: 0.4rem; font-size: 0.86rem; }
+.urgentNum { font-weight: 900; font-size: 1.15rem; color: var(--alert); }
+.urgentLabel { color: rgba(255, 255, 255, 0.7); }
+
+/* ── הסיפור. מתחיל בדרמה, לא בכרונולוגיה ── */
+.storyOpen {
+  font-size: clamp(1.6rem, 4.5vw, 2.6rem);
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+  color: var(--alert);
+  margin-bottom: 0.5rem;
+}
+.storyBody {
+  font-size: clamp(1rem, 2vw, 1.1rem);
+  line-height: 1.85;
+  color: rgba(255, 255, 255, 0.75);
+  max-width: 60ch;
+}
+.storyBody p + p { margin-top: 0.9rem; }
+.storyBody strong { color: var(--white); }
+.storyBody em { font-style: normal; color: var(--gold); font-weight: 700; }
+.storyPunch {
+  margin-top: 1.3rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--gold-border);
+  border-right: 3px solid var(--gold);
+  border-radius: 4px;
+  background: rgba(201, 168, 76, 0.06);
+  font-size: clamp(1rem, 2.1vw, 1.15rem);
+  line-height: 1.65;
+  font-weight: 700;
+}
+
+/* ── ההצעה, מה אתה מקבל בפועל ── */
+.offer { display: grid; gap: 0.7rem; margin-top: 1.5rem; }
+@media (min-width: 780px) { .offer { grid-template-columns: 1fr 1fr; } }
+.offerItem {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0 0.85rem;
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  padding: 1rem 1.1rem;
+  background: rgba(255, 255, 255, 0.025);
+}
+.offerCheck {
+  width: 21px; height: 21px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gold);
+  color: var(--gold);
+  font-size: 0.72rem;
+  font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 0.15rem;
+  flex: none;
+}
+.offerTitle { font-weight: 800; font-size: 0.97rem; line-height: 1.4; }
+.offerBody { margin-top: 0.3rem; font-size: 0.84rem; line-height: 1.7; color: var(--text-dim); }
+.offerBody strong { color: rgba(255, 255, 255, 0.88); }
+.offerKey { border-color: var(--gold-border); background: rgba(201, 168, 76, 0.07); }
+
+/* ── ההתחייבות ── */
+.guarantee {
+  border: 1px solid var(--gold-border);
+  border-radius: 6px;
+  background: rgba(201, 168, 76, 0.055);
+  padding: clamp(1.3rem, 3vw, 2rem);
+  margin-top: 1.4rem;
+}
+.guaranteeTitle {
+  font-size: clamp(1.15rem, 2.6vw, 1.45rem);
+  font-weight: 900;
+  line-height: 1.35;
+  margin-bottom: 0.6rem;
+}
+.guaranteeBody { font-size: 0.95rem; line-height: 1.85; color: rgba(255, 255, 255, 0.75); max-width: 58ch; }
+.guaranteeBody strong { color: var(--white); }
+.guaranteeSign {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--gold-border);
+  font-size: 0.85rem;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+/* ── הבחירה, שלוש אפשרויות ── */
+.choice { display: grid; gap: 0.8rem; margin-top: 1.5rem; }
+@media (min-width: 820px) { .choice { grid-template-columns: repeat(3, 1fr); } }
+.choiceItem {
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  padding: 1.2rem 1.2rem;
+  background: rgba(255, 255, 255, 0.02);
+  opacity: 0.72;
+}
+.choicePick {
+  border-color: var(--gold);
+  background: rgba(201, 168, 76, 0.08);
+  opacity: 1;
+}
+.choiceNum { font-size: 0.72rem; font-weight: 900; letter-spacing: 1.5px; color: var(--text-faint); margin-bottom: 0.5rem; }
+.choicePick .choiceNum { color: var(--gold); }
+.choiceTitle { font-weight: 800; font-size: 1rem; line-height: 1.4; margin-bottom: 0.35rem; }
+.choiceBody { font-size: 0.85rem; line-height: 1.7; color: var(--text-dim); }
+
+/* ── מסר אישי ── */
+.personal {
+  border-top: 1px solid var(--hair);
+  padding: clamp(2.4rem, 5vw, 3.6rem) clamp(1rem, 4vw, 2rem);
+}
+.personalInner { max-width: 660px; margin: 0 auto; }
+.personalBody {
+  font-size: clamp(0.98rem, 2vw, 1.08rem);
+  line-height: 1.9;
+  color: rgba(255, 255, 255, 0.75);
+}
+.personalBody p + p { margin-top: 0.9rem; }
+.personalBody strong { color: var(--white); }
+.personalName {
+  margin-top: 1.2rem;
+  font-weight: 900;
+  font-size: 1rem;
+  color: var(--gold);
+}
+.personalRole { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.15rem; line-height: 1.5; }
+
+/* ── הוכחה משובצת, מפוזרת ולא מרוכזת ── */
+.inlineProof {
+  border-inline-start: 2px solid var(--gold);
+  padding: 0.15rem 0 0.15rem 0;
+  padding-inline-start: 0.95rem;
+  margin: 1.3rem 0;
+  font-size: 0.92rem;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 58ch;
+}
+.inlineProof strong { color: var(--gold); }
+
+.stepBadge {
+  display: inline-block;
+  margin-top: 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--alert);
+  border: 1px solid var(--alert-border);
+  background: var(--alert-dim);
+  border-radius: 50px;
+  padding: 0.2rem 0.75rem;
+  line-height: 1.5;
+}

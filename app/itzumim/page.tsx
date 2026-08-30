@@ -185,10 +185,14 @@ export default function Page() {
     <div className={s.page}>
       {/* ── סרגל עליון ── */}
       <div className={s.top}>
-        <div className={s.topLogo}>
-          TEVET
-          <span>TEVET | LAW OFFICE | טבת משרד עורכי דין</span>
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          className={s.topLogo}
+          src="/tevet-logo.png"
+          alt="טבת משרד עורכי דין"
+          width={888}
+          height={274}
+        />
         <a className={s.topCta} href="#form">לבדיקת העיצום</a>
       </div>
 
@@ -198,14 +202,26 @@ export default function Page() {
           <div className={s.heroText}>
             <span className={s.eyebrow}>למעסיקים ולבעלי עסקים</span>
             <h1 className={s.h1}>
-              קיבלת עיצום כספי<br />
-              ממשרד העבודה?<br />
-              <em>זה עוד לא סוף הסיפור.</em>
+              קיבלת עיצום כספי<br />ממשרד העבודה?<br />
+              <em>יש לך 30 יום.</em>
             </h1>
             <p className={s.sub}>
-              הסכום שכתוב במכתב הוא נקודת פתיחה, לא גזר דין. אבל יש שעון,
-              והוא מתחיל לרוץ ביום שהמכתב נמסר לך.
+              ובלי אישור של בודק שכר מוסמך, הממונה{" "}
+              <strong>לא מוריד את הסכום בשקל.</strong>
             </p>
+
+            {/* הליד. לא מוכר כלום, רק מזדהה ומבטיח שהפתרון כאן. */}
+            <div className={s.lede}>
+              <p>
+                אתה קורא את המכתב שוב, מחפש איפה הם טעו. מנהלת החשבונות אומרת שהיא תבדוק
+                ותחזור אליך. ובראש כבר רץ החישוב האמיתי: כמה יעלה להילחם בזה, מול כמה
+                יעלה פשוט לשלם ולסגור את הפרק.
+              </p>
+              <p>
+                <strong>רוב המעסיקים שמגיעים אליי ישבו בדיוק שם.</strong> ורובם שילמו
+                בסוף הרבה פחות ממה שהיה כתוב במכתב, חלקם לא שילמו כלום.
+              </p>
+            </div>
 
             <div className={s.reg}>
               {/* המרכאות מגיעות מ-CSS ולא מהטקסט. מרכאה שנכתבת בתוך מחרוזת
@@ -257,6 +273,27 @@ export default function Page() {
         <div className={s.trustItem}><span className={s.dot} />מייצג מעסיקים בכל הארץ</div>
       </div>
 
+      {/* ── פס דחיפות. הדחיפות חייבת להיות גבוה בדף ולא באמצע ── */}
+      <div className={s.urgentStrip}>
+        <div className={s.urgentInner}>
+          <span className={s.urgentItem}>
+            <span className={`${s.urgentNum} ${s.num}`}>30</span>
+            <span className={s.urgentLabel}>יום להגיב על כוונת חיוב</span>
+          </span>
+          <span className={s.urgentItem}>
+            <span className={`${s.urgentNum} ${s.num}`}>28</span>
+            <span className={s.urgentLabel}>יום להגיש ערר</span>
+          </span>
+          <span className={s.urgentItem}>
+            <span className={`${s.urgentNum} ${s.num}`}>45</span>
+            <span className={s.urgentLabel}>יום לערער לבית הדין</span>
+          </span>
+          <span className={s.urgentItem}>
+            <span className={s.urgentLabel}>לוועדת הערר <strong>אין סמכות</strong> להאריך</span>
+          </span>
+        </div>
+      </div>
+
       {/* ── השעון ── */}
       <div className={s.block}>
         <div className={s.inner}>
@@ -297,6 +334,49 @@ export default function Page() {
               בקשה להפחתת גובה עיצום כספי
             </a>
             . נבדק 30/08/2026.
+          </p>
+        </div>
+      </div>
+
+      {/* ── הסיפור. מתחיל בדרמה ולא בכרונולוגיה ── */}
+      <div className={s.block}>
+        <div className={s.inner}>
+          <div className={s.kicker}>תיק אמיתי</div>
+          <div className={`${s.storyOpen} ${s.num}`}>800,000 ש&quot;ח.</div>
+          <h2 className={s.h2}>
+            זה מה שהופיע במכתב.<br />
+            <em>בגלל 20 שקל בחודש.</em>
+          </h2>
+          <div className={s.rule} />
+
+          <div className={s.storyBody}>
+            <p>
+              בעל עסק הגיע אליי עם מכתב ממשרד העבודה. הסכום בסוף העמוד היה 800 אלף שקל.
+              הוא ישב מולי ואמר לי שהוא לא מבין מה הוא עשה.
+            </p>
+            <p>
+              מה שהוא עשה זה שבמשך ארבעה חודשים הוא הפקיד לעובד לפנסיה{" "}
+              <strong>230 שקל במקום 250</strong>. הפרש של 20 שקל בחודש.{" "}
+              <strong>80 שקל בסך הכל.</strong>
+            </p>
+            <p>
+              זה נשמע כמו טעות במערכת. זה לא. ככה עובד חוק להגברת האכיפה: העיצום נקבע
+              לפי סוג ההפרה ומספר העובדים, ולא לפי הסכום שחסר.{" "}
+              <em>הפרה קטנה בעסק גדול מייצרת מספר עצום.</em>
+            </p>
+            <p>
+              נכנסנו למסלול של מדיניות האכיפה המקלה. תיקנו את ההפרה לכל העובדים ולכל
+              התקופה, הגשתי אישור בודק שכר על התיקון, וצירפנו הצהרת מנהלים עם הפעולות
+              שהעסק עשה כדי שזה לא יקרה שוב.
+            </p>
+          </div>
+
+          <p className={s.storyPunch}>
+            העיצום בוטל במלואו. אוהד מספר על התיק הזה בסרטון שבראש הדף.
+          </p>
+
+          <p className={s.srcNote}>
+            כל תיק נבחן לגופו, ותוצאה בתיק אחד אינה מבטיחה תוצאה בתיק אחר.
           </p>
         </div>
       </div>
@@ -414,6 +494,95 @@ export default function Page() {
         </div>
       </div>
 
+      {/* ── ההצעה. מה הוא מקבל בפועל, מנוסח כתועלת ולא כפיצ'ר ── */}
+      <div className={s.block}>
+        <div className={s.inner}>
+          <div className={s.kicker}>מה נכנס לטיפול</div>
+          <h2 className={s.h2}>
+            לא ייעוץ. <em>תיק שמטופל מההתחלה ועד הסוף.</em>
+          </h2>
+          <div className={s.rule} />
+          <p className={s.lead}>
+            הליך העיצומים אינו מכתב אחד ששולחים. הוא רצף של מסמכים, מועדים והחלטות, וכל
+            חוליה שחסרה בו מפילה את כולו.
+          </p>
+
+          <div className={s.offer}>
+            <div className={s.offerItem}>
+              <span className={s.offerCheck} aria-hidden="true">✓</span>
+              <div>
+                <div className={s.offerTitle}>קריאה של התיק, לא רק של המכתב</div>
+                <p className={s.offerBody}>
+                  מה בדיוק נטען נגדך, על כמה עובדים, לאיזו תקופה, ואיפה המפקח הסיק מסקנה
+                  שאפשר לתקוף.
+                </p>
+              </div>
+            </div>
+
+            <div className={s.offerItem}>
+              <span className={s.offerCheck} aria-hidden="true">✓</span>
+              <div>
+                <div className={s.offerTitle}>איתור עילות ההפחתה שרלוונטיות לך</div>
+                <p className={s.offerBody}>
+                  היעדר הפרות בחמש השנים האחרונות, פעולות שנקטת למניעה, גודל העסק והמחזור.
+                  כל עילה שלא נטענת היא כסף שנשאר על השולחן.
+                </p>
+              </div>
+            </div>
+
+            <div className={`${s.offerItem} ${s.offerKey}`}>
+              <span className={s.offerCheck} aria-hidden="true">✓</span>
+              <div>
+                <div className={s.offerTitle}>אישור בודק שכר מוסמך</div>
+                <p className={s.offerBody}>
+                  <strong>המסמך שבלעדיו הממונה לא מפחית את הסכום.</strong> אני מפיק אותו
+                  בעצמי, ולא שולח אותך לגורם חיצוני שרואה את התיק בפעם הראשונה.
+                </p>
+              </div>
+            </div>
+
+            <div className={s.offerItem}>
+              <span className={s.offerCheck} aria-hidden="true">✓</span>
+              <div>
+                <div className={s.offerTitle}>הצהרת מעסיק ותיקון ההפרה</div>
+                <p className={s.offerBody}>
+                  התיקון חייב לחול על <strong>כל העובדים ולכל התקופה</strong>, לא רק על מי
+                  שנבדק. זו הטעות שמפילה בקשות הפחתה.
+                </p>
+              </div>
+            </div>
+
+            <div className={s.offerItem}>
+              <span className={s.offerCheck} aria-hidden="true">✓</span>
+              <div>
+                <div className={s.offerTitle}>ליווי בחקירה ובשימוע</div>
+                <p className={s.offerBody}>
+                  &quot;מתן גרסה&quot; היא חקירה לכל דבר, ומה שנאמר בה נכנס לתיק. לא מגיעים
+                  אליה לבד.
+                </p>
+              </div>
+            </div>
+
+            <div className={s.offerItem}>
+              <span className={s.offerCheck} aria-hidden="true">✓</span>
+              <div>
+                <div className={s.offerTitle}>מניעת הביקורת הבאה</div>
+                <p className={s.offerBody}>
+                  משרד העבודה חוזר. מעסיק שנמצא שב על אותה הפרה חשוף לעיצום נוסף, ולכן
+                  הטיפול נגמר בנהלים ולא במכתב.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <p className={s.inlineProof}>
+            <strong>מקרה מהתיקים:</strong> חמישה תיקי חקירה נפתחו נגד מעסיק אחד אחרי
+            ביקורת. שלושה הסתיימו בהתראה מינהלית, שניים נסגרו ללא ממצאים, ולא הוטל עיצום
+            כספי כלל. המכתב המקורי מופיע בהמשך הדף.
+          </p>
+        </div>
+      </div>
+
       {/* ── תיקים ── */}
       <div className={s.block}>
         <div className={s.inner}>
@@ -501,39 +670,59 @@ export default function Page() {
         </div>
       </div>
 
-      {/* ── איך זה עובד ── */}
+      {/* ── הנעה שמייצרת ודאות. מה קורה *אחרי* הלחיצה, שלב אחר שלב ── */}
       <div className={s.block}>
         <div className={s.inner}>
-          <div className={s.kicker}>התהליך</div>
+          <div className={s.kicker}>מה קורה אחרי שאתה משאיר פרטים</div>
           <h2 className={s.h2}>
-            שלושה שלבים, <em>מתחילים מהמכתב שקיבלת.</em>
+            בלי הפתעות. <em>אתה יודע מראש כל שלב.</em>
           </h2>
           <div className={s.rule} />
 
           <div className={s.steps}>
             <div className={s.step}>
               <div className={s.stepNum}>1</div>
-              <div className={s.stepTitle}>שולח את המכתב ואת הפרטים</div>
+              <div className={s.stepTitle}>אתה שולח את המכתב</div>
               <p className={s.stepBody}>
-                המכתב ממשרד העבודה מכיל את ההפרה, הסכום והמועד. זה כל מה שצריך כדי לדעת
-                מה עוד פתוח.
+                חמישה שדות וצילום של המכתב ממשרד העבודה. בתוכו נמצאים ההפרה, הסכום
+                והמועד, וזה כל מה שצריך כדי לדעת איפה אתה עומד.
               </p>
             </div>
             <div className={s.step}>
               <div className={s.stepNum}>2</div>
-              <div className={s.stepTitle}>אוהד בודק אישית ומחזיר תשובה</div>
+              <div className={s.stepTitle}>אני חוזר אליך עם שלוש תשובות</div>
               <p className={s.stepBody}>
-                באיזה שלב אתה, כמה זמן נשאר, אילו עילות הפחתה רלוונטיות לך, ומה הסיכוי
-                המעשי בתיק כזה.
+                באיזה שלב בהליך אתה, כמה ימים באמת נשארו לך, ואילו עילות הפחתה רלוונטיות
+                לתיק שלך. לא הערכה כללית, אלא לפי מה שכתוב במכתב שלך.
               </p>
+              <span className={s.stepBadge}>מי שהמועד שלו רץ מקבל מענה באותו יום</span>
             </div>
             <div className={s.step}>
               <div className={s.stepNum}>3</div>
-              <div className={s.stepTitle}>מחליט אם להתקדם</div>
+              <div className={s.stepTitle}>אתה מחליט, אחרי שאתה יודע הכל</div>
               <p className={s.stepBody}>
-                אם יש מה לעשות, תדע בדיוק מה התהליך ומה שכר הטרחה לפני שאתה מתחייב למשהו.
+                אם יש מה לעשות, תקבל את התהליך המלא ואת שכר הטרחה במספר אחד ברור,{" "}
+                <strong>לפני</strong> שאתה מתחייב למשהו.
               </p>
             </div>
+          </div>
+
+          {/* ── ההתחייבות ── */}
+          <div className={s.guarantee}>
+            <div className={s.guaranteeTitle}>
+              אם אין מה לעשות בתיק שלך, אני אגיד לך את זה ולא אקח אותו.
+            </div>
+            <p className={s.guaranteeBody}>
+              אף עורך דין לא יכול להבטיח לך תוצאה מול הממונה, ומי שמבטיח, תברח ממנו.
+              מה שאני כן מתחייב אליו: <strong>לא לקחת תיק רק כדי לקחת תיק.</strong> יש
+              מצבים שבהם המועד עבר, או שההפרה ברורה ואין עילת הפחתה שמצדיקה את העלות. אם
+              זה המצב שלך, תשמע את זה ממני כבר בשיחה הראשונה, בלי שתתחייב לכלום.
+            </p>
+            <p className={s.guaranteeBody} style={{ marginTop: "0.8rem" }}>
+              עדיף לי מעסיק שיחזור אליי בעוד שנתיים עם תיק אמיתי, מאשר תשלום על תיק שידעתי
+              מראש שאין בו סיכוי.
+            </p>
+            <div className={s.guaranteeSign}>אוהד טבת, עו&quot;ד ובודק שכר מוסמך</div>
           </div>
         </div>
       </div>
@@ -557,19 +746,89 @@ export default function Page() {
         </div>
       </div>
 
+      {/* ── הבחירה. ממסגר את ההחלטה במקום לבקש אותה ── */}
+      <div className={s.block}>
+        <div className={s.inner}>
+          <div className={s.kicker}>שלוש אפשרויות</div>
+          <h2 className={s.h2}>
+            מכאן יש בדיוק שלוש דרכים, <em>ואחת מהן נסגרת בעוד כמה ימים.</em>
+          </h2>
+          <div className={s.rule} />
+
+          <div className={s.choice}>
+            <div className={s.choiceItem}>
+              <div className={s.choiceNum}>אפשרות ראשונה</div>
+              <div className={s.choiceTitle}>לשלם ולסגור את זה</div>
+              <p className={s.choiceBody}>
+                מה שעושים שמונה מכל עשרה מעסיקים. הכסף יוצא, התיק נסגר, והביקורת הבאה
+                מגיעה בעוד שנה או שנתיים לאותו עסק בדיוק.
+              </p>
+            </div>
+            <div className={s.choiceItem}>
+              <div className={s.choiceNum}>אפשרות שנייה</div>
+              <div className={s.choiceTitle}>לטפל בזה לבד</div>
+              <p className={s.choiceBody}>
+                אפשר. צריך ללמוד את תקנות ההפחתה, לדעת אילו עילות לטעון, לעמוד במועד,
+                ולהשיג אישור בודק שכר מוסמך. הכל בתוך 30 יום, במקביל לניהול העסק.
+              </p>
+            </div>
+            <div className={`${s.choiceItem} ${s.choicePick}`}>
+              <div className={s.choiceNum}>אפשרות שלישית</div>
+              <div className={s.choiceTitle}>לשלוח את המכתב ולדעת איפה אתה עומד</div>
+              <p className={s.choiceBody}>
+                חמש דקות. אחריהן תדע כמה זמן נשאר, מה אפשר לטעון, וכמה זה עולה. ואם אין מה
+                לעשות, תשמע גם את זה.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── מסר אישי, למי שגלל עד הסוף ── */}
+      <div className={s.personal}>
+        <div className={s.personalInner}>
+          <div className={s.kicker}>אישית</div>
+          <div className={s.personalBody}>
+            <p>
+              הייתי מעסיק של יותר מ-50 עובדים לפני שהייתי עורך הדין שמייצג מעסיקים. אני
+              יודע איך זה נראה מבפנים: אף אחד לא קם בבוקר ומחליט לקזז לעובד פנסיה. יש
+              מנהלת חשבונות עמוסה, יש מסלקה שהחזירה שגיאה, ויש חודש שבו לא הספיקו לבדוק.
+            </p>
+            <p>
+              <strong>משרד העבודה לא מודד כוונה, הוא מודד תוצאה.</strong> ובגלל שהעיצום
+              נקבע לפי סוג ההפרה ומספר העובדים ולא לפי הסכום שחסר, פער של 20 שקל הופך
+              למכתב על 800 אלף. ראיתי את זה קורה, וראיתי גם שאפשר להפוך את זה.
+            </p>
+            <p>
+              אם אתה מחזיק עכשיו מכתב כזה ביד, שלח לי אותו. אני אקרא אותו בעצמי, לא מזכירה
+              ולא מתמחה, ואגיד לך את האמת על מה שעומד בפניך. גם אם האמת היא שאין לי מה
+              להציע לך.
+            </p>
+          </div>
+          <div className={s.personalName}>אוהד טבת</div>
+          <p className={s.personalRole}>
+            עו&quot;ד לדיני עבודה · בודק שכר מוסמך מטעם משרד העבודה
+          </p>
+        </div>
+      </div>
+
       {/* ── סיום ── */}
       <div className={s.finalWrap}>
         <div className={s.finalInner}>
           <div className={s.kicker} style={{ textAlign: "center" }}>לפני שאתה משלם</div>
           <h2 className={s.h2}>
-            שמונה מכל עשרה משלמים בלי לבדוק.<br />
-            <em>אתה לא חייב להיות אחד מהם.</em>
+            השעון רץ מהיום שהמכתב נמסר,<br />
+            <em>לא מהיום שפתחת אותו.</em>
           </h2>
           <p className={s.lead} style={{ margin: "0 auto 1.5rem" }}>
-            שלח את המכתב שקיבלת ואת הפרטים, ותדע באיזה שלב אתה ומה עוד אפשר לעשות.
+            שלח את המכתב ואת הפרטים, ותדע באיזה שלב אתה, כמה זמן נשאר, ומה אפשר לעשות.
             ללא התחייבות.
           </p>
-          <a className={s.topCta} href="#form" style={{ display: "inline-block", padding: "0.9rem 2.2rem", fontSize: "1rem" }}>
+          <a
+            className={s.topCta}
+            href="#form"
+            style={{ display: "inline-block", padding: "0.9rem 2.2rem", fontSize: "1rem" }}
+          >
             לבדיקה ראשונית של העיצום
           </a>
         </div>
@@ -580,8 +839,15 @@ export default function Page() {
         <div className={s.footerInner}>
           <div className={s.footerGrid}>
             <div>
-              <div className={s.footerLogo}>TEVET</div>
-              <div className={s.footerSub}>TEVET | LAW OFFICE | טבת משרד עורכי דין</div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className={s.footerLogo}
+                src="/tevet-logo.png"
+                alt="טבת משרד עורכי דין"
+                width={888}
+                height={274}
+                loading="lazy"
+              />
               <p className={s.footerInfo}>
                 אוהד טבת, עו&quot;ד ובודק שכר מוסמך<br />
                 בסר 3, בני ברק<br />
