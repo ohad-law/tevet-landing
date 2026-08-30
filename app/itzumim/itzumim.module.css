@@ -1,0 +1,647 @@
+/*
+ * דף הנחיתה לעיצומים כספיים ממשרד העבודה.
+ *
+ * 🚨 למה CSS מודול ולא טיילווינד: ב-globals.css יש
+ * `* { margin: 0; padding: 0 }` בלי שכבה, והוא גובר על כל מחלקות
+ * המרווח של טיילווינד. בנוסף globals.css מגדיר
+ * `section { padding: 5rem 1.5rem }`, ולכן אין כאן אף תג section.
+ * זה בדיוק אותו אילוץ שתועד ב-checklist.module.css.
+ *
+ * כיוון העיצוב: הדף הזה מדבר אל מעסיק שקיבל מכתב רשמי עם סכום
+ * גדול ועם שעון שרץ. לכן שני דברים שונים מדף התלושים:
+ *
+ * 1. יש כאן צבע התראה (--alert) בנוסף לזהב. הזהב הוא המותג,
+ *    האדום הוא המועד. הוא מופיע אך ורק על מועדים ועל מה שנסגר,
+ *    ולא כקישוט, אחרת הוא מפסיק לתפקד.
+ * 2. המספרים הם הגיבור. סכומי עיצום מוצגים בספרות טבלאיות
+ *    גדולות, כי המספר הוא מה שמחזיק את הגולש בדף.
+ */
+
+.page {
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 560px at 80% -10%, rgba(201, 168, 76, 0.10), transparent 60%),
+    radial-gradient(820px 460px at 6% 2%, rgba(30, 58, 110, 0.36), transparent 62%),
+    var(--navy);
+  color: var(--white);
+  --alert: #d9614a;
+  --alert-dim: rgba(217, 97, 74, 0.13);
+  --alert-border: rgba(217, 97, 74, 0.32);
+  --hair: rgba(255, 255, 255, 0.08);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ── סרגל עליון ── */
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem clamp(1rem, 4vw, 3rem);
+  background: rgba(13, 21, 38, 0.94);
+  border-bottom: 1px solid var(--gold-border);
+  backdrop-filter: blur(10px);
+}
+.topLogo {
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: var(--gold);
+  line-height: 1.1;
+}
+.topLogo span {
+  display: block;
+  font-size: 0.58rem;
+  letter-spacing: 1.4px;
+  font-weight: 600;
+  opacity: 0.62;
+  margin-top: 3px;
+}
+.topCta {
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  padding: 0.55rem 1.35rem;
+  border-radius: 50px;
+  font-weight: 800;
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+/* ── HERO ── */
+.hero {
+  padding: clamp(2.2rem, 5vw, 4rem) clamp(1rem, 4vw, 2rem) clamp(2rem, 4vw, 3rem);
+}
+/*
+ * סדר הבלוקים בהירו שונה בין מובייל לדסקטופ, בכוונה.
+ *
+ * במובייל הסרטון חייב לשבת *מעל* הטופס. הוא הנכס שמשכנע, והטופס
+ * הוא בקשה. טופס בן שבעה שדות שדוחף את הסרטון מתחת לקיפול פירושו
+ * שרוב הגולשים לעולם לא יראו את הסיפור על תיק 800 אלף. בדסקטופ
+ * אין בעיה כי הסרטון יושב בעמודה שלידו וממילא נראה.
+ *
+ * grid-template-areas ולא order, כדי שסדר ה-DOM יישאר הגיוני
+ * לקורא מסך: כותרת, ואז וידאו, ואז טופס.
+ */
+.heroGrid {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-areas: "text" "video" "form";
+  gap: clamp(1.4rem, 3.5vw, 2rem) clamp(1.6rem, 4vw, 3rem);
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .heroGrid {
+    grid-template-columns: 1.25fr 0.75fr;
+    grid-template-areas:
+      "text  video"
+      "form  video";
+    align-content: start;
+  }
+}
+.heroText { grid-area: text; }
+.heroVideo { grid-area: video; }
+.heroForm { grid-area: form; }
+
+.eyebrow {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2.6px;
+  color: var(--gold);
+  border: 1px solid var(--gold-border);
+  border-radius: 50px;
+  padding: 0.32rem 0.9rem;
+  margin-bottom: 1.1rem;
+}
+.h1 {
+  font-size: clamp(1.9rem, 5.2vw, 3.05rem);
+  font-weight: 900;
+  line-height: 1.16;
+  letter-spacing: -0.5px;
+  margin-bottom: 0.9rem;
+}
+.h1 em { font-style: normal; color: var(--gold); }
+.h1 .strike {
+  color: var(--alert);
+  text-decoration: line-through;
+  text-decoration-thickness: 3px;
+}
+.sub {
+  font-size: clamp(1rem, 2vw, 1.16rem);
+  line-height: 1.72;
+  color: rgba(255, 255, 255, 0.74);
+  max-width: 42ch;
+}
+.sub strong { color: var(--white); font-weight: 700; }
+
+/* ציטוט הרגולציה, הליבה של כל הדף */
+.reg {
+  margin-top: 1.5rem;
+  border: 1px solid var(--gold-border);
+  border-right: 3px solid var(--gold);
+  border-radius: 4px;
+  background: rgba(201, 168, 76, 0.06);
+  padding: 1.1rem 1.25rem;
+}
+/*
+ * המרכאות מוזרקות מ-CSS ולא נכתבות בתוך הטקסט. מרכאה כפולה היא
+ * תו ניטרלי מבחינת bidi, וכשהיא יושבת בתוך מחרוזת עברית הדפדפן
+ * מציב אותה בקצה הוויזואלי ההפוך. תוכן שנוצר ב-CSS ממוקם לפי
+ * הכיוון הלוגי, ולכן ::before נופל בימין ו-::after בשמאל.
+ */
+.regQuote {
+  font-size: clamp(1.02rem, 2.1vw, 1.22rem);
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--white);
+}
+.regQuote::before,
+.regQuote::after {
+  content: "\0022";
+  color: var(--gold);
+}
+.regSrc {
+  margin-top: 0.6rem;
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+.regSrc a { color: rgba(201, 168, 76, 0.85); }
+
+/* ── וידאו ── */
+.videoWrap {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--hair);
+  background: #000;
+  box-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.9);
+  max-width: 330px;
+  margin-inline: auto;
+}
+.video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+}
+.videoCap {
+  margin-top: 0.7rem;
+  text-align: center;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--text-dim);
+  max-width: 330px;
+  margin-inline: auto;
+}
+.videoCap strong { color: var(--gold); }
+
+/* ── פס אמון ── */
+.trust {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem 1.9rem;
+  padding: 1rem clamp(1rem, 4vw, 2rem);
+  border-block: 1px solid var(--hair);
+  background: rgba(255, 255, 255, 0.02);
+}
+.trustItem {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.79rem;
+  color: rgba(255, 255, 255, 0.62);
+}
+.dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); flex: none; }
+
+/* ── בלוקים כלליים ── */
+.block { padding: clamp(2.6rem, 6vw, 4.6rem) clamp(1rem, 4vw, 2rem); }
+.inner { max-width: 940px; margin: 0 auto; }
+.kicker {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--gold);
+  margin-bottom: 0.7rem;
+}
+.h2 {
+  font-size: clamp(1.5rem, 3.4vw, 2.15rem);
+  font-weight: 900;
+  line-height: 1.26;
+  margin-bottom: 0.75rem;
+}
+.h2 em { font-style: normal; color: var(--gold); }
+.lead {
+  font-size: clamp(0.95rem, 1.8vw, 1.06rem);
+  line-height: 1.78;
+  color: rgba(255, 255, 255, 0.66);
+  max-width: 62ch;
+}
+.lead strong { color: var(--white); }
+.rule { width: 46px; height: 3px; background: var(--gold); border-radius: 2px; margin: 0.9rem 0 1.5rem; }
+
+/* ── שעון המועדים ── */
+.clock { display: grid; gap: 0.9rem; margin-top: 1.7rem; }
+@media (min-width: 760px) { .clock { grid-template-columns: repeat(3, 1fr); } }
+
+.stage {
+  border: 1px solid var(--hair);
+  border-top: 2px solid var(--alert);
+  border-radius: 4px;
+  padding: 1.15rem 1.2rem;
+  background: rgba(255, 255, 255, 0.025);
+}
+.stageDays {
+  font-size: 2.5rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--alert);
+  letter-spacing: -1px;
+}
+.stageDaysUnit { font-size: 0.95rem; font-weight: 700; margin-inline-start: 0.3rem; opacity: 0.8; }
+.stageWhen { margin-top: 0.55rem; font-weight: 800; font-size: 0.98rem; line-height: 1.4; }
+.stageWhat { margin-top: 0.4rem; font-size: 0.83rem; line-height: 1.65; color: var(--text-dim); }
+
+.clockNote {
+  margin-top: 1.2rem;
+  padding: 0.95rem 1.15rem;
+  border-radius: 4px;
+  background: var(--alert-dim);
+  border: 1px solid var(--alert-border);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+.clockNote strong { color: var(--alert); }
+
+/* ── נתונים ── */
+.stats { display: grid; gap: 0.9rem; margin-top: 1.6rem; }
+@media (min-width: 720px) { .stats { grid-template-columns: repeat(3, 1fr); } }
+.stat {
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  padding: 1.3rem 1.2rem;
+  background: rgba(255, 255, 255, 0.025);
+}
+.statNum {
+  font-size: clamp(2rem, 4.4vw, 2.7rem);
+  font-weight: 900;
+  line-height: 1;
+  color: var(--gold);
+  letter-spacing: -1px;
+}
+.statNum.warn { color: var(--alert); }
+.statKey { margin-top: 0.6rem; font-size: 0.85rem; line-height: 1.6; color: rgba(255, 255, 255, 0.64); }
+.statKey strong { color: var(--white); }
+.srcNote { margin-top: 1.1rem; font-size: 0.74rem; line-height: 1.65; color: var(--text-faint); }
+.srcNote a { color: rgba(201, 168, 76, 0.7); }
+
+/* ── למה אוהד ── */
+.whyGrid { display: grid; gap: 1.6rem; margin-top: 1.5rem; }
+@media (min-width: 820px) { .whyGrid { grid-template-columns: 220px 1fr; align-items: start; } }
+.photoCard { text-align: center; }
+.photo {
+  width: 170px; height: 170px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--gold-border);
+}
+.photoName { margin-top: 0.8rem; font-weight: 900; font-size: 1.08rem; }
+.photoRole { margin-top: 0.25rem; font-size: 0.79rem; line-height: 1.55; color: var(--text-dim); }
+
+.creds { display: grid; gap: 0.8rem; }
+.cred {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0 0.9rem;
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  padding: 1rem 1.1rem;
+  background: rgba(255, 255, 255, 0.025);
+}
+.credNum {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: var(--gold);
+  opacity: 0.6;
+  padding-top: 0.22rem;
+}
+.credTitle { font-weight: 800; font-size: 1rem; line-height: 1.4; }
+.credBody { margin-top: 0.35rem; font-size: 0.86rem; line-height: 1.7; color: var(--text-dim); }
+.credBody strong { color: rgba(255, 255, 255, 0.86); }
+.tag {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--gold);
+  background: var(--gold-dim);
+  border: 1px solid var(--gold-border);
+  border-radius: 50px;
+  padding: 0.18rem 0.7rem;
+}
+
+/* ── הוכחות ── */
+.cases { display: grid; gap: 0.9rem; margin-top: 1.5rem; }
+@media (min-width: 760px) { .cases { grid-template-columns: repeat(3, 1fr); } }
+.case {
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  padding: 1.3rem 1.2rem;
+  background: rgba(255, 255, 255, 0.025);
+  display: flex;
+  flex-direction: column;
+}
+.caseFrom { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 0.4px; }
+.caseAmount {
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: line-through;
+  text-decoration-color: var(--alert);
+  text-decoration-thickness: 2px;
+  margin-top: 0.2rem;
+}
+.caseArrow { font-size: 1.1rem; color: var(--gold); margin: 0.5rem 0 0.15rem; }
+.caseTo { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 0.4px; }
+.caseResult {
+  font-size: clamp(1.7rem, 3.6vw, 2.1rem);
+  font-weight: 900;
+  line-height: 1.1;
+  color: var(--gold);
+  letter-spacing: -1px;
+}
+.caseWhy { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--hair); font-size: 0.8rem; line-height: 1.65; color: var(--text-dim); }
+
+/* ── שלבים ── */
+.steps { display: grid; gap: 0.9rem; margin-top: 1.5rem; }
+@media (min-width: 760px) { .steps { grid-template-columns: repeat(3, 1fr); } }
+.step {
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  padding: 1.25rem 1.2rem;
+  background: rgba(255, 255, 255, 0.025);
+}
+.stepNum {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--navy);
+  font-weight: 900;
+  font-size: 0.9rem;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 0.7rem;
+}
+.stepTitle { font-weight: 800; font-size: 1rem; line-height: 1.4; }
+.stepBody { margin-top: 0.4rem; font-size: 0.85rem; line-height: 1.7; color: var(--text-dim); }
+
+/* ── שאלות ── */
+.faqList { display: grid; gap: 0; margin-top: 1.4rem; border-top: 1px solid var(--hair); }
+.faqItem { border-bottom: 1px solid var(--hair); padding: 1.15rem 0; }
+.faqQ { font-weight: 800; font-size: 1rem; line-height: 1.45; margin-bottom: 0.45rem; }
+.faqA { font-size: 0.88rem; line-height: 1.8; color: var(--text-dim); }
+.faqA strong { color: rgba(255, 255, 255, 0.88); }
+.faqA a { color: rgba(201, 168, 76, 0.85); }
+
+/* ── סיום ── */
+.finalWrap {
+  padding: clamp(2.8rem, 6vw, 4.4rem) clamp(1rem, 4vw, 2rem);
+  border-top: 1px solid var(--gold-border);
+  background: linear-gradient(180deg, rgba(201, 168, 76, 0.055), transparent 70%);
+  text-align: center;
+}
+.finalInner { max-width: 680px; margin: 0 auto; }
+
+/* ── פוטר ── */
+.footer {
+  border-top: 1px solid var(--hair);
+  padding: 2.2rem clamp(1rem, 4vw, 2rem) 2.6rem;
+  background: rgba(0, 0, 0, 0.22);
+}
+.footerInner { max-width: 940px; margin: 0 auto; }
+.footerGrid { display: grid; gap: 1.5rem; }
+@media (min-width: 720px) { .footerGrid { grid-template-columns: 1.4fr 1fr 1fr; } }
+.footerLogo { font-size: 1.05rem; font-weight: 900; letter-spacing: 3px; color: var(--gold); }
+.footerSub { font-size: 0.6rem; letter-spacing: 1.2px; color: var(--gold); opacity: 0.55; margin-top: 3px; }
+.footerInfo { margin-top: 0.8rem; font-size: 0.8rem; line-height: 1.8; color: var(--text-dim); }
+.footerInfo a { color: rgba(201, 168, 76, 0.6); }
+.footerCol h4 { font-size: 0.78rem; font-weight: 800; color: rgba(255, 255, 255, 0.8); margin-bottom: 0.55rem; }
+.footerCol a { display: block; font-size: 0.8rem; line-height: 2; color: var(--text-dim); text-decoration: none; }
+.footerCol a:hover { color: var(--gold); }
+.footerBottom {
+  margin-top: 1.7rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--hair);
+  font-size: 0.7rem;
+  line-height: 1.85;
+  color: var(--text-faint);
+}
+.footerBottom a { color: rgba(201, 168, 76, 0.55); }
+
+/* ═══ הטופס ═══ */
+.formCard {
+  border: 1px solid var(--gold-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: clamp(1.1rem, 3vw, 1.6rem);
+  margin-top: 1.7rem;
+  box-shadow: 0 20px 50px -30px rgba(0, 0, 0, 0.9);
+}
+.formTitle { font-size: 1.05rem; font-weight: 800; line-height: 1.5; margin-bottom: 0.35rem; }
+.formSub { font-size: 0.8rem; line-height: 1.6; color: var(--text-dim); margin-bottom: 1rem; }
+.grid2 { display: grid; gap: 0.65rem; margin-bottom: 0.65rem; }
+@media (min-width: 560px) { .grid2 { grid-template-columns: 1fr 1fr; } }
+
+.field, .select {
+  width: 100%;
+  padding: 0.78rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(13, 21, 38, 0.7);
+  color: var(--white);
+  font-family: inherit;
+  font-size: 0.92rem;
+}
+.field::placeholder { color: rgba(255, 255, 255, 0.34); }
+.field:focus-visible, .select:focus-visible, .upload:focus-visible, .submit:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.select { appearance: none; cursor: pointer; }
+.select option { background: var(--navy); color: var(--white); }
+
+.upload {
+  display: block;
+  width: 100%;
+  text-align: center;
+  border: 1px dashed rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+  padding: 0.85rem;
+  cursor: pointer;
+  background: none;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 0.79rem;
+  line-height: 1.55;
+  margin-bottom: 0.6rem;
+}
+.upload strong { display: block; color: rgba(255, 255, 255, 0.82); font-size: 0.88rem; margin-bottom: 0.15rem; }
+.uploadOn { border-color: var(--gold); border-style: solid; }
+
+.hintUrgent {
+  margin-bottom: 0.65rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 5px;
+  background: var(--alert-dim);
+  border: 1px solid var(--alert-border);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+.hintUrgent strong { color: var(--alert); }
+
+.consent { display: flex; gap: 0.55rem; align-items: flex-start; margin: 0.7rem 0 0.9rem; }
+.consent input { margin-top: 0.28rem; accent-color: var(--gold); flex: none; width: 15px; height: 15px; }
+.consent label { font-size: 0.73rem; line-height: 1.65; color: var(--text-dim); }
+.consent a { color: rgba(201, 168, 76, 0.85); }
+
+.err {
+  background: rgba(217, 97, 74, 0.16);
+  border: 1px solid var(--alert-border);
+  color: #ffc9be;
+  padding: 0.6rem 0.8rem;
+  border-radius: 5px;
+  font-size: 0.83rem;
+  margin-bottom: 0.7rem;
+}
+
+.submit {
+  width: 100%;
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: 6px;
+  padding: 0.95rem;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+.submit:disabled { opacity: 0.55; cursor: default; }
+.formNote { margin-top: 0.6rem; text-align: center; font-size: 0.72rem; line-height: 1.6; color: var(--text-faint); }
+
+.done { text-align: center; padding: 0.8rem 0.3rem; }
+.doneMark {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  color: var(--gold);
+  font-size: 1.4rem;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 0.85rem;
+}
+.doneTitle { font-size: 1.12rem; font-weight: 900; margin-bottom: 0.5rem; }
+.doneBody { font-size: 0.88rem; line-height: 1.75; color: var(--text-dim); }
+.waBtn {
+  display: inline-block;
+  margin-top: 0.9rem;
+  background: #25d366;
+  color: #072b12;
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-decoration: none;
+  padding: 0.72rem 1.4rem;
+  border-radius: 50px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page * { animation: none !important; transition: none !important; }
+}
+
+/* ── מסמך אמיתי ──
+ * ההוכחה החזקה ביותר בדף אינה מספר אלא מסמך. הבלוק הזה מציג
+ * מכתב תוצאות חקירה אמיתי מול פירוק של מה שכתוב בו, כדי שגולש
+ * שלא יודע לקרוא מסמך כזה יבין מה הוא רואה.
+ * הפרטים המזהים הושחרו והתמונה שוטחה מחדש.
+ */
+.docGrid {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.6rem;
+  align-items: start;
+}
+@media (min-width: 860px) {
+  .docGrid { grid-template-columns: 0.85fr 1.15fr; gap: 2.4rem; }
+}
+.docFrame {
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 24px 60px -32px rgba(0, 0, 0, 0.9);
+}
+.docImg { display: block; width: 100%; height: auto; }
+.docCap {
+  margin-top: 0.6rem;
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+.docFindings { display: grid; gap: 0.5rem; margin: 1.2rem 0; }
+.finding {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem 0.9rem;
+  align-items: center;
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  padding: 0.7rem 0.9rem;
+  background: rgba(255, 255, 255, 0.025);
+}
+.findingLaw { font-size: 0.85rem; line-height: 1.5; }
+.findingLaw strong { font-weight: 700; }
+.pill {
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+  border-radius: 50px;
+  padding: 0.2rem 0.7rem;
+  border: 1px solid;
+}
+.pillWarn { color: var(--gold); border-color: var(--gold-border); background: var(--gold-dim); }
+.pillClear { color: #6fca9a; border-color: rgba(111, 202, 154, 0.3); background: rgba(111, 202, 154, 0.1); }
+
+.docVerdict {
+  border: 1px solid var(--gold-border);
+  border-right: 3px solid var(--gold);
+  border-radius: 4px;
+  background: rgba(201, 168, 76, 0.06);
+  padding: 1.1rem 1.25rem;
+}
+.docVerdictNum {
+  font-size: clamp(1.7rem, 4vw, 2.3rem);
+  font-weight: 900;
+  line-height: 1.1;
+  color: var(--gold);
+  letter-spacing: -1px;
+}
+.docVerdictText { margin-top: 0.4rem; font-size: 0.9rem; line-height: 1.7; color: rgba(255, 255, 255, 0.75); }
+.docVerdictText strong { color: var(--white); }

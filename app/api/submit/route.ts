@@ -2,7 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 import { createServiceClient } from "@/lib/supabase/service";
-import { scoreLead, buildLeadNotes } from "@/lib/leadScore";
+import { scoreLead, buildLeadNotes, scoreItzumLead, buildItzumNotes } from "@/lib/leadScore";
+
+/**
+ * קו מוצר שני על אותו endpoint: עיצומים כספיים ממשרד העבודה.
+ *
+ * הטופס של /itzumim שולח product=itzumim ושדות משלו (חברה, שלב
+ * בהליך, סכום). אין כאן route חדש בכוונה, כדי לא להוסיף עוד
+ * פונקציה serverless ולא לשכפל את כל הלוגיקה של CAPI, וואטסאפ
+ * ושמירה ב-Supabase. כשה-product חסר, ההתנהגות זהה לחלוטין למה
+ * שהיה, וקו התלושים לא מושפע.
+ */
+type ItzumFields = { company: string; stage: string; amount: string };
 
 const PAYSLIP_BUCKET = "lead-payslips";
 /** תוקף הקישור לתלושים שנשלח לאוהד ונשמר ב-CRM */
@@ -70,22 +81,39 @@ async function sendWhatsApp(
   phone: string,
   years: string,
   situation: string,
-  payslipUrls: string[] = []
+  payslipUrls: string[] = [],
+  itzum?: ItzumFields
 ) {
   if (!OHAD_WHATSAPP) return;
   const chatId = OHAD_WHATSAPP.replace(/\D/g, "") + "@c.us";
-  const { score, tier } = scoreLead({ years, situation });
-  const message =
-    `📋 *ליד חדש, בדיקת תלוש שכר*\n\n` +
-    `👤 שם: ${name}\n` +
-    `📞 טלפון: ${phone}\n` +
-    `📅 שנות עבודה: ${years}\n` +
-    `💼 סיטואציה: ${situation || "לא צוין"}\n` +
-    `⭐ דירוג: ${tier} (${score})\n` +
-    (payslipUrls.length
-      ? `📎 תלושים: ${payslipUrls.length}`
-      : `⚠️ *ללא תלושים*, לבקש בשיחה`) +
-    (payslipUrls[0] ? `\n${payslipUrls[0]}` : "");
+
+  let message: string;
+  if (itzum) {
+    const { score, tier, urgent } = scoreItzumLead(itzum);
+    message =
+      (urgent ? `🚨 *ליד עיצום כספי, מועד רץ*\n\n` : `⚖️ *ליד חדש, עיצום כספי*\n\n`) +
+      `👤 שם: ${name}\n` +
+      `📞 טלפון: ${phone}\n` +
+      `🏢 חברה: ${itzum.company || "לא צוין"}\n` +
+      `📍 שלב: ${itzum.stage}\n` +
+      `💰 סכום: ${itzum.amount}\n` +
+      `⭐ דירוג: ${tier} (${score})\n` +
+      (urgent ? `\n⏰ *לחזור היום.* למועדים בהליך אין ארכה.` : "") +
+      (payslipUrls.length ? `\n📎 מסמכים: ${payslipUrls.length}\n${payslipUrls[0]}` : `\n⚠️ בלי מסמכים, לבקש את המכתב בשיחה`);
+  } else {
+    const { score, tier } = scoreLead({ years, situation });
+    message =
+      `📋 *ליד חדש, בדיקת תלוש שכר*\n\n` +
+      `👤 שם: ${name}\n` +
+      `📞 טלפון: ${phone}\n` +
+      `📅 שנות עבודה: ${years}\n` +
+      `💼 סיטואציה: ${situation || "לא צוין"}\n` +
+      `⭐ דירוג: ${tier} (${score})\n` +
+      (payslipUrls.length
+        ? `📎 תלושים: ${payslipUrls.length}`
+        : `⚠️ *ללא תלושים*, לבקש בשיחה`) +
+      (payslipUrls[0] ? `\n${payslipUrls[0]}` : "");
+  }
 
   const url = `${GREEN_API_HOST}/waInstance${GREEN_API_INSTANCE}/sendMessage/${GREEN_API_TOKEN}`;
   await fetch(url, {
@@ -107,9 +135,13 @@ async function saveLead(params: {
   situation: string;
   files: File[];
   referer: string;
+  itzum?: ItzumFields;
 }): Promise<{ id: string | null; payslipUrls: string[] }> {
   const supabase = createServiceClient();
-  const { score } = scoreLead({ years: params.years, situation: params.situation });
+
+  const score = params.itzum
+    ? scoreItzumLead(params.itzum).score
+    : scoreLead({ years: params.years, situation: params.situation }).score;
 
   const { data: lead, error } = await supabase
     .from("leads")
@@ -117,12 +149,16 @@ async function saveLead(params: {
       full_name: params.name,
       phone: params.phone,
       source: "דף נחיתה",
-      campaign_name: "טבת | דף נחיתה | בדיקת תלושי שכר",
-      product_line: "דיני עבודה",
+      campaign_name: params.itzum
+        ? "טבת | דף נחיתה | עיצומים כספיים"
+        : "טבת | דף נחיתה | בדיקת תלושי שכר",
+      product_line: params.itzum ? "עיצומים כספיים" : "דיני עבודה",
       status: "חדש",
-      notes:
-        buildLeadNotes({ years: params.years, situation: params.situation }) +
-        (params.files.length === 0 ? " | ⚠️ ללא תלושים, לבקש בשיחה" : ""),
+      notes: params.itzum
+        ? buildItzumNotes(params.itzum) +
+          (params.files.length === 0 ? " | ⚠️ בלי מכתב, לבקש בשיחה" : "")
+        : buildLeadNotes({ years: params.years, situation: params.situation }) +
+          (params.files.length === 0 ? " | ⚠️ ללא תלושים, לבקש בשיחה" : ""),
       lead_score: score,
       landing_page: params.referer,
       is_viewed: false,
@@ -139,7 +175,9 @@ async function saveLead(params: {
   const storedPaths: string[] = [];
 
   for (const [i, file] of params.files.entries()) {
-    const safeName = file.name.replace(/[^\w.\-֐-׿]/g, "_");
+    // 🚨 אסור להשאיר עברית בנתיב. סופאבייס מחזיר InvalidKey ומסרב לשמור,
+    // ואומת בפועל 29/08/2026. תלוש עם שם קובץ בעברית פשוט נעלם בשקט.
+    const safeName = file.name.replace(/[^\w.\-]/g, "_");
     const path = `${lead.id}/${String(i + 1).padStart(2, "0")}_${safeName}`;
     const { error: upErr } = await supabase.storage
       .from(PAYSLIP_BUCKET)
@@ -180,10 +218,24 @@ export async function POST(req: NextRequest) {
     const situation = (form.get("situation") as string) ?? "";
     const fileEntries = form.getAll("files") as File[];
 
+    // קו העיצומים הכספיים. בלי השדה הזה שום דבר בזרימה של התלושים לא משתנה.
+    const isItzum = (form.get("product") as string) === "itzumim";
+    const itzum: ItzumFields | undefined = isItzum
+      ? {
+          company: ((form.get("company") as string) ?? "").trim(),
+          stage: (form.get("stage") as string) ?? "",
+          amount: (form.get("amount") as string) ?? "",
+        }
+      : undefined;
+
     if (!name || !phone) {
       return NextResponse.json({ error: "שם וטלפון חובה" }, { status: 400 });
     }
-    if (years === "פחות משנה") {
+    if (itzum && !itzum.stage) {
+      return NextResponse.json({ error: "נא לבחור באיזה שלב אתה" }, { status: 400 });
+    }
+    // סינון הוותק שייך רק לקו התלושים, שם עובד עם פחות משנה אינו תיק.
+    if (!itzum && years === "פחות משנה") {
       return NextResponse.json({ error: "לא מייצגים עובדים עם פחות משנה" }, { status: 400 });
     }
     // תלושים אינם חובה: הדפדפן הפנימי של טיקטוק חוסם העלאת קבצים,
@@ -199,6 +251,7 @@ export async function POST(req: NextRequest) {
       situation,
       files: fileEntries,
       referer,
+      itzum,
     });
 
     if (!leadId) {
@@ -209,7 +262,7 @@ export async function POST(req: NextRequest) {
     }
 
     // שלב 2, התראות. נכשלות בשקט, הליד כבר שמור.
-    void notify({ name, phone, years, situation, fileEntries, payslipUrls, referer });
+    void notify({ name, phone, years, situation, fileEntries, payslipUrls, referer, itzum });
 
     return NextResponse.json({ ok: true });
   } catch (err) {
@@ -226,8 +279,9 @@ async function notify(p: {
   fileEntries: File[];
   payslipUrls: string[];
   referer: string;
+  itzum?: ItzumFields;
 }) {
-  const { name, phone, years, situation, fileEntries, payslipUrls, referer } = p;
+  const { name, phone, years, situation, fileEntries, payslipUrls, referer, itzum } = p;
   try {
     const attachments = await Promise.all(
       fileEntries.map(async (file) => ({
@@ -238,6 +292,36 @@ async function notify(p: {
     );
 
     const transport = createTransport();
+
+    if (itzum) {
+      const { score, tier, urgent } = scoreItzumLead(itzum);
+      await transport.sendMail({
+        from: `"דף נחיתה טבת" <${process.env.SMTP_USER}>`,
+        to: OHAD_EMAIL,
+        subject: `${urgent ? "🚨 " : ""}ליד עיצום כספי, ${name}${itzum.company ? `, ${itzum.company}` : ""}`,
+        html: `
+          <div dir="rtl" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+            <h2 style="color:#c9a84c;border-bottom:2px solid #c9a84c;padding-bottom:10px;">ליד חדש, עיצום כספי ממשרד העבודה</h2>
+            ${urgent ? `<p style="background:#fdecea;border-right:4px solid #c0392b;padding:10px;margin:0 0 14px;"><strong>מועד רץ, לחזור היום.</strong> להליך יש מועדים קשיחים שאין להם ארכה.</p>` : ""}
+            <table style="width:100%;border-collapse:collapse;">
+              <tr><td style="padding:8px;font-weight:bold;color:#555;">שם:</td><td style="padding:8px;">${name}</td></tr>
+              <tr style="background:#f9f9f9;"><td style="padding:8px;font-weight:bold;color:#555;">טלפון:</td><td style="padding:8px;"><a href="tel:${phone}">${phone}</a></td></tr>
+              <tr><td style="padding:8px;font-weight:bold;color:#555;">חברה:</td><td style="padding:8px;">${itzum.company || "לא צוין"}</td></tr>
+              <tr style="background:#f9f9f9;"><td style="padding:8px;font-weight:bold;color:#555;">שלב בהליך:</td><td style="padding:8px;">${itzum.stage}</td></tr>
+              <tr><td style="padding:8px;font-weight:bold;color:#555;">סכום העיצום:</td><td style="padding:8px;">${itzum.amount || "לא צוין"}</td></tr>
+              <tr style="background:#f9f9f9;"><td style="padding:8px;font-weight:bold;color:#555;">דירוג:</td><td style="padding:8px;">${tier} (${score})</td></tr>
+              ${payslipUrls.length ? `<tr><td style="padding:8px;font-weight:bold;color:#555;">מסמכים:</td><td style="padding:8px;">${payslipUrls.map((u, i) => `<a href="${u}">מסמך ${i + 1}</a>`).join(" · ")}</td></tr>` : ""}
+            </table>
+            <p style="margin-top:20px;color:#888;font-size:13px;">הגיע דרך /itzumim · ${new Date().toLocaleString("he-IL")}</p>
+          </div>
+        `,
+        attachments,
+      });
+      await sendWhatsApp(name, phone, years, situation, payslipUrls, itzum).catch(() => null);
+      await sendMetaCAPI(phone, name, referer).catch(() => null);
+      return;
+    }
+
     await transport.sendMail({
       from: `"דף נחיתה טבת" <${process.env.SMTP_USER}>`,
       to: OHAD_EMAIL,

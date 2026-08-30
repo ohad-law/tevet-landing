@@ -81,3 +81,92 @@ export function buildLeadNotes(input: {
   if (input.situation) parts.push(`סיטואציה: ${input.situation}`);
   return parts.join(" | ");
 }
+
+/* ─────────────────────────────────────────────────────────────
+ * עיצומים כספיים, קו מוצר נפרד
+ *
+ * כאן הליד הוא מעסיק ולא עובד, ולכן הנוסחה שונה לגמרי.
+ * מה שקובע את שווי הליד זה שני דברים: באיזה שלב בהליך הוא
+ * נמצא, וכמה כסף על הפרק.
+ *
+ * השלב חשוב יותר מהסכום, כי להליך יש מועדים קשיחים:
+ * 30 יום להגיב על הודעת כוונת חיוב, 28 יום להגיש ערר על
+ * החלטת הממונה, ו-45 יום לערער לבית הדין. מי שכבר שילם,
+ * הדלת נסגרה והוא ליד של מניעה ולא של טיפול.
+ * ─────────────────────────────────────────────────────────── */
+
+/** השלבים בהליך, מהמוקדם למאוחר. הערך הוא מה שנשלח מהטופס. */
+export const ITZUM_STAGES = [
+  "קיבלתי הודעה על כוונת חיוב",
+  "קיבלתי דרישת תשלום או החלטת ממונה",
+  "זומנתי לחקירה או למתן גרסה",
+  "הייתה ביקורת, טרם קיבלתי הודעה",
+  "כבר שילמתי את העיצום",
+  "לא קיבלתי כלום, רוצה להיערך מראש",
+] as const;
+
+/** טווחי סכומים. הערך הוא מה שנשלח מהטופס. */
+export const ITZUM_AMOUNTS = [
+  "עד 20,000 ₪",
+  "20,000 עד 50,000 ₪",
+  "50,000 עד 150,000 ₪",
+  "מעל 150,000 ₪",
+  "עדיין לא יודע",
+] as const;
+
+/** דחיפות: כמה חלון הפעולה פתוח. זה מה שקובע אם מתקשרים היום. */
+const STAGE_POINTS: Record<string, number> = {
+  "קיבלתי הודעה על כוונת חיוב": 55,
+  "קיבלתי דרישת תשלום או החלטת ממונה": 50,
+  "זומנתי לחקירה או למתן גרסה": 45,
+  "הייתה ביקורת, טרם קיבלתי הודעה": 30,
+  "כבר שילמתי את העיצום": 10,
+  "לא קיבלתי כלום, רוצה להיערך מראש": 15,
+};
+
+/** שווי התיק. סכום גבוה מצדיק שכר טרחה גבוה יותר. */
+const AMOUNT_POINTS: Record<string, number> = {
+  "מעל 150,000 ₪": 45,
+  "50,000 עד 150,000 ₪": 35,
+  "20,000 עד 50,000 ₪": 22,
+  "עד 20,000 ₪": 10,
+  "עדיין לא יודע": 20,
+};
+
+/** שלבים שבהם המועד עדיין פתוח, ולכן חייבים לחזור באותו יום */
+const URGENT_STAGES = [
+  "קיבלתי הודעה על כוונת חיוב",
+  "קיבלתי דרישת תשלום או החלטת ממונה",
+  "זומנתי לחקירה או למתן גרסה",
+];
+
+export function scoreItzumLead(input: {
+  stage?: string | null;
+  amount?: string | null;
+}): { score: number; tier: LeadTier; urgent: boolean } {
+  const stage = input.stage ?? "";
+  const amount = input.amount ?? "";
+
+  const score = (STAGE_POINTS[stage] ?? 0) + (AMOUNT_POINTS[amount] ?? 0);
+  const urgent = URGENT_STAGES.includes(stage);
+
+  let tier: LeadTier;
+  if (!urgent) tier = score >= 40 ? "C" : "D";
+  else if (score >= 85) tier = "A";
+  else if (score >= 65) tier = "B";
+  else tier = "C";
+
+  return { score, tier, urgent };
+}
+
+export function buildItzumNotes(input: {
+  company?: string | null;
+  stage?: string | null;
+  amount?: string | null;
+}): string {
+  const parts: string[] = [];
+  if (input.company) parts.push(`חברה: ${input.company}`);
+  if (input.stage) parts.push(`שלב: ${input.stage}`);
+  if (input.amount) parts.push(`סכום העיצום: ${input.amount}`);
+  return parts.join(" | ");
+}

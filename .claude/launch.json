@@ -5,8 +5,7 @@
       "name": "tevet-landing",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "port": 3002,
-      "cwd": "C:\\Users\\tevet\\.claude\\קמפיינים משרד עוד טבת\\tevet-landing"
+      "port": 3000
     }
   ]
 }
