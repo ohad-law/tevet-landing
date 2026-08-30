@@ -994,3 +994,69 @@
 .moreChevronOpen { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) { .moreChevron { transition: none; } }
 .morePanel { display: grid; gap: 0.65rem; margin-bottom: 0.65rem; }
+
+/* ═══════════════════════════════════════════════════════════
+ * תקן הטיפוגרפיה של יהב רובין, מתוך "המלצת יהב על עיצוב וגדלים"
+ * בקורס מכונת הפאנלים. ראה reference_nextlevel_typography.
+ *
+ * היעדים:  h1 48/36   h2 36/28   גוף 18/16   כפתור 18/16
+ * חובה:    מינימום 16px, אסור מתחת ל-14px, line-height 1.5+
+ *
+ * מה שהיה חסר לפני: גוף הטקסט עמד על 16px גם בדסקטופ במקום 18,
+ * וכותרות המובייל היו 30 ו-24 במקום 36 ו-28.
+ * ═══════════════════════════════════════════════════════════ */
+
+.h1 {
+  font-size: clamp(2.25rem, 5.2vw, 3rem);   /* 36px מובייל, 48px דסקטופ */
+  line-height: 1.2;
+}
+.h2 {
+  font-size: clamp(1.75rem, 3.6vw, 2.25rem); /* 28px מובייל, 36px דסקטופ */
+  line-height: 1.3;
+}
+.storyOpen { font-size: clamp(2rem, 4.6vw, 2.75rem); line-height: 1.2; }
+
+/* גוף הטקסט: 16px במובייל, 18px בדסקטופ, לפי התקן */
+.faqA,
+.credBody,
+.offerBody,
+.stepBody,
+.choiceBody,
+.statKey,
+.stageWhat,
+.caseWhy,
+.docVerdictText,
+.guaranteeBody,
+.priceWhat,
+.findingLaw,
+.lead,
+.storyBody,
+.personalBody,
+.sub,
+.lede {
+  font-size: clamp(1rem, 1.35vw, 1.125rem);
+  line-height: 1.65;
+}
+
+/* כפתורים: 18px דסקטופ, 16px מובייל, גובה מגע 48px */
+.submit,
+.topCta,
+.stickyBtn {
+  font-size: clamp(1rem, 1.3vw, 1.125rem);
+  min-height: 48px;
+}
+.submit { padding: 14px 28px; }
+@media (max-width: 768px) {
+  .submit { padding: 12px 20px; }
+}
+
+/*
+ * רצפת הגודל. יהב אוסר במפורש פונטים מתחת ל-14px, ונמצאו 12px
+ * בתוויות ובהערות המקור. 0.875rem הוא בדיוק 14px.
+ */
+.kicker, .eyebrow, .caseFrom, .caseTo, .pill, .priceStep,
+.docCap, .formNote, .footerBottom, .srcNote, .photoRole,
+.tag, .credNum, .choiceNum, .stepBadge, .footerCol h4 {
+  font-size: max(0.875rem, 0.9em);
+}
+.srcNote, .docCap, .formNote, .footerBottom { font-size: 0.875rem; line-height: 1.7; }
