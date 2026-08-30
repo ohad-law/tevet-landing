@@ -41,6 +41,7 @@ export default function ItzumimForm() {
   const [amount, setAmount] = useState("");
   const [files, setFiles] = useState<FileList | null>(null);
   const [consent, setConsent] = useState(false);
+  const [showMore, setShowMore] = useState(false);
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
@@ -131,8 +132,8 @@ export default function ItzumimForm() {
       <form onSubmit={handleSubmit} noValidate>
         <div className={s.formTitle}>בדיקה ראשונית של העיצום שקיבלת</div>
         <p className={s.formSub}>
-          ממלאים חמישה שדות. אוהד עובר על הפרטים אישית ומחזיר תשובה לגבי מה עוד אפשר לעשות
-          בשלב שבו אתה נמצא.
+          שלושה שדות. אוהד עובר על הפרטים אישית ומחזיר תשובה לגבי מה עוד אפשר לעשות בשלב
+          שבו אתה נמצא.
         </p>
 
         <div className={s.grid2}>
@@ -155,26 +156,7 @@ export default function ItzumimForm() {
           />
         </div>
 
-        <div className={s.grid2}>
-          <input
-            className={s.field}
-            type="text"
-            placeholder='שם החברה או העסק'
-            autoComplete="organization"
-            value={company}
-            onChange={(e) => setCompany(e.target.value)}
-          />
-          <select
-            className={s.select}
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            aria-label="סכום העיצום"
-          >
-            <option value="" disabled>סכום העיצום</option>
-            {ITZUM_AMOUNTS.map((a) => <option key={a}>{a}</option>)}
-          </select>
-        </div>
-
+        {/* השלב הוא השדה שקובע דחיפות, ולכן הוא נשאר גלוי */}
         <select
           className={s.select}
           value={stage}
@@ -195,22 +177,61 @@ export default function ItzumimForm() {
 
         <button
           type="button"
-          className={`${s.upload} ${files?.length ? s.uploadOn : ""}`}
-          onClick={() => fileRef.current?.click()}
+          className={s.moreToggle}
+          onClick={() => setShowMore((v) => !v)}
+          aria-expanded={showMore}
         >
-          <strong>
-            {files?.length ? `✓ ${files.length} קבצים נבחרו` : "צרף את המכתב ממשרד העבודה"}
-          </strong>
-          לא חובה. PDF או צילום. אפשר גם לשלוח ב-WhatsApp אחרי השליחה
+          <span>
+            <b>רוצה תשובה מדויקת יותר?</b>
+            הוסף את שם החברה, הסכום, וצילום של המכתב. לא חובה.
+          </span>
+          <span className={`${s.moreChevron} ${showMore ? s.moreChevronOpen : ""}`} aria-hidden="true">
+            ▼
+          </span>
         </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".pdf,.jpg,.jpeg,.png,image/*"
-          multiple
-          style={{ display: "none" }}
-          onChange={(e) => setFiles(e.target.files)}
-        />
+
+        {showMore && (
+          <div className={s.morePanel}>
+            <div className={s.grid2}>
+              <input
+                className={s.field}
+                type="text"
+                placeholder="שם החברה או העסק"
+                autoComplete="organization"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+              />
+              <select
+                className={s.select}
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                aria-label="סכום העיצום"
+              >
+                <option value="" disabled>סכום העיצום</option>
+                {ITZUM_AMOUNTS.map((a) => <option key={a}>{a}</option>)}
+              </select>
+            </div>
+
+            <button
+              type="button"
+              className={`${s.upload} ${files?.length ? s.uploadOn : ""}`}
+              onClick={() => fileRef.current?.click()}
+            >
+              <strong>
+                {files?.length ? `✓ ${files.length} קבצים נבחרו` : "צרף את המכתב ממשרד העבודה"}
+              </strong>
+              PDF או צילום. אפשר גם לשלוח ב-WhatsApp אחרי השליחה
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png,image/*"
+              multiple
+              style={{ display: "none" }}
+              onChange={(e) => setFiles(e.target.files)}
+            />
+          </div>
+        )}
 
         <div className={s.consent}>
           <input

@@ -881,3 +881,116 @@
 /* שני בלוקים שנשארו רחבים אחרי המדידה השנייה */
 .storyPunch { max-width: 54ch; }
 .footerBottom { font-size: 0.88rem; max-width: 74ch; }
+
+/* ═══ תיקונים מסורק דפי המכירה של הנקסט לבל, 30/08/2026 ═══ */
+
+/*
+ * תיקון 2: CTA צף במובייל.
+ * הדף ארוך, ומי שמשתכנע באמצע היה צריך לגלול חזרה עד למעלה.
+ * מופיע רק אחרי שהטופס העליון יצא מהמסך, כדי לא להתחרות בעצמו.
+ */
+.stickyCta {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 90;
+  padding: 0.7rem 1rem calc(0.7rem + env(safe-area-inset-bottom));
+  background: rgba(11, 17, 32, 0.96);
+  border-top: 1px solid var(--gold-border);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  transform: translateY(110%);
+  transition: transform 0.25s ease;
+}
+.stickyCtaOn { transform: translateY(0); }
+@media (min-width: 900px) { .stickyCta { display: none; } }
+@media (prefers-reduced-motion: reduce) { .stickyCta { transition: none; } }
+
+.stickyText {
+  flex: 1;
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: var(--text-dim);
+  min-width: 0;
+}
+.stickyText strong { display: block; color: var(--white); font-size: 0.96rem; font-weight: 800; }
+.stickyBtn {
+  flex: none;
+  background: var(--gold);
+  color: #14161a;
+  font-family: inherit;
+  font-weight: 900;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 50px;
+  padding: 0.72rem 1.35rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* תיקון 3: עוגן תמחורי. הדף רמז לשכר טרחה ולא נתן מבנה. */
+.priceBox {
+  margin-top: 1.4rem;
+  border: 1px solid var(--gold-border);
+  border-radius: 6px;
+  background: rgba(176, 151, 101, 0.05);
+  padding: clamp(1.1rem, 2.6vw, 1.6rem);
+}
+.priceRow {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem 0.9rem;
+  align-items: start;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--hair);
+}
+.priceRow:last-of-type { border-bottom: none; }
+.priceStep {
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: var(--gold);
+  border: 1px solid var(--gold-border);
+  border-radius: 50px;
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  flex: none;
+}
+.priceWhat { font-size: 1rem; line-height: 1.6; max-width: 54ch; }
+.priceWhat strong { font-weight: 800; }
+.priceNote { margin-top: 0.9rem; font-size: 0.92rem; line-height: 1.75; color: var(--text-dim); max-width: 56ch; }
+
+/*
+ * תיקון 1 מהסורק: "הטופס ארוך (5+ שדות) ומופיע גבוה מאוד.
+ * שקול לקצר לשלב ראשון של 2-3 שדות בלבד."
+ *
+ * לא הורדתי שדות אלא קיפלתי אותם. שם, טלפון ושלב נשארים גלויים,
+ * כי השלב הוא מה שקובע אם הליד דחוף. חברה, סכום וצירוף המכתב
+ * עברו לאזור מתקפל, ומי שרוצה תשובה מדויקת יותר פותח אותו.
+ * ככה החיכוך יורד בלי לאבד את הסינון.
+ */
+.moreToggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  background: none;
+  border: 1px dashed rgba(241, 239, 234, 0.2);
+  border-radius: 6px;
+  padding: 0.75rem 0.95rem;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 0.94rem;
+  text-align: start;
+  cursor: pointer;
+  margin-bottom: 0.65rem;
+}
+.moreToggle:hover { border-color: var(--gold-border); color: var(--white); }
+.moreToggle span { flex: 1; }
+.moreToggle b { color: rgba(241, 239, 234, 0.85); font-weight: 700; display: block; }
+.moreChevron { flex: none; color: var(--gold); font-size: 0.85rem; transition: transform 0.2s ease; }
+.moreChevronOpen { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .moreChevron { transition: none; } }
+.morePanel { display: grid; gap: 0.65rem; margin-bottom: 0.65rem; }

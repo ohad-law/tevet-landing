@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import ItzumimForm from "./ItzumimForm";
+import StickyCta from "./StickyCta";
 import s from "./itzumim.module.css";
 
 /**
@@ -207,7 +208,8 @@ export default function Page() {
             </h1>
             <p className={s.sub}>
               ובלי אישור של בודק שכר מוסמך, הממונה{" "}
-              <strong>לא מוריד את הסכום בשקל.</strong>
+              <strong>לא מוריד את הסכום בשקל.</strong>{" "}
+              עם האישור, רוב המעסיקים שמגיעים אליי משלמים פחות. חלקם לא משלמים כלום.
             </p>
 
             {/* הליד. לא מוכר כלום, רק מזדהה ומבטיח שהפתרון כאן. */}
@@ -707,6 +709,37 @@ export default function Page() {
             </div>
           </div>
 
+          {/* תיקון מהסורק: הדף רמז לשכר טרחה בלי לתת מבנה, וזה השאיר
+              את החשש "כמה זה יעלה לי". כאן הזרימה הכספית, בלי מספר
+              שאי אפשר להתחייב אליו לפני שרואים תיק. */}
+          <div className={s.priceBox}>
+            <div className={s.priceRow}>
+              <span className={s.priceStep}>1</span>
+              <p className={s.priceWhat}>
+                <strong>הבדיקה הראשונית והשיחה, ללא התחייבות ובלי תשלום.</strong> אתה
+                יוצא ממנה עם תמונה מלאה גם אם לא תתקדם איתי.
+              </p>
+            </div>
+            <div className={s.priceRow}>
+              <span className={s.priceStep}>2</span>
+              <p className={s.priceWhat}>
+                אם יש מה לעשות, תקבל <strong>שכר טרחה במספר אחד וסופי</strong>, לפני
+                שאתה מתחייב. בלי תוספות בדרך ובלי אחוזים מהחיסכון.
+              </p>
+            </div>
+            <div className={s.priceRow}>
+              <span className={s.priceStep}>3</span>
+              <p className={s.priceWhat}>
+                המספר נקבע לפי מורכבות התיק ומספר ההפרות, ו<strong>תמיד יהיה חלק קטן
+                מהעיצום עצמו.</strong> אחרת אין בזה היגיון, ואני אגיד לך את זה.
+              </p>
+            </div>
+            <p className={s.priceNote}>
+              העיצום הממוצע במאגר משרד העבודה עומד על 96,505 ש&quot;ח. זה הסדר גודל
+              שמולו נמדדת ההחלטה.
+            </p>
+          </div>
+
           {/* ── ההתחייבות ── */}
           <div className={s.guarantee}>
             <div className={s.guaranteeTitle}>
@@ -833,6 +866,8 @@ export default function Page() {
           </a>
         </div>
       </div>
+
+      <StickyCta />
 
       {/* ── פוטר ── */}
       <div className={s.footer}>
