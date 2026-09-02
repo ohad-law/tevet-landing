@@ -57,6 +57,10 @@ export async function hasWhatsApp(phone: string): Promise<boolean> {
       // נשלח בכל מקרה. ליד שאבד גרוע בהרבה מהודעה מיותרת אחת.
       signal: AbortSignal.timeout(5000),
     })
+    // 400 מ-Green API פירושו שהמספר עצמו פסול, לא שהשירות נפל.
+    // אומת בפועל על ליד קיים עם מספר חסר ספרה. לכן זה "אין וואטסאפ"
+    // ולא כשל טכני, ואסור לשלוח לשם. שאר השגיאות נחשבות תקלה זמנית.
+    if (res.status === 400) return false
     if (!res.ok) return true
     const data = await res.json()
     return data?.existsWhatsapp !== false
