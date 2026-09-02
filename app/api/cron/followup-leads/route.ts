@@ -9,12 +9,13 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { sendWhatsApp } from '@/lib/whatsapp'
+import { sendWhatsApp, hasWhatsApp, outgoingHealth } from '@/lib/whatsapp'
 import { buildFollowupMessage, buildWarmMessage, daysUntilNextFollowup } from '@/lib/followup-templates'
 
 const DAILY_CAP = 30 // תקרת הודעות יומית, הגנה על המספר
 const PACE_MS = 4000 // מרווח בין הודעות (קצב אנושי)
 const OHAD_PHONE = (process.env.OHAD_WHATSAPP_NUMBER || process.env.OHAD_WHATSAPP || '972542274497').replace(/\D/g, '')
+const OFFICE_PHONE = '972515937329' // המספר ששולח, לעולם לא לשלוח לעצמנו
 
 type Table = 'leads' | 'leads_talush'
 
@@ -38,6 +39,24 @@ export async function GET(req: NextRequest) {
 
   const supabase = createServiceClient()
   const nowIso = new Date().toISOString()
+
+  // ── בלם חירום: האם המספר עדיין מוסר הודעות? ──────────────────
+  // כשמטא מסמנת את המספר, ה-API ממשיך להחזיר "נשלח" בזמן שההודעות נבלעות.
+  // להמשיך לשלוח במצב הזה רק מעמיק את הבור. לכן אם אף הודעה מהיממה
+  // האחרונה לא הגיעה בפועל, עוצרים את הריצה ומתריעים לאוהד.
+  const health = await outgoingHealth(1440)
+  if (!health.healthy) {
+    console.error(`[followup] HALTED: ${health.checked} outgoing messages, none delivered. Suspected block.`)
+    await sendWhatsApp(OHAD_PHONE, [
+      '🚨 הרובוט עצר את עצמו',
+      '',
+      `${health.checked} הודעות נשלחו ביממה האחרונה ואף אחת לא נמסרה.`,
+      'זה הסימן של חסימה שקטה מצד מטא. הפולואפים מושהים עד לבדיקה.',
+      '',
+      'אל תשלח הודעות בכמות מהמספר הזה עד שנבדוק.',
+    ].join('\n'))
+    return NextResponse.json({ halted: true, reason: 'delivery_failure', health })
+  }
 
   // ── שלוף לידים שמגיע להם פולואפ ─────────────────────────────
   const due: DueLead[] = []
@@ -79,6 +98,7 @@ export async function GET(req: NextRequest) {
   // ── שלח ועדכן ───────────────────────────────────────────────
   let sent = 0
   let skipped = 0
+  const noWhatsApp: string[] = []
 
   for (const lead of due) {
     if (sent >= DAILY_CAP) {
@@ -89,9 +109,22 @@ export async function GET(req: NextRequest) {
     const phoneNorm = (lead.phone ?? '').replace(/\D/g, '')
     if (phoneNorm.length < 10) { skipped++; continue }
     // הגנה קריטית: אסור לשלוח הודעות פולואפ למספר של אוהד
-    if (phoneNorm === OHAD_PHONE) {
+    if (phoneNorm === OHAD_PHONE || phoneNorm === OFFICE_PHONE) {
       console.error(`[followup] SAFETY BLOCK: lead phone matches Ohad's number (${phoneNorm}). Skipping.`)
       skipped++; continue
+    }
+
+    // אין וואטסאפ למספר? לא לשלוח, ובעיקר לא לנסות שוב מחר.
+    // שליחה חוזרת למספרים שלא קיימים היא סימן ספאם מובהק אצל מטא.
+    // הליד לא הולך לאיבוד: הוא יוצא מהרצף האוטומטי ונכנס לרשימת חיוג לאוהד.
+    if (!(await hasWhatsApp(phoneNorm))) {
+      console.log(`[followup] No WhatsApp account for ${phoneNorm}. Removing from sequence.`)
+      noWhatsApp.push(`${lead.full_name || 'ללא שם'}: ${phoneNorm}`)
+      await supabase.from(lead.table)
+        .update({ followup_stopped: true, followup_next_at: null })
+        .eq('id', lead.id)
+      skipped++
+      continue
     }
 
     // שלב -1 = ליד משוחזר שלא קיבל חימום → שלח חימום והכנס לרצף הרגיל.
@@ -136,6 +169,17 @@ export async function GET(req: NextRequest) {
     if (sent < due.length && sent < DAILY_CAP) await sleep(PACE_MS)
   }
 
-  console.log(`[followup] Done. sent=${sent}, skipped=${skipped}`)
-  return NextResponse.json({ due: due.length, sent, skipped })
+  // מי שאין לו וואטסאפ צריך טלפון, לא הודעה
+  if (noWhatsApp.length > 0) {
+    await sendWhatsApp(OHAD_PHONE, [
+      '📞 לידים בלי וואטסאפ, צריך לחייג',
+      '',
+      ...noWhatsApp,
+      '',
+      'הם הוצאו מרצף הפולואפ האוטומטי.',
+    ].join('\n'))
+  }
+
+  console.log(`[followup] Done. sent=${sent}, skipped=${skipped}, noWhatsApp=${noWhatsApp.length}`)
+  return NextResponse.json({ due: due.length, sent, skipped, noWhatsApp: noWhatsApp.length })
 }

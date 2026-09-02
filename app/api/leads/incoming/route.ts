@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createBase44Lead, normalizePhone } from '@/lib/base44'
-import { sendWhatsApp } from '@/lib/whatsapp'
+import { sendWhatsApp, hasWhatsApp } from '@/lib/whatsapp'
 import { buildWarmMessage } from '@/lib/followup-templates'
 
 // מספר אוהד, hard-coded כדי למנוע דליפת מידע לליד שגוי דרך env var שגוי
@@ -316,9 +316,21 @@ export async function POST(req: NextRequest) {
   // ── 4. WhatsApp לליד (אותה הודעת חימום כמו הרובוט) ───────────
   if (phoneNorm && phoneNorm.length >= 10) {
     try {
-      const leadMsg = buildWarmMessage(full_name, situation)
-      await sendWhatsApp(phoneNorm, leadMsg)
-      console.log('[incoming] Warm WhatsApp sent to lead:', phoneNorm)
+      // חלק מהלידים משאירים מספר שאין עליו וואטסאפ בכלל. שליחה לשם נכשלת
+      // בשקט, נספרת אצל מטא כניסיון ספאם, ומשאירה את הצ'אט בכרטיס ריק
+      // כאילו יש תקלה במערכת. עדיף לזהות מראש ולהעביר את הליד לחיוג.
+      if (await hasWhatsApp(phoneNorm)) {
+        const leadMsg = buildWarmMessage(full_name, situation)
+        await sendWhatsApp(phoneNorm, leadMsg)
+        console.log('[incoming] Warm WhatsApp sent to lead:', phoneNorm)
+      } else {
+        console.log('[incoming] Lead has no WhatsApp account:', phoneNorm)
+        await sendWhatsApp(OHAD_WA, [
+          '📞 הליד החדש בלי וואטסאפ, צריך לחייג',
+          '',
+          `${full_name || 'ללא שם'}: ${phoneNorm}`,
+        ].join('\n'))
+      }
     } catch (e) {
       console.error('[incoming] WhatsApp to lead error:', e)
     }
