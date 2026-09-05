@@ -13,7 +13,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createBase44Lead, normalizePhone } from '@/lib/base44'
 import { sendWhatsApp, hasWhatsApp } from '@/lib/whatsapp'
-import { buildWarmMessage } from '@/lib/followup-templates'
+import { buildWarmMessage, buildNurtureMessage } from '@/lib/followup-templates'
 
 // מספר אוהד, hard-coded כדי למנוע דליפת מידע לליד שגוי דרך env var שגוי
 const OHAD_WA = '972542274497'
@@ -125,6 +125,34 @@ function leadScoreFromYears(years: string): number {
   return 60
 }
 
+
+/**
+ * ניתוב הליד לפי ותק וסיטואציה, נקבע 05/09/2026.
+ *
+ * הרעיון: הזמן של אוהד הוא המשאב היחיד שאין ממנו עוד, ולכן שיחה
+ * נשמרת למי שיש לו תיק בגודל שמצדיק אותה. מי שעדיין עובד עם ותק
+ * נמוך אין לו תיק סיום העסקה (פיצויים, הודעה מוקדמת, פדיון חופשה),
+ * ונשאר רק הפרש התלוש, שהוא קטן וגם קשה לתבוע ממעסיק פעיל.
+ *
+ * הוא לא נזרק. הוא מקבל את הצ'קליסט, נשאר ברשימה, וחוזר אלינו
+ * ביום שההעסקה מסתיימת, ואז גם הוותק גדול יותר וגם יש תיק.
+ *
+ * ⚠️ הטופס לא יודע להבחין בין ארבע שנים לשש, כי המדרגה היא
+ * "3 עד 7". לכן הסף כאן הוא שלוש שנים, והסף האמיתי של חמש
+ * מאומת בשיחה. כשמדרגות הטופס יפוצלו, אפשר לדייק כאן.
+ */
+function routeLead(years: string, situation: string): 'call' | 'nurture' {
+  const y = years || ''
+  const s = situation || ''
+  const stillWorking = s.includes('עדיין עובד') || s.includes('current_issue')
+  const under1 = y.includes('פחות משנה') || y.includes('under_1')
+  const oneToThree = y.includes('שנה עד 3') || y.includes('1_to_3')
+
+  if (under1) return 'nurture'
+  if (stillWorking && oneToThree) return 'nurture'
+  return 'call'
+}
+
 export async function POST(req: NextRequest) {
   // ── אימות ─────────────────────────────────────────────────────
   const secret = req.headers.get('x-webhook-secret')?.trim()
@@ -225,6 +253,7 @@ export async function POST(req: NextRequest) {
   // הליד נכנס לרצף הפולואפ. קיבל הודעת פתיחה עכשיו, והבאה היא הפרידה ביום 7.
   // היה כאן 3 ימים, לפני שהודעת יום 3 הוסרה. ראה lib/followup-templates.ts
   const followupNextAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  const track = routeLead(years_worked, situation)
   try {
     const supabase = createServiceClient()
     const { error } = await supabase.from('leads').insert({
@@ -232,12 +261,12 @@ export async function POST(req: NextRequest) {
       phone: phoneNorm,
       source: 'facebook_lead_form',
       campaign_name: ad_name || campaign_name,
-      notes: `שנות עבודה: ${years_worked} | תחום: ${work_sector}${work_sector_detail ? ` (${work_sector_detail})` : ''} | סיטואציה: ${situation}`,
+      notes: `שנות עבודה: ${years_worked} | תחום: ${work_sector}${work_sector_detail ? ` (${work_sector_detail})` : ''} | סיטואציה: ${situation}` + (track === 'nurture' ? ' | 🌱 טיפוח, לא לחייג. ותק נמוך ועדיין עובד' : ''),
       // בלי product_line הליד לא מופיע באף לשונית במסך המכירות, והניקוד נשלח
       // עד היום רק ל-BASE44 שנטוש. שניהם חסרו כאן מאז יום המעבר (25/07/2026).
       product_line: 'דיני עבודה',
       lead_score: leadScoreFromYears(years_worked),
-      status: 'חדש',
+      status: track === 'nurture' ? 'טיפוח' : 'חדש',
       is_viewed: false,
       followup_stage: 0,
       followup_next_at: followupNextAt,
@@ -320,9 +349,14 @@ export async function POST(req: NextRequest) {
       // בשקט, נספרת אצל מטא כניסיון ספאם, ומשאירה את הצ'אט בכרטיס ריק
       // כאילו יש תקלה במערכת. עדיף לזהות מראש ולהעביר את הליד לחיוג.
       if (await hasWhatsApp(phoneNorm)) {
-        const leadMsg = buildWarmMessage(full_name, situation)
+        const leadMsg = track === 'nurture'
+          ? buildNurtureMessage(full_name)
+          : buildWarmMessage(full_name, situation)
         await sendWhatsApp(phoneNorm, leadMsg)
-        console.log('[incoming] Warm WhatsApp sent to lead:', phoneNorm)
+        console.log(`[incoming] WhatsApp sent to lead (${track}):`, phoneNorm)
+      } else if (track === 'nurture') {
+        // אין וואטסאפ ואין תיק. אין למי לחייג ואין מה לשלוח, רק לתעד.
+        console.log('[incoming] Nurture lead without WhatsApp, no action:', phoneNorm)
       } else {
         console.log('[incoming] Lead has no WhatsApp account:', phoneNorm)
         await sendWhatsApp(OHAD_WA, [
