@@ -12,6 +12,25 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { sendWhatsApp, hasWhatsApp, outgoingHealth } from '@/lib/whatsapp'
 import { buildFollowupMessage, buildWarmMessage, daysUntilNextFollowup } from '@/lib/followup-templates'
 
+// מי נכנס לרצף התזכורות. הורחב 08/09/2026: "פולו אפ נדרש" ו"ליד חם"
+// הם בדיוק מי שהתזכורת נועדה לו, וקודם לכן הם דווקא דולגו.
+// "טיפוח", "לא רלוונטי", "הפך ללקוח" ו"פגישה נקבעה" נשארים בחוץ.
+/**
+ * מנרמל מספר ישראלי לפורמט שגרין API דורש (972XXXXXXXXX).
+ *
+ * בלי זה מספר שנשמר בפורמט מקומי (0503322206) נשלח בלי קידומת מדינה
+ * וההודעה נבלעת. נמצאו 11 לידים כאלה ב-08/09/2026.
+ */
+function normalizePhoneIL(raw: string | null | undefined): string | null {
+  const d = String(raw ?? '').replace(/\D/g, '')
+  if (d.startsWith('972') && d.length === 12) return d
+  if (d.startsWith('0') && d.length === 10) return '972' + d.slice(1)
+  if (d.length === 9 && d.startsWith('5')) return '972' + d
+  return null
+}
+
+const FOLLOWUP_STATUSES = ['חדש', 'פולו אפ נדרש', 'ליד חם 🔥']
+
 const DAILY_CAP = 30 // תקרת הודעות יומית, הגנה על המספר
 const PACE_MS = 4000 // מרווח בין הודעות (קצב אנושי)
 const OHAD_PHONE = (process.env.OHAD_WHATSAPP_NUMBER || process.env.OHAD_WHATSAPP || '972542274497').replace(/\D/g, '')
@@ -64,7 +83,7 @@ export async function GET(req: NextRequest) {
   const { data: leads } = await supabase
     .from('leads')
     .select('id, full_name, phone, followup_stage, notes')
-    .eq('status', 'חדש')
+    .in('status', FOLLOWUP_STATUSES)
     .eq('followup_stopped', false)
     .eq('followup_opted_out', false)
     .lt('followup_stage', 3)
@@ -80,7 +99,7 @@ export async function GET(req: NextRequest) {
   const { data: talush } = await supabase
     .from('leads_talush')
     .select('id, full_name, phone, followup_stage, issue_description')
-    .eq('status', 'חדש')
+    .in('status', FOLLOWUP_STATUSES)
     .eq('followup_stopped', false)
     .eq('followup_opted_out', false)
     .lt('followup_stage', 3)
@@ -106,8 +125,12 @@ export async function GET(req: NextRequest) {
       break
     }
 
-    const phoneNorm = (lead.phone ?? '').replace(/\D/g, '')
-    if (phoneNorm.length < 10) { skipped++; continue }
+    const phoneNorm = normalizePhoneIL(lead.phone)
+    if (!phoneNorm) {
+      console.warn(`[followup] מספר לא תקין, מדלג: ${lead.id} ${lead.phone}`)
+      skipped++
+      continue
+    }
     // הגנה קריטית: אסור לשלוח הודעות פולואפ למספר של אוהד
     if (phoneNorm === OHAD_PHONE || phoneNorm === OFFICE_PHONE) {
       console.error(`[followup] SAFETY BLOCK: lead phone matches Ohad's number (${phoneNorm}). Skipping.`)
