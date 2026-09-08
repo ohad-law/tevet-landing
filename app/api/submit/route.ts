@@ -33,7 +33,7 @@ function sha256(value: string): string {
   return crypto.createHash("sha256").update(value.trim().toLowerCase()).digest("hex");
 }
 
-async function sendMetaCAPI(phone: string, name: string, sourceUrl: string) {
+async function sendMetaCAPI(phone: string, name: string, sourceUrl: string, eventId?: string) {
   if (!META_ACCESS_TOKEN) return;
   const nameParts = name.trim().split(/\s+/);
   const firstName = nameParts[0] ?? "";
@@ -45,6 +45,9 @@ async function sendMetaCAPI(phone: string, name: string, sourceUrl: string) {
       {
         event_name: "Lead",
         event_time: Math.floor(Date.now() / 1000),
+        // מזהה משותף לפיקסל בדפדפן ולשרת. בלעדיו מטא סופרת את אותו
+        // ליד פעמיים ודירוג איכות ההתאמה יורד.
+        ...(eventId ? { event_id: eventId } : {}),
         action_source: "website",
         event_source_url: sourceUrl,
         user_data: {
@@ -217,6 +220,7 @@ export async function POST(req: NextRequest) {
     const years = (form.get("years") as string) ?? "";
     const situation = (form.get("situation") as string) ?? "";
     const fileEntries = form.getAll("files") as File[];
+    const eventId = ((form.get("event_id") as string) ?? "").trim() || undefined;
 
     // קו העיצומים הכספיים. בלי השדה הזה שום דבר בזרימה של התלושים לא משתנה.
     const isItzum = (form.get("product") as string) === "itzumim";
@@ -262,7 +266,7 @@ export async function POST(req: NextRequest) {
     }
 
     // שלב 2, התראות. נכשלות בשקט, הליד כבר שמור.
-    void notify({ name, phone, years, situation, fileEntries, payslipUrls, referer, itzum });
+    void notify({ name, phone, years, situation, fileEntries, payslipUrls, referer, itzum, eventId });
 
     return NextResponse.json({ ok: true });
   } catch (err) {
@@ -280,6 +284,7 @@ async function notify(p: {
   payslipUrls: string[];
   referer: string;
   itzum?: ItzumFields;
+  eventId?: string;
 }) {
   const { name, phone, years, situation, fileEntries, payslipUrls, referer, itzum } = p;
   try {
@@ -318,7 +323,7 @@ async function notify(p: {
         attachments,
       });
       await sendWhatsApp(name, phone, years, situation, payslipUrls, itzum).catch(() => null);
-      await sendMetaCAPI(phone, name, referer).catch(() => null);
+      await sendMetaCAPI(phone, name, referer, p.eventId).catch(() => null);
       return;
     }
 
@@ -345,7 +350,7 @@ async function notify(p: {
     });
 
     await sendWhatsApp(name, phone, years, situation, payslipUrls).catch(() => null);
-    await sendMetaCAPI(phone, name, referer).catch(() => null);
+    await sendMetaCAPI(phone, name, referer, p.eventId).catch(() => null);
   } catch (err) {
     // הליד כבר שמור ב-CRM, כישלון התראה לא מאבד אותו
     console.error("notify failed (lead already saved):", err);

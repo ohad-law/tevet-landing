@@ -52,6 +52,15 @@ export function buildWarmMessage(fullName: string | null, _situationText: string
     `ואומר לך אם בכלל`,
     `יש כאן משהו לבדוק.`,
     ``,
+    `אפשר לשלוח כאן,`,
+    `או להעלות בדף הזה`,
+    `יחד עם הפרטים:`,
+    BDIKA,
+    ``,
+    `שם גם תראה בדיוק`,
+    `איך התהליך עובד,`,
+    `ומה כבר הוצאנו ללקוחות.`,
+    ``,
     `במידה ואמצא ליקויים,`,
     `אחזור אליך ואשמע`,
     `בהרחבה את המקרה שלך.`,
@@ -68,6 +77,8 @@ export function buildWarmMessage(fullName: string | null, _situationText: string
 
 
 const TLUSH = 'https://tevet-landing.vercel.app/tlush'
+/** דף בדיקת השכר. עושה את בניית האמון שהטלפון נאלץ לעשות מאפס. */
+const BDIKA = 'https://tevet-landing.vercel.app/bdika'
 
 /**
  * הודעת יום 0 למסלול הטיפוח, נוספה 05/09/2026.
