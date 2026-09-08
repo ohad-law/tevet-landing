@@ -5,16 +5,8 @@
       "schedule": "0 6 * * *"
     },
     {
-      "path": "/api/cron/followup-leads",
-      "schedule": "0 7 * * *"
-    },
-    {
       "path": "/api/cron/followup-report",
       "schedule": "0 8 */4 * *"
-    },
-    {
-      "path": "/api/cron/review-requests",
-      "schedule": "0 10 * * 0-4"
     }
   ]
 }

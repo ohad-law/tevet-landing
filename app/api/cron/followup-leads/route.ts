@@ -135,7 +135,7 @@ export async function GET(req: NextRequest) {
     if (lead.followup_stage === -1) {
       message = buildWarmMessage(lead.full_name, lead.situationText)
       newStage = 0
-      nextDays = 3 // יום 3 אחרי החימום
+      nextDays = 1 // תזכורת ראשונה כבר למחרת
     } else {
       const stageToSend = lead.followup_stage + 1
       message = buildFollowupMessage(stageToSend, lead.full_name)

@@ -1,9 +1,16 @@
 /**
  * POST /api/webhooks/whatsapp-incoming
- * Receives incoming WhatsApp messages from Green API.
  *
- * ⚠️ סינון קפדני, מעביר לאוהד רק הודעות ממספרים שהם לידים בסופאבייס.
- * מסנן: קבוצות, מספרים לא מוכרים, הודעות ישנות, הודעות עצמיות.
+ * קולט מ-Green API את כל תנועת הוואטסאפ של מספר המשרד:
+ * הודעות נכנסות מלידים, והודעות יוצאות (מהנייד של אוהד או מהמערכת).
+ *
+ * כל הודעה נשמרת ב-whatsapp_messages, כדי שהשיחה המלאה תופיע
+ * בכרטיס הליד ב-CRM ואיש המכירות לא יצטרך לעבור לנייד.
+ *
+ * קבצים (תלושי שכר) יורדים מ-Green API, נשמרים באחסון הפרטי
+ * ומצטרפים ל-uploaded_files של הליד, בדיוק כמו תלוש מדף הנחיתה.
+ *
+ * סינון קפדני: קבוצות, הודעות ישנות והודעות עצמיות נזרקות.
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
@@ -13,30 +20,39 @@ import { isOptOut } from '@/lib/followup-templates'
 
 const OHAD_WA = '972542274497' // hard-coded, אסור לשנות דרך env var למניעת דליפה
 
-type LeadTable = 'leads' | 'leads_talush'
+const PAYSLIP_BUCKET = 'lead-payslips'
+const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24 * 365
+const MAX_FILE_BYTES = 20 * 1024 * 1024 // מעבר לזה לא מורידים, כדי לא להפיל את הפונקציה
 
-// מחפש ליד לפי טלפון בשתי הטבלאות (גם בפורמט 972 וגם 05)
-async function findLead(
-  supabase: ReturnType<typeof createServiceClient>,
-  phone972: string
-) {
+type LeadTable = 'leads' | 'leads_talush'
+type Supa = ReturnType<typeof createServiceClient>
+
+/** סוגי ההודעות שנושאות קובץ מצורף */
+const FILE_TYPES = ['imageMessage', 'documentMessage', 'videoMessage', 'audioMessage']
+
+/**
+ * מחפש ליד לפי טלפון בשתי הטבלאות (גם בפורמט 972 וגם 05).
+ *
+ * 🚨 אסור להשתמש כאן ב-maybeSingle. הוא זורק שגיאה כשיותר משורה אחת
+ * תואמת, ובמערכת יש לידים כפולים עם אותו טלפון. אומת בפועל 31/08/2026.
+ * לוקחים את הליד החדש ביותר, כי הוא הרלוונטי לשיחה שמתנהלת עכשיו.
+ */
+async function findLead(supabase: Supa, phone972: string) {
   const local = '0' + phone972.slice(3)
   for (const table of ['leads', 'leads_talush'] as LeadTable[]) {
     const { data } = await supabase
       .from(table)
-      .select('id, full_name, phone')
+      .select('id, full_name, phone, uploaded_files')
       .or(`phone.eq.${phone972},phone.eq.${local}`)
-      .maybeSingle()
-    if (data) return { ...data, table }
+      .order('created_at', { ascending: false })
+      .limit(1)
+    if (data && data.length > 0) return { ...data[0], table }
   }
   return null
 }
 
 // לקוח (להבדיל מליד) שביקש הסרה, עוצר בקשות ביקורת עתידיות על כל תיקיו
-async function optOutClientReviews(
-  supabase: ReturnType<typeof createServiceClient>,
-  phone972: string
-) {
+async function optOutClientReviews(supabase: Supa, phone972: string) {
   const local = '0' + phone972.slice(3)
   const { data: client } = await supabase
     .from('clients')
@@ -49,6 +65,123 @@ async function optOutClientReviews(
   await sendWhatsApp(phone972, 'הוסרת מרשימת ההודעות שלנו. תודה, ובהצלחה! 🙏')
 }
 
+/**
+ * שולף את הטקסט ואת פרטי הקובץ מתוך המבנה של Green API.
+ * כל סוג הודעה יושב בשדה אחר, ולכן צריך את הפיצול הזה.
+ */
+function extractMessage(messageData: Record<string, unknown>) {
+  const type = String(messageData.typeMessage || '')
+
+  if (type === 'textMessage') {
+    const d = messageData.textMessageData as Record<string, string> | undefined
+    return { text: d?.textMessage || '', file: null }
+  }
+
+  if (type === 'extendedTextMessage') {
+    const d = messageData.extendedTextMessageData as Record<string, string> | undefined
+    return { text: d?.text || '', file: null }
+  }
+
+  if (FILE_TYPES.includes(type)) {
+    const d = messageData.fileMessageData as Record<string, string> | undefined
+    if (d?.downloadUrl) {
+      return {
+        text: d.caption || '',
+        file: {
+          url: d.downloadUrl,
+          name: d.fileName || 'קובץ',
+          mime: d.mimeType || 'application/octet-stream',
+        },
+      }
+    }
+  }
+
+  return { text: '[הודעה שאינה טקסט]', file: null }
+}
+
+/**
+ * מנקה שם קובץ לשם שאחסון סופאבייס מקבל.
+ *
+ * 🚨 אסור להשאיר עברית בנתיב. סופאבייס מחזיר InvalidKey ומסרב לשמור,
+ * ואומת בפועל 29/08/2026. השם המקורי נשמר בגוף ההודעה, ולכן
+ * שום מידע לא הולך לאיבוד כשהאותיות מוחלפות כאן.
+ */
+function safeStorageName(name: string): string {
+  const ext = (name.match(/\.[A-Za-z0-9]{1,8}$/) || [''])[0]
+  const base = name
+    .slice(0, name.length - ext.length)
+    .replace(/[^A-Za-z0-9._-]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '')
+    .slice(0, 60)
+  return (base || 'file') + ext.toLowerCase()
+}
+
+/**
+ * מוריד קובץ מ-Green API ושומר אותו באחסון הפרטי.
+ * מחזיר את הנתיב ואת הקישור החתום, או null אם נכשל.
+ *
+ * קובץ של ליד מוכר נשמר תחת מזהה הליד, כדי שיישב יחד עם
+ * התלושים שהגיעו מדף הנחיתה. קובץ ממספר לא מוכר נשמר בנפרד.
+ */
+async function storeFile(
+  supabase: Supa,
+  folder: string,
+  file: { url: string; name: string; mime: string }
+): Promise<{ path: string; url: string | null } | null> {
+  try {
+    const res = await fetch(file.url)
+    if (!res.ok) {
+      console.error('[whatsapp] הורדת הקובץ נכשלה:', res.status)
+      return null
+    }
+
+    const buf = Buffer.from(await res.arrayBuffer())
+    if (buf.byteLength > MAX_FILE_BYTES) {
+      console.warn('[whatsapp] קובץ גדול מדי, לא נשמר:', buf.byteLength)
+      return null
+    }
+
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const path = `${folder}/wa_${stamp}_${safeStorageName(file.name)}`
+
+    const { error } = await supabase.storage
+      .from(PAYSLIP_BUCKET)
+      .upload(path, buf, { contentType: file.mime, upsert: true })
+    if (error) {
+      console.error('[whatsapp] העלאת הקובץ נכשלה:', error)
+      return null
+    }
+
+    const { data: signed } = await supabase.storage
+      .from(PAYSLIP_BUCKET)
+      .createSignedUrl(path, SIGNED_URL_TTL_SECONDS)
+
+    return { path, url: signed?.signedUrl ?? null }
+  } catch (e) {
+    console.error('[whatsapp] שמירת הקובץ נכשלה:', e)
+    return null
+  }
+}
+
+/** מצרף קובץ שהגיע בוואטסאפ לרשימת הקבצים של הליד */
+async function attachToLead(
+  supabase: Supa,
+  table: LeadTable,
+  leadId: string,
+  existing: unknown,
+  stored: { path: string; url: string | null }
+) {
+  const current = Array.isArray(existing) ? existing : []
+  await supabase
+    .from(table)
+    .update({
+      uploaded_files: [...current, { path: stored.path, url: stored.url, source: 'וואטסאפ' }],
+      payslips_received_at: new Date().toISOString(),
+    })
+    .eq('id', leadId)
+}
+
 export async function POST(req: NextRequest) {
   let body: Record<string, unknown>
   try {
@@ -57,8 +190,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true }) // Green API expects 200 always
   }
 
-  // ── רק הודעות נכנסות ──────────────────────────────────────────
-  if (body.typeWebhook !== 'incomingMessageReceived') {
+  const hook = String(body.typeWebhook || '')
+  const isIncoming = hook === 'incomingMessageReceived'
+  const isOutgoing = hook === 'outgoingMessageReceived' || hook === 'outgoingAPIMessageReceived'
+
+  // רק הודעות אמיתיות, בשני הכיוונים
+  if (!isIncoming && !isOutgoing) {
     return NextResponse.json({ ok: true })
   }
 
@@ -72,76 +209,106 @@ export async function POST(req: NextRequest) {
 
   const chatId = senderData.chatId
 
-  // ── סנן קבוצות ────────────────────────────────────────────────
+  // סנן קבוצות
   if (chatId.includes('@g.us') || chatId.includes('@broadcast')) {
     return NextResponse.json({ ok: true })
   }
 
-  // ── סנן הודעות ישנות (לפני 30 דקות) ──────────────────────────
+  // סנן הודעות ישנות (לפני 30 דקות)
   const thirtyMinutesAgo = Math.floor(Date.now() / 1000) - 30 * 60
   if (timestamp > 0 && timestamp < thirtyMinutesAgo) {
     return NextResponse.json({ ok: true })
   }
 
-  const senderPhone = normalizePhone(chatId.replace('@c.us', ''))
+  // בשני הכיוונים chatId הוא תמיד הצד השני, כלומר הליד
+  const leadPhone = normalizePhone(chatId.replace('@c.us', ''))
   const ohadPhone = normalizePhone(OHAD_WA)
 
-  // ── אל תשלח לעצמך ─────────────────────────────────────────────
-  if (senderPhone === ohadPhone) {
+  // שיחה של אוהד עם עצמו, לא רלוונטית
+  if (leadPhone === ohadPhone) {
     return NextResponse.json({ ok: true })
   }
 
-  // ── בדוק שהשולח הוא ליד מוכר ב-Supabase ──────────────────────
   try {
     const supabase = createServiceClient()
-    const lead = await findLead(supabase, senderPhone)
+    const lead = await findLead(supabase, leadPhone)
 
-    // ── טקסט ההודעה ───────────────────────────────────────────────
-    const textData = messageData.textMessageData as Record<string, string> | undefined
-    const msgText = textData?.textMessage || '[הודעה שאינה טקסט]'
+    const { text, file } = extractMessage(messageData)
 
-    // ── שמירת ההודעה לשיחה ────────────────────────────────────────
-    // נשמר גם כשהשולח אינו ליד מוכר: טריגר בבסיס הנתונים משייך לפי
-    // טלפון, וכך הודעה שקדמה ליצירת הליד תתחבר אליו כשייווצר.
+    // 🚨 מינימיזציה: שומרים אך ורק התכתבות עם ליד של המשרד.
+    //
+    // מספר המשרד משמש גם לעסקים אחרים של אוהד (שירכו), ובלי החסם
+    // הזה התכתבות של לקוחות עסק אחר נכנסת לבסיס הנתונים של משרד
+    // עורכי הדין. זו בדיוק ההפרדה שתיקון 13 דורש. נקבע 29/08/2026.
+    //
+    // המחיר המודע: מי שכותב למספר המשרד בלי להיות ליד רשום, השיחה
+    // איתו לא תתועד עד שייפתח לו ליד. היא עדיין נמצאת בוואטסאפ עצמו.
+    if (!lead) {
+      // לקוח שסגר תיק ומבקש הסרה מבקשות ביקורת. מטופל בלי לשמור כלום.
+      if (isIncoming && isOptOut(text)) {
+        await optOutClientReviews(supabase, leadPhone)
+      }
+      return NextResponse.json({ ok: true, skipped: 'לא ליד של המשרד' })
+    }
+
+    // קובץ מצורף: להוריד, לשמור, ולצרף לליד
+    let bodyText = text
+    if (file) {
+      // הקובץ נשמר תחת מזהה הליד, ולכן יושב יחד עם תלושים שהגיעו
+      // מדף הנחיתה. שם התיקייה חייב להיות באנגלית, ראה safeStorageName.
+      const stored = await storeFile(supabase, String(lead.id), file)
+      if (stored) {
+        // מבנה קבוע שה-CRM יודע לפרק: סמן, שם הקובץ, קישור, ואז הכיתוב.
+        // כך אפשר להציג את הקובץ ככפתור לחיץ במקום כטקסט.
+        bodyText = `📎 ${file.name}\n${stored.url ?? ''}${text ? '\n' + text : ''}`
+        await attachToLead(supabase, lead.table, String(lead.id), lead.uploaded_files, stored)
+      } else {
+        bodyText = `📎 ${file.name} (השמירה נכשלה)${text ? '\n' + text : ''}`
+      }
+    }
+
+    // שמירת ההודעה לשיחה. טריגר בבסיס הנתונים משייך אותה לליד לפי הטלפון.
     try {
       await supabase.from('whatsapp_messages').insert({
-        phone: senderPhone,
-        direction: 'נכנסת',
-        body: msgText,
+        phone: leadPhone,
+        direction: isIncoming ? 'נכנסת' : 'יוצאת',
+        body: bodyText || '[הודעה ריקה]',
         provider_message_id: (body.idMessage as string) || null,
-        is_read: false,
+        sent_by: isIncoming
+          ? null
+          : hook === 'outgoingAPIMessageReceived'
+            ? 'מערכת אוטומטית'
+            : 'נשלח מהנייד',
+        is_read: isOutgoing, // הודעה שיצאה מאיתנו כבר נקראה מעצם השליחה
       })
     } catch (e) {
-      console.error('[whatsapp-incoming] Failed to store message:', e)
+      console.error('[whatsapp] שמירת ההודעה נכשלה:', e)
     }
 
-    if (!lead) {
-      // לא ליד מוכר. עדיין ייתכן שזה לקוח שקיבל בקשת ביקורת ומבקש הסרה.
-      if (isOptOut(msgText)) {
-        await optOutClientReviews(supabase, senderPhone)
-      }
-      // מעבר לזה לא שולחים לאוהד
-      return NextResponse.json({ ok: true })
+    // מכאן והלאה: תגובות שרלוונטיות רק להודעה שהליד שלח.
+    // הודעה יוצאת לעולם לא מפעילה הסרה ולא עוצרת את הרובוט.
+    if (!isIncoming) {
+      return NextResponse.json({ ok: true, logged: true })
     }
 
-    // ── בקשת הסרה → עצירה מלאה + אישור לליד ────────────────────
-    // אין התראה לאוהד (לבקשתו), הרעש מיותר; ההודעה ממילא נכנסת לצ'אט שלו.
-    if (isOptOut(msgText)) {
+    // בקשת הסרה, עצירה מלאה ואישור לליד.
+    // אין התראה לאוהד (לבקשתו), הרעש מיותר; ההודעה ממילא נכנסת לצאט שלו.
+    if (isOptOut(text)) {
       await supabase.from(lead.table)
         .update({ followup_opted_out: true, followup_stopped: true })
         .eq('id', lead.id)
-      await sendWhatsApp(senderPhone, 'הוסרת מרשימת ההודעות שלנו. תודה, ובהצלחה! 🙏')
+      await sendWhatsApp(leadPhone, 'הוסרת מרשימת ההודעות שלנו. תודה, ובהצלחה! 🙏')
       return NextResponse.json({ ok: true, opted_out: true })
     }
 
-    // ── הליד ענה → עצור את הרובוט (אוהד ממשיך ידנית) ───────────
+    // הליד ענה, עוצרים את הרובוט (אוהד ממשיך ידנית).
     // ללא התראת "ליד ענה" לאוהד (לבקשתו): הרובוט רץ על המספר שלו,
-    // כך שתשובת הליד נכנסת ממילא ישירות לצ'אט שלו בוואטסאפ.
+    // כך שתשובת הליד נכנסת ממילא ישירות לצאט שלו בוואטסאפ.
     await supabase.from(lead.table)
       .update({ followup_stopped: true })
       .eq('id', lead.id)
   } catch (e) {
-    console.error('[whatsapp-incoming] Error:', e)
+    console.error('[whatsapp] שגיאה:', e)
   }
 
   return NextResponse.json({ ok: true })

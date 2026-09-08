@@ -250,9 +250,10 @@ export async function POST(req: NextRequest) {
   // כי הטופס לא מבחין בחצי שנה (האפשרות הקטנה ביותר היא "פחות משנה").
 
   // ── 1. Supabase ───────────────────────────────────────────────
-  // הליד נכנס לרצף הפולואפ. קיבל הודעת פתיחה עכשיו, והבאה היא הפרידה ביום 7.
-  // היה כאן 3 ימים, לפני שהודעת יום 3 הוסרה. ראה lib/followup-templates.ts
-  const followupNextAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  // הליד נכנס לרצף הפולואפ. קיבל הודעת פתיחה עכשיו, והתזכורת הראשונה
+  // יוצאת מחר. הרצף: יום 1, יום 3, ואז פרידה ביום 7.
+  // ראה lib/followup-templates.ts
+  const followupNextAt = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString()
   const track = routeLead(years_worked, situation)
   try {
     const supabase = createServiceClient()
