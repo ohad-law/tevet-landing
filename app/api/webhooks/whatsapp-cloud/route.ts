@@ -9,6 +9,7 @@
  * POST = הודעות נכנסות ועדכוני סטטוס.
  */
 import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
 import { createServiceClient } from '@/lib/supabase/service'
 import { normalizePhone } from '@/lib/base44'
 import { isOptOut } from '@/lib/followup-templates'
@@ -73,10 +74,37 @@ function extractText(msg: Record<string, unknown>): string {
   return withCaption?.caption || '[הודעה שאינה טקסט]'
 }
 
+/**
+ * אימות שההודעה באמת נשלחה ממטא.
+ * מטא חותמת כל webhook ב-HMAC-SHA256 עם הסוד של האפליקציה, על הגוף
+ * הגולמי בדיוק כפי שנשלח. בלי זה כל מי שמכיר את הכתובת יכול להזריק
+ * "הודעות" לכרטיסי הלידים. לכן נכשלים סגור: בלי סוד מוגדר, דוחים הכל.
+ */
+function isValidMetaSignature(raw: string, header: string | null): boolean {
+  const secret = process.env.WHATSAPP_APP_SECRET
+  if (!secret || !header?.startsWith('sha256=')) return false
+  const expected = 'sha256=' + crypto.createHmac('sha256', secret).update(raw, 'utf8').digest('hex')
+  const a = Buffer.from(expected)
+  const b = Buffer.from(header)
+  return a.length === b.length && crypto.timingSafeEqual(a, b)
+}
+
 export async function POST(req: NextRequest) {
+  // הגוף הגולמי נקרא לפני הפענוח, כי החתימה מחושבת עליו בדיוק
+  const raw = await req.text()
+
+  if (!process.env.WHATSAPP_APP_SECRET) {
+    console.error('[wa-cloud] WHATSAPP_APP_SECRET is not set, refusing unsigned traffic')
+    return new NextResponse('misconfigured', { status: 500 })
+  }
+  if (!isValidMetaSignature(raw, req.headers.get('x-hub-signature-256'))) {
+    console.warn('[wa-cloud] Rejected request with invalid signature')
+    return new NextResponse('forbidden', { status: 403 })
+  }
+
   let body: Record<string, unknown>
   try {
-    body = await req.json()
+    body = JSON.parse(raw)
   } catch {
     return NextResponse.json({ ok: true }) // מטא מצפה תמיד ל-200
   }
