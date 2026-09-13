@@ -369,6 +369,63 @@
   max-width: 56ch;
 }
 
+/* ── טופס השארת פרטים, למי שמסמן פחות משלושה ── */
+.leadBox { margin-top: 1.3rem; }
+.leadPrompt {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.75rem;
+}
+.leadForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.leadInput {
+  flex: 1 1 140px;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-family: inherit;
+  color: #fff;
+}
+.leadInput::placeholder { color: rgba(255, 255, 255, 0.35); }
+.leadInput:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+.leadSubmit {
+  flex: 1 1 100%;
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: 10px;
+  padding: 0.85rem;
+  font-size: 1rem;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.leadSubmit:disabled { opacity: 0.5; cursor: not-allowed; }
+.leadSubmit:not(:disabled):hover { opacity: 0.9; }
+@media (min-width: 420px) {
+  .leadSubmit { flex: 0 0 auto; padding: 0.85rem 1.6rem; }
+}
+.leadSentMsg {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+.leadErrorMsg {
+  margin-top: 0.6rem;
+  font-size: 0.88rem;
+  color: #e08080;
+}
+
 .resultHot {
   border: 1px solid rgba(201, 168, 76, 0.4);
   background:

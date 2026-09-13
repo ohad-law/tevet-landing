@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { ITEMS, STATS, VERIFIED_ON } from "./data";
+import { submitChecklistLead } from "./actions";
 import s from "./checklist.module.css";
 
 /**
@@ -44,6 +45,12 @@ function track(event: string, payload?: Record<string, unknown>) {
 export default function Checklist() {
   const [missing, setMissing] = useState<Record<number, boolean>>({});
   const [open, setOpen] = useState<number | null>(1);
+  const [leadName, setLeadName] = useState("");
+  const [leadPhone, setLeadPhone] = useState("");
+  const [leadStatus, setLeadStatus] = useState<
+    "idle" | "sending" | "sent" | "error"
+  >("idle");
+  const [leadError, setLeadError] = useState("");
 
   const count = useMemo(
     () => Object.values(missing).filter(Boolean).length,
@@ -62,6 +69,23 @@ export default function Checklist() {
     });
   }
 
+  async function handleLeadSubmit() {
+    if (!leadPhone.trim()) return;
+    setLeadStatus("sending");
+    setLeadError("");
+    const missingLabels = ITEMS.filter((it) => missing[it.n]).map(
+      (it) => it.title
+    );
+    const res = await submitChecklistLead(leadName, leadPhone, missingLabels);
+    if (res.ok) {
+      setLeadStatus("sent");
+      track("Lead", { content_name: "checklist_form", missing_count: count });
+    } else {
+      setLeadStatus("error");
+      setLeadError(res.error || "שגיאה, נסו שוב");
+    }
+  }
+
   const waText = encodeURIComponent(
     count >= 3
       ? `היי, עברתי על הצ'קליסט באתר וסימנתי ${count} רכיבים שחסרים לי בתלוש. אשמח לבדוק מה זה שווה.`
@@ -72,7 +96,13 @@ export default function Checklist() {
     <div className={s.page}>
       <div className={s.top}>
         <div className={s.topInner}>
-          <a href="/" className={s.logo} aria-label="משרד עורכי דין טבת">
+          <a
+            href="https://tevet-law.co.il"
+            target="_blank"
+            rel="noopener"
+            className={s.logo}
+            aria-label="משרד עורכי דין טבת"
+          >
             <Image
               src="/tevet-logo.png"
               alt="טבת משרד עורכי דין"
@@ -81,7 +111,12 @@ export default function Checklist() {
               priority
             />
           </a>
-          <a href="/" className={s.backLink}>
+          <a
+            href="https://tevet-law.co.il"
+            target="_blank"
+            rel="noopener"
+            className={s.backLink}
+          >
             לאתר המשרד
           </a>
         </div>
@@ -150,7 +185,7 @@ export default function Checklist() {
           </p>
 
           <div className={s.news}>
-            <div className={s.newsTitle}>עדכון מהשבוע</div>
+            <div className={s.newsTitle}>עדכון רגולטורי</div>
             <p className={s.newsBody}>
               ב־<N>18/08/2026</N> פורסם צו הרחבה חדש שמעלה את יום
               ההבראה במגזר הפרטי מ־<N>418</N> ל־<N>451.50</N> שקל.
@@ -251,6 +286,48 @@ export default function Checklist() {
               שווה תביעה. שים לב במיוחד לפנסיה: גם כשהשורה קיימת,
               האחוזים או השכר שעליו היא מחושבת יכולים להיות נמוכים
               מהמינימום, וזה החוסר שהכי קל לפספס.
+            </div>
+          )}
+
+          {count < 3 && (
+            <div className={s.leadBox}>
+              {leadStatus === "sent" ? (
+                <p className={s.leadSentMsg}>
+                  קיבלתי. אחזור אליך בהקדם.
+                </p>
+              ) : (
+                <>
+                  <p className={s.leadPrompt}>
+                    רוצה שאעיף מבט בעצמי ואחזור אליך?
+                  </p>
+                  <div className={s.leadForm}>
+                    <input
+                      type="text"
+                      placeholder="שם"
+                      value={leadName}
+                      onChange={(e) => setLeadName(e.target.value)}
+                      className={s.leadInput}
+                    />
+                    <input
+                      type="tel"
+                      placeholder="טלפון"
+                      value={leadPhone}
+                      onChange={(e) => setLeadPhone(e.target.value)}
+                      className={s.leadInput}
+                    />
+                    <button
+                      className={s.leadSubmit}
+                      disabled={leadStatus === "sending" || !leadPhone.trim()}
+                      onClick={handleLeadSubmit}
+                    >
+                      {leadStatus === "sending" ? "שולח..." : "השאירו פרטים"}
+                    </button>
+                  </div>
+                  {leadStatus === "error" && (
+                    <p className={s.leadErrorMsg}>{leadError}</p>
+                  )}
+                </>
+              )}
             </div>
           )}
 
