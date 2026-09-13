@@ -162,11 +162,26 @@ export async function POST(req: NextRequest) {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let body: Record<string, any>
+  let body: Record<string, any> = {}
   try {
     body = await req.json()
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+    // גוף לא תקין הוא לא סיבה להפיל ליד. ה-query string הוא מקור חלופי מלא.
+    console.warn('[incoming] Body is not valid JSON, falling back to query params')
+  }
+
+  // ── מקור חלופי: query parameters ─────────────────────────────
+  // 🚨 Make בנה את ה-JSON כטקסט, וכל גרשיים בשדה חופשי (מנכ"ל, רו"ח)
+  // שברה אותו והפילה את כל הצינור. אירע 11/09/2026 ועלה 19 לידים.
+  // query params עוברים urlencode ולכן הם חסינים. הגוף גובר כשהוא קיים.
+  const qp: Record<string, string> = {}
+  req.nextUrl.searchParams.forEach((v, k) => {
+    if (v !== '' && v !== 'undefined' && v !== 'null') qp[k] = v
+  })
+  body = { ...qp, ...body }
+
+  if (Object.keys(body).length === 0) {
+    return NextResponse.json({ error: 'Empty payload' }, { status: 400 })
   }
 
   console.log('[incoming] Received lead:', JSON.stringify(body))
