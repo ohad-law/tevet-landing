@@ -47,6 +47,14 @@ export async function GET(req: NextRequest) {
   return new NextResponse('forbidden', { status: 403 })
 }
 
+/**
+ * מחפש ליד לפי טלפון בשתי הטבלאות (גם בפורמט 972 וגם 05).
+ *
+ * 🚨 אסור להשתמש כאן ב-maybeSingle. הוא נכשל כשיותר משורה אחת תואמת,
+ * ובמערכת יש לידים כפולים עם אותו טלפון (30 מתוך 426, אומת 15/09/2026).
+ * הכשל שקט: הליד נראה "לא מוכר", הבוט לא נעצר, וההתראה מטעה.
+ * לוקחים את הליד החדש ביותר, כי הוא הרלוונטי לשיחה שמתנהלת עכשיו.
+ */
 async function findLead(
   supabase: ReturnType<typeof createServiceClient>,
   phone972: string
@@ -57,8 +65,9 @@ async function findLead(
       .from(table)
       .select('id, full_name, phone')
       .or(`phone.eq.${phone972},phone.eq.${local}`)
-      .maybeSingle()
-    if (data) return { ...data, table }
+      .order('created_at', { ascending: false })
+      .limit(1)
+    if (data && data.length > 0) return { ...data[0], table }
   }
   return null
 }
