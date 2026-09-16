@@ -1,0 +1,345 @@
+/*
+ * דף המכירה של תחשיב החוסרים.
+ *
+ * 🚨 למה CSS מודול ולא טיילווינד: ב-globals.css יש
+ * `* { margin: 0; padding: 0 }` בלי שכבה, והוא גובר על מחלקות
+ * המרווח של טיילווינד. בנוסף globals.css מגדיר
+ * `section { padding: 5rem 1.5rem }`, ולכן אין כאן אף תג section.
+ * זה בדיוק מה ששבר את הגרסה הראשונה של הדף הזה, ואותו אילוץ
+ * תועד כבר ב-itzumim.module.css וב-checklist.module.css.
+ *
+ * הגדלים לפי תקן הטיפוגרפיה של יהב רובין
+ * (reference_nextlevel_typography): h1 בדסקטופ 48 ובמובייל 36,
+ * h2 36 ו-28, h3 28 ו-22, גוף 18 ו-16 בגובה שורה 1.6, כפתור
+ * בגובה 48 פיקסל לפחות. ביחידות rem, בלי רוחב קבוע, ובלי
+ * גלילה אופקית.
+ *
+ * הפלטה: נייבי ופליז, כמו בדף העיצומים שקיבל שישה מתוך שמונה
+ * בסורק. הזהב הגלובלי הרווי נראה ספורטיבי על דף שלם, ולכן פליז
+ * עמום. אין כאן צבע התראה, כי בניגוד לעיצום אין מכתב רשמי עם
+ * שעון של 30 יום, ואדום על דף מכירה רגיל נקרא זול.
+ */
+.page {
+  min-height: 100vh;
+  --navy: #0b1120;
+  --navy-soft: #111a2e;
+  --white: #f1efea;
+  --brass: #b09765;
+  --brass-dim: rgba(176, 151, 101, 0.1);
+  --brass-border: rgba(176, 151, 101, 0.28);
+  --text-dim: rgba(241, 239, 234, 0.62);
+  --text-faint: rgba(241, 239, 234, 0.3);
+  --hair: rgba(241, 239, 234, 0.08);
+
+  background:
+    radial-gradient(1400px 700px at 50% -20%, rgba(176, 151, 101, 0.05), transparent 62%),
+    var(--navy);
+  color: var(--white);
+  font-family: "Assistant", "Heebo", Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+@media (min-width: 768px) {
+  .page { font-size: 1.125rem; }
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ── סרגל עליון ── */
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem clamp(1rem, 4vw, 3rem);
+  background: rgba(11, 17, 32, 0.94);
+  border-bottom: 1px solid var(--brass-border);
+  backdrop-filter: blur(10px);
+}
+.topLogo { display: block; height: 28px; width: auto; }
+@media (min-width: 640px) { .topLogo { height: 34px; } }
+.topNote {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* ── מעטפת ── */
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 clamp(1.1rem, 5vw, 2rem);
+}
+.block { padding: clamp(2.6rem, 7vw, 4.5rem) 0; }
+.blockTight { padding: clamp(1.8rem, 5vw, 3rem) 0; }
+.hair { border-top: 1px solid var(--hair); }
+
+/* ── טיפוגרפיה, תקן יהב ── */
+.eyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  color: var(--brass);
+  margin-bottom: 0.9rem;
+}
+.h1 {
+  font-size: 2.25rem;  /* 36px מובייל */
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+}
+@media (min-width: 768px) { .h1 { font-size: 3rem; } }  /* 48px */
+.h2 {
+  font-size: 1.75rem;  /* 28px */
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 1.25rem;
+}
+@media (min-width: 768px) { .h2 { font-size: 2.25rem; } }  /* 36px */
+.h3 {
+  font-size: 1.375rem;  /* 22px */
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 0.6rem;
+}
+@media (min-width: 768px) { .h3 { font-size: 1.75rem; } }  /* 28px */
+.p {
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  color: var(--text-dim);
+}
+.pLead { color: var(--white); }
+.p strong, .pLead strong { color: var(--white); font-weight: 700; }
+.brass { color: var(--brass); }
+
+/* ── המספר כגיבור ── */
+.figures {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+  margin: 1.8rem 0;
+}
+@media (min-width: 560px) { .figures { grid-template-columns: 1fr 1fr; } }
+.figure {
+  border: 1px solid var(--brass-border);
+  background: var(--brass-dim);
+  border-radius: 10px;
+  padding: 1.25rem 1.4rem;
+}
+.figureLabel {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  margin-bottom: 0.35rem;
+}
+.figureValue {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--white);
+}
+@media (min-width: 768px) { .figureValue { font-size: 2.5rem; } }
+.figureAccent .figureValue { color: var(--brass); }
+
+.pull {
+  border-right: 3px solid var(--brass);
+  padding-right: 1.1rem;
+  margin: 1.6rem 0 0;
+  color: var(--white);
+  line-height: 1.6;
+}
+
+/* ── רשימת מה מקבלים ── */
+.items { display: grid; gap: 0.9rem; margin-top: 1.8rem; }
+.item {
+  border: 1px solid var(--hair);
+  background: var(--navy-soft);
+  border-radius: 10px;
+  padding: 1.3rem 1.4rem;
+}
+.itemGift { border-color: var(--brass-border); }
+.itemTag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--brass);
+  border: 1px solid var(--brass-border);
+  border-radius: 50px;
+  padding: 0.15rem 0.7rem;
+  margin-bottom: 0.6rem;
+}
+
+/* ── ההתחייבות ── */
+.promise {
+  border: 1px solid var(--brass-border);
+  background: linear-gradient(180deg, rgba(176,151,101,0.1), rgba(176,151,101,0.03));
+  border-radius: 14px;
+  padding: clamp(1.6rem, 5vw, 2.4rem);
+}
+.promiseBig {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--white);
+  margin: 1rem 0;
+}
+@media (min-width: 768px) { .promiseBig { font-size: 1.5rem; } }
+
+/* ── צעדים ── */
+.steps { display: grid; gap: 1.2rem; margin-top: 1.8rem; }
+.step { display: flex; gap: 1rem; align-items: flex-start; }
+.stepNum {
+  flex: 0 0 auto;
+  width: 2rem; height: 2rem;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: var(--brass);
+  color: var(--navy);
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+.stepText { line-height: 1.6; color: var(--text-dim); padding-top: 0.15rem; }
+
+/* ── כפתור, מינימום 48 פיקסל גובה ── */
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 56px;
+  padding: 0.9rem 1.8rem;
+  background: var(--brass);
+  color: var(--navy);
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+@media (min-width: 768px) { .cta { font-size: 1.125rem; } }
+.cta:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.ctaNote {
+  margin-top: 0.8rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-faint);
+}
+
+/* ── שעון ההתיישנות ── */
+.clock {
+  border: 1px solid var(--brass-border);
+  border-radius: 14px;
+  padding: clamp(1.6rem, 5vw, 2.4rem);
+  background: var(--navy-soft);
+}
+
+/* ── שאלות ותשובות ── */
+.faq { margin-top: 1.6rem; display: grid; gap: 0.7rem; }
+.q {
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  background: var(--navy-soft);
+  padding: 1.1rem 1.3rem;
+}
+.qHead {
+  cursor: pointer;
+  list-style: none;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.5;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.qHead::-webkit-details-marker { display: none; }
+.qHead::after { content: "+"; color: var(--brass); font-weight: 700; }
+.q[open] .qHead::after { content: "\2013"; }
+.qBody { margin-top: 0.9rem; color: var(--text-dim); line-height: 1.6; }
+
+/* ── שלוש האפשרויות ── */
+.choices { display: grid; gap: 0.8rem; margin-top: 1.6rem; }
+.choice {
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  padding: 1.2rem 1.35rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+.choicePick {
+  border-color: var(--brass-border);
+  background: var(--brass-dim);
+  color: var(--white);
+}
+.choiceNum { color: var(--brass); font-weight: 800; }
+
+/* ── מסר אישי ── */
+.signoff { display: flex; gap: 1.1rem; align-items: center; margin-bottom: 1.4rem; }
+.signoffPhoto {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--brass-border);
+}
+.signoffName { font-weight: 700; color: var(--white); }
+.signoffRole { font-size: 0.88rem; color: var(--text-dim); line-height: 1.4; }
+
+/* ── תחתית ── */
+.foot {
+  border-top: 1px solid var(--hair);
+  padding: 2rem 0 7rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-faint);
+  line-height: 1.7;
+}
+@media (min-width: 768px) { .foot { padding-bottom: 3rem; } }
+
+/* ── CTA צף במובייל ── */
+.sticky {
+  position: fixed;
+  right: 0; left: 0; bottom: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.7rem clamp(0.9rem, 4vw, 1.4rem);
+  background: rgba(11, 17, 32, 0.97);
+  border-top: 1px solid var(--brass-border);
+  backdrop-filter: blur(10px);
+  transform: translateY(110%);
+  transition: transform 0.25s ease;
+  pointer-events: none;
+}
+.stickyOn { transform: translateY(0); pointer-events: auto; }
+@media (min-width: 900px) { .sticky { display: none; } }
+.stickyText {
+  flex: 1;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: var(--text-dim);
+}
+.stickyText strong { display: block; color: var(--white); font-size: 0.95rem; }
+.stickyBtn {
+  flex: 0 0 auto;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 1.3rem;
+  background: var(--brass);
+  color: var(--navy);
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
