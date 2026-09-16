@@ -366,3 +366,87 @@
   text-decoration: none;
   white-space: nowrap;
 }
+
+/* ── סרגל אמון מתחת לכותרת ── */
+.trust {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.7rem;
+  margin: 1.8rem 0 0;
+}
+@media (min-width: 560px) { .trust { grid-template-columns: repeat(3, 1fr); } }
+.trustItem {
+  border: 1px solid var(--brass-border);
+  background: var(--brass-dim);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  text-align: center;
+}
+.trustNum {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--brass);
+  line-height: 1.15;
+}
+.trustLabel {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-top: 0.25rem;
+  line-height: 1.35;
+}
+
+/* ── תוצאות לקוחות, מפוזרות לאורך הדף ── */
+.results { display: grid; gap: 0.7rem; margin-top: 1.5rem; }
+.result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--hair);
+  background: var(--navy-soft);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+}
+.resultWho { font-weight: 700; color: var(--white); line-height: 1.35; }
+.resultWhat { font-size: 0.85rem; color: var(--text-dim); margin-top: 0.15rem; line-height: 1.4; }
+.resultAmount {
+  flex: 0 0 auto;
+  text-align: left;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--brass);
+  white-space: nowrap;
+}
+@media (min-width: 560px) { .resultAmount { font-size: 1.4rem; } }
+.resultVerb { display: block; font-size: 0.72rem; font-weight: 600; color: var(--text-faint); }
+
+/* ── מסמכים מושחרים ── */
+.docs {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.1rem;
+  margin-top: 1.5rem;
+}
+@media (min-width: 640px) { .docs { grid-template-columns: 1fr 1fr; } }
+.doc {
+  border: 1px solid var(--hair);
+  background: var(--navy-soft);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 0;
+}
+.doc img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-bottom: 1px solid var(--hair);
+}
+.docCap { padding: 0.9rem 1.1rem; }
+.docAmount { font-size: 1.2rem; font-weight: 800; color: var(--brass); }
+.docText { font-size: 0.85rem; color: var(--text-dim); margin-top: 0.2rem; line-height: 1.45; }
+.fineprint {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  line-height: 1.55;
+}

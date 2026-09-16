@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { FAQ, WHAT_YOU_GET, CHOICES } from "./copy";
+import {
+  FAQ,
+  WHAT_YOU_GET,
+  CHOICES,
+  RESULTS_EARLY,
+  RESULTS_LATE,
+  DOCS,
+} from "./copy";
 import StickyCta from "./StickyCta";
 import s from "./tlush-check.module.css";
 
@@ -35,6 +42,32 @@ export const metadata: Metadata = {
   alternates: { canonical: "/tlush-check" },
   robots: { index: false, follow: false },
 };
+
+type Result = {
+  who: string; years: string; what: string; verb: string; amount: string;
+};
+
+/** שורות תוצאה. מפוזרות לאורך הדף ולא מרוכזות בקופסה אחת. */
+function Results({ rows }: { rows: Result[] }) {
+  return (
+    <div className={s.results}>
+      {rows.map((r) => (
+        <div key={r.who + r.amount} className={s.result}>
+          <div>
+            <div className={s.resultWho}>
+              {r.who}, {r.years}
+            </div>
+            <div className={s.resultWhat}>{r.what}</div>
+          </div>
+          <div className={`${s.resultAmount} ${s.num}`}>
+            <span className={s.resultVerb}>{r.verb}</span>
+            {r.amount}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function Cta({ label, id }: { label: string; id?: string }) {
   return (
@@ -83,7 +116,23 @@ export default function Page() {
             בדיקה שמגלה בדיוק כמה כסף חסר לכם בתלושים של שבע השנים
             האחרונות. <strong>אם לא נמצא, הכסף חוזר.</strong>
           </p>
-          <p className={`${s.p} ${s.pLead}`}>
+          {/* סרגל אמון. נותן גיבוי מספרי לסמכות מיד אחרי הכותרת. */}
+          <div className={s.trust}>
+            <div className={s.trustItem}>
+              <div className={`${s.trustNum} ${s.num}`}>6 מיליון ₪</div>
+              <div className={s.trustLabel}>הושגו ללקוחות בשנה האחרונה</div>
+            </div>
+            <div className={s.trustItem}>
+              <div className={`${s.trustNum} ${s.num}`}>מאות</div>
+              <div className={s.trustLabel}>תלושים שנבדקו במשרד</div>
+            </div>
+            <div className={s.trustItem}>
+              <div className={`${s.trustNum} ${s.num}`}>5.0</div>
+              <div className={s.trustLabel}>דירוג בגוגל</div>
+            </div>
+          </div>
+
+          <p className={`${s.p} ${s.pLead}`} style={{ marginTop: "1.8rem" }}>
             פעם בחודש נכנס תלוש. אתם מסתכלים על השורה התחתונה,
             המספר בערך מה שציפיתם, וסוגרים. ככה עוברות שנים.
           </p>
@@ -139,6 +188,17 @@ export default function Page() {
           <div style={{ marginTop: "2.4rem" }}>
             <Cta label="לבדוק כמה חסר לי" id="first-cta" />
           </div>
+        </div>
+
+        {/*
+          4. הוכחות חברתיות, מנה ראשונה.
+          מיד אחרי הדוגמה המוחשית, כשהגולש שואל "אבל האם זה קורה
+          לאנשים אמיתיים". הסורק: לפזר ולא לרכז.
+        */}
+        <div className={`${s.block} ${s.hair}`}>
+          <p className={s.eyebrow}>קרה ללקוחות שלנו</p>
+          <h2 className={s.h2}>לא תיאוריה. כסף שנכנס לחשבון.</h2>
+          <Results rows={RESULTS_EARLY} />
         </div>
 
         {/*
@@ -206,6 +266,34 @@ export default function Page() {
           </div>
           <div style={{ marginTop: "2.2rem" }}>
             <Cta label="לבחירת הוותק שלכם" />
+          </div>
+        </div>
+
+        {/*
+          4. הוכחות חברתיות, מנה שנייה: מסמכים מושחרים.
+          אותם קבצים שכבר מוצגים ב-/bdika. מסמך רשמי מושחר עושה
+          מה שטבלת מספרים לא עושה, כי אי אפשר להמציא אותו.
+        */}
+        <div className={`${s.block} ${s.hair}`}>
+          <p className={s.eyebrow}>מסמכים, לא הבטחות</p>
+          <h2 className={s.h2}>איך זה נראה כשזה נגמר</h2>
+          <div className={s.docs}>
+            {DOCS.map((d) => (
+              <figure key={d.src} className={s.doc}>
+                <img src={d.src} alt={d.alt} loading="lazy" />
+                <figcaption className={s.docCap}>
+                  <div className={`${s.docAmount} ${s.num}`}>{d.amount}</div>
+                  <div className={s.docText}>{d.caption}</div>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+          <p className={s.fineprint}>
+            הפרטים המזהים הושחרו. כל תיק נבחן לגופו, ואין בתוצאה
+            של תיק אחד כדי להבטיח תוצאה בתיק אחר.
+          </p>
+          <div style={{ marginTop: "1.6rem" }}>
+            <Results rows={RESULTS_LATE} />
           </div>
         </div>
 
@@ -278,7 +366,8 @@ export default function Page() {
           <p className={s.p}>
             אני לא רק מוציא תחשיבים, אני גם תובע איתם בבתי הדין.
             אצל רוב מי שעושה את זה הדוח הוא סוף הדרך, ואצלי הוא
-            ההתחלה שלה.
+            ההתחלה שלה. <strong>בשנה האחרונה השגנו ללקוחות שלנו
+            למעלה מ-6 מיליון ש&quot;ח</strong> שהמעסיקים החסירו מהם.
           </p>
           <p className={s.p}>
             אני אומר מראש שלא כל מקרה מתאים, וגם כשזה עולה לי
