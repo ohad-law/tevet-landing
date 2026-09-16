@@ -110,6 +110,22 @@
   margin-bottom: 0.6rem;
 }
 @media (min-width: 768px) { .h3 { font-size: 1.75rem; } }  /* 28px */
+/*
+ * כותרת משנה תועלתית, מתחת ל-h1. נוספה אחרי סריקת הנקסט לבל
+ * שסימנה שההוק חכם אבל לא אומר מה יוצא לגולש תוך שלוש שניות.
+ * גדולה מגוף הטקסט וקטנה מ-h2, כדי שתיקרא מיד ולא תתחרה בכותרת.
+ */
+.sub {
+  font-size: 1.125rem;
+  line-height: 1.55;
+  color: var(--text-dim);
+  margin-bottom: 1.6rem;
+  padding-bottom: 1.4rem;
+  border-bottom: 1px solid var(--hair);
+}
+@media (min-width: 768px) { .sub { font-size: 1.3rem; } }
+.sub strong { color: var(--brass); font-weight: 700; }
+
 .p {
   line-height: 1.6;
   margin-bottom: 1rem;
@@ -120,11 +136,18 @@
 .brass { color: var(--brass); }
 
 /* ── המספר כגיבור ── */
+/*
+ * בלוק המספרים. הסורק סימן שבמובייל הוא נחסם חלקית על ידי
+ * הסרגל הצף, וזו הדוגמה החזקה ביותר בדף. שני תיקונים:
+ * העוגן של הסרגל הצף הועבר לכפתור שמתחת לבלוק הזה, כך שהסרגל
+ * לא יכול לעלות בזמן שהמספרים על המסך, וכאן נוסף אוויר מסביב.
+ */
 .figures {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.9rem;
-  margin: 1.8rem 0;
+  margin: 2.4rem 0;
+  scroll-margin-bottom: 6rem;
 }
 @media (min-width: 560px) { .figures { grid-template-columns: 1fr 1fr; } }
 .figure {
