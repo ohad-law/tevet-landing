@@ -152,8 +152,7 @@ export default function Upload() {
 
       <div className={s.wrap}>
         <div className={s.block}>
-          <p className={s.eyebrow}>שלב אחרון</p>
-          <h1 className={s.h1}>עכשיו נשלח לנו את המסמכים</h1>
+          <h1 className={s.h1}>עכשיו תשלח לנו את המסמכים</h1>
           <p className={s.p}>
             ככל שתעלו יותר, התחשיב יהיה מדויק יותר. אפשר להעלות הכל
             עכשיו, ואפשר להשלים אחר כך בוואטסאפ.
