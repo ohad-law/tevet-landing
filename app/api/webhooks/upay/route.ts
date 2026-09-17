@@ -88,6 +88,47 @@ function findAmount(p: Record<string, string>): number | null {
   return null
 }
 
+/**
+ * האם זה תשלום על תחשיב חוסרים.
+ * התיאור שנקבע בעמודי התשלום הוא "תחשיב חוסרים שנה X", ולכן די
+ * לחפש את המילה. אם לא נמצאה, ההתנהגות נשארת בדיוק כפי שהייתה.
+ */
+function isTahshiv(p: Record<string, string>): boolean {
+  return Object.values(p).some(v => /תחשיב/.test(String(v)))
+}
+
+/**
+ * הקישור שנשלח ללקוח מיד אחרי התשלום, להעלאת התלושים, דוחות
+ * הנוכחות ודוחות הפנסיה.
+ *
+ * 🚨 למה בוואטסאפ ולא בדף החזרה של UPAY: דף החזרה מוגדר בתוך כל
+ * עמוד תשלום בנפרד, ושינוי שלו אומר לגעת בשבעה קישורים. הווהבוק
+ * הזה כבר מוגדר בכולם, ולכן ההודעה מגיעה בלי לגעת בכלום.
+ * בונוס: הקישור נשאר בוואטסאפ של הלקוח, ודף חזרה נעלם ברגע
+ * שסוגרים את הכרטיסייה.
+ */
+const UPLOAD_URL = 'https://tevet-landing.vercel.app/tik'
+
+function buildUploadMessage(firstName: string): string {
+  return [
+    `${firstName}, התשלום התקבל.`,
+    ``,
+    `עכשיו שלב אחד אחרון,`,
+    `להעלות את המסמכים:`,
+    ``,
+    `${UPLOAD_URL}`,
+    ``,
+    `צריך תלושי שכר,`,
+    `ואם יש, גם נוכחות`,
+    `ודוחות פנסיה.`,
+    ``,
+    `צילום מהטלפון מספיק.`,
+    ``,
+    `התחשיב אצלך`,
+    `תוך שבעה ימי עסקים.`,
+  ].join('\n')
+}
+
 /** מחפש מזהה עסקה או אסמכתה */
 function findRef(p: Record<string, string>): string | null {
   const hit = Object.entries(p).find(([k]) =>
@@ -159,15 +200,29 @@ export async function POST(req: NextRequest) {
         ``,
         asText.slice(0, 700),
       ].join('\n')).catch(() => {})
+
+      // הלקוח שילם, גם אם לא מצאנו לו כרטיס. מגיע לו לדעת לאן
+      // לשלוח את המסמכים, ואסור שכשל זיהוי פנימי יעצור אותו.
+      if (authorized && phone) {
+        await sendWhatsApp(phone, buildUploadMessage('שלום')).catch(() => {})
+      }
       return NextResponse.json({ ok: true, matched: false })
     }
 
     // ── סכום גדול הוא דמי פתיחת תיק, אחרת פגישת ייעוץ ──
     const isOpeningFee = (amount ?? 0) >= OPENING_FEE_THRESHOLD
+    // תחשיב חוסרים נמכר בין 297 ל-2,079, כלומר תמיד מתחת לסף.
+    // בלי ההבחנה הזו לקוח משלם היה מסומן "פגישה נקבעה" במקום
+    // "הפך ללקוח", והכרטיס שלו לא היה משקף שיש עבודה לעשות.
+    const tahshiv = isTahshiv(payload)
     const now = new Date().toISOString()
 
     const update: Record<string, unknown> = { payment_provider_ref: ref }
-    if (isOpeningFee) {
+    if (tahshiv) {
+      update.consultation_paid_at = now
+      if (amount) update.consultation_amount = amount
+      update.status = 'הפך ללקוח'
+    } else if (isOpeningFee) {
       update.opening_fee_paid_at = now
       if (amount) update.opening_fee_amount = amount
       update.status = 'הפך ללקוח'
@@ -183,7 +238,9 @@ export async function POST(req: NextRequest) {
     // ── רישום הפעילות, כולל המטען הגולמי לצורך אבחון ──
     await supabase.from('lead_activities').insert({
       lead_id: lead.id,
-      activity_type: isOpeningFee ? 'שולמו דמי פתיחה' : 'שולם ייעוץ',
+      activity_type: tahshiv
+        ? 'שולם תחשיב חוסרים'
+        : isOpeningFee ? 'שולמו דמי פתיחה' : 'שולם ייעוץ',
       amount: amount ?? null,
       note: `תשלום התקבל דרך UPAY${ref ? `, אסמכתה ${ref}` : ''}\n${asText}`,
       user_email: null,
@@ -197,13 +254,24 @@ export async function POST(req: NextRequest) {
       `💰 התקבל תשלום!`,
       ``,
       `${name} שילם${amount ? ` ${amount} ש"ח` : ''}.`,
-      isOpeningFee ? `דמי פתיחת תיק.` : `פגישת ייעוץ.`,
+      tahshiv ? `תחשיב חוסרים.` : isOpeningFee ? `דמי פתיחת תיק.` : `פגישת ייעוץ.`,
       ``,
       `טלפון: ${lead.phone}`,
       ref ? `אסמכתה: ${ref}` : '',
       ``,
       `הכרטיס עודכן לבד. 🎉`,
+      tahshiv ? `\nנשלח אליו קישור להעלאת המסמכים.` : '',
     ].filter(l => l !== '').join('\n')).catch(() => {})
+
+    // ── ההודעה ללקוח עצמו: לאן להעלות את המסמכים ──
+    // יוצאת אחרי ההתראה לאוהד, כדי שגם אם היא תיכשל אוהד כבר יודע
+    // שהתקבל תשלום ויוכל לשלוח ידנית.
+    if (lead.phone) {
+      await sendWhatsApp(
+        normalizePhone(String(lead.phone).replace(/\D/g, '')),
+        buildUploadMessage(name)
+      ).catch(() => {})
+    }
 
     return NextResponse.json({ ok: true, matched: true, lead_id: lead.id })
   } catch (e) {
