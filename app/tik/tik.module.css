@@ -147,3 +147,38 @@
   border: 1px solid var(--brass-border); border-radius: 6px;
   color: var(--brass); text-decoration: none; font-weight: 700;
 }
+
+/* ── היקף הרכישה ── */
+/*
+ * הבלוק הזה מונע את התקלה העסקית שבה לקוח ששילם על שלוש שנים
+ * מעלה שבע ומצפה לעבודה שלא שילם עליה. מספר השנים מגיע מהווהבוק
+ * דרך ?y= בכתובת.
+ */
+.scope {
+  border: 1px solid var(--brass-border);
+  background: var(--brass-dim);
+  border-radius: 10px;
+  padding: 1.1rem 1.25rem;
+  margin: 1.4rem 0 0;
+}
+.scopeLabel {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--brass);
+  margin-bottom: 0.3rem;
+}
+.scopeValue {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--white);
+  line-height: 1.2;
+}
+.scopeNote {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  line-height: 1.55;
+  margin-top: 0.55rem;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import s from "./tik.module.css";
 
@@ -27,7 +27,7 @@ const BUCKETS: Bucket[] = [
   {
     key: "payslips",
     title: "תלושי שכר",
-    hint: "כמה שיותר, עד שבע שנים אחורה. עדיף PDF, ואם צילום מהטלפון, באיכות הכי גבוהה.",
+    hint: "עדיף PDF, ואם צילום מהטלפון, באיכות הכי גבוהה.",
     required: true,
   },
   {
@@ -58,6 +58,21 @@ export default function Upload() {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState("");
+  /**
+   * כמה שנות ותק נרכשו. מגיע מהווהבוק דרך ?y= בכתובת שנשלחת
+   * בוואטסאפ אחרי התשלום.
+   *
+   * 🚨 בלי זה כתוב "עד שבע שנים אחורה", והלקוח מעלה שבע שנות
+   * תלושים גם כשהוא שילם על שלוש, ואז מצפה לעבודה שלא שילם
+   * עליה. כשהפרמטר חסר חוזרים לניסוח הכללי.
+   */
+  const [boughtYears, setBoughtYears] = useState<number | null>(null);
+
+  useEffect(() => {
+    const raw = new URLSearchParams(window.location.search).get("y");
+    const n = Number(raw);
+    if (Number.isInteger(n) && n >= 1 && n <= 7) setBoughtYears(n);
+  }, []);
   const refs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const total = Object.values(picked).reduce((n, f) => n + f.length, 0);
@@ -157,6 +172,31 @@ export default function Upload() {
             ככל שתעלו יותר, התחשיב יהיה מדויק יותר. אפשר להעלות הכל
             עכשיו, ואפשר להשלים אחר כך בוואטסאפ.
           </p>
+          {boughtYears ? (
+            <div className={s.scope}>
+              <span className={s.scopeLabel}>ההיקף שרכשתם</span>
+              <span className={s.scopeValue}>
+                {boughtYears === 1 ? "שנת ותק אחת" : `${boughtYears} שנות ותק`}
+              </span>
+              <p className={s.scopeNote}>
+                תעלו את התלושים של{" "}
+                {boughtYears === 1
+                  ? "השנה האחרונה"
+                  : `${boughtYears} השנים האחרונות`}
+                . זה מה שנבדק בתחשיב. רוצים לבדוק תקופה ארוכה יותר?
+                כתבו לנו בוואטסאפ ונשלים את ההפרש.
+              </p>
+            </div>
+          ) : (
+            <div className={s.scope}>
+              <span className={s.scopeLabel}>שימו לב</span>
+              <p className={s.scopeNote}>
+                תעלו את התלושים של התקופה שעליה שילמתם. אם שילמתם
+                על שלוש שנים, נבדקות שלוש שנים.
+              </p>
+            </div>
+          )}
+
           <p className={s.p}>
             <strong>עדיף קבצי PDF.</strong> אם אתם מצלמים מהטלפון,
             תוודאו שהמספרים קריאים לגמרי. תלוש מטושטש הוא תלוש

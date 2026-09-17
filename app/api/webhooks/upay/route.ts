@@ -109,16 +109,45 @@ function isTahshiv(p: Record<string, string>): boolean {
  */
 const UPLOAD_URL = 'https://tevet-landing.vercel.app/tik'
 
-function buildUploadMessage(firstName: string): string {
+/** מחיר התחשיב לכל שנת ותק. ראה rule_tevet_price_list. */
+const PRICE_PER_YEAR = 297
+
+/**
+ * כמה שנות ותק נקנו, לפי הסכום ששולם.
+ *
+ * 🚨 למה זה חשוב: בלי זה הלקוח מעלה שבע שנות תלושים גם כשהוא
+ * שילם על שלוש, ואז הוא מצפה לעבודה שלא שילם עליה. השנים נכנסות
+ * גם לגוף ההודעה וגם לכתובת, כדי שדף ההעלאה יגיד לו את המספר
+ * שלו במקום "עד שבע שנים".
+ */
+function yearsFromAmount(amount: number | null): number | null {
+  if (!amount) return null
+  const y = Math.round(amount / PRICE_PER_YEAR)
+  if (y < 1 || y > 7) return null
+  // סטייה של עד עשרה שקלים, למקרה של עיגול או עמלה
+  return Math.abs(y * PRICE_PER_YEAR - amount) <= 10 ? y : null
+}
+
+function buildUploadMessage(firstName: string, years: number | null): string {
+  const link = years ? `${UPLOAD_URL}?y=${years}` : UPLOAD_URL
+  const scope = years
+    ? [
+        `שילמת על ${years === 1 ? 'שנה אחת' : `${years} שנים`},`,
+        `אז צריך את התלושים`,
+        `של ${years === 1 ? 'השנה האחרונה' : `${years} השנים האחרונות`}.`,
+      ]
+    : [`צריך את התלושים`, `של התקופה ששילמת עליה.`]
+
   return [
     `${firstName}, התשלום התקבל.`,
     ``,
     `עכשיו שלב אחד אחרון,`,
     `להעלות את המסמכים:`,
     ``,
-    `${UPLOAD_URL}`,
+    `${link}`,
     ``,
-    `צריך תלושי שכר,`,
+    ...scope,
+    ``,
     `ואם יש, גם נוכחות`,
     `ודוחות פנסיה.`,
     ``,
@@ -207,7 +236,7 @@ export async function POST(req: NextRequest) {
       // הלקוח שילם, גם אם לא מצאנו לו כרטיס. מגיע לו לדעת לאן
       // לשלוח את המסמכים, ואסור שכשל זיהוי פנימי יעצור אותו.
       if (authorized && phone) {
-        await sendWhatsApp(phone, buildUploadMessage('שלום')).catch(() => {})
+        await sendWhatsApp(phone, buildUploadMessage('שלום', yearsFromAmount(amount))).catch(() => {})
       }
       return NextResponse.json({ ok: true, matched: false })
     }
@@ -272,7 +301,7 @@ export async function POST(req: NextRequest) {
     if (lead.phone) {
       await sendWhatsApp(
         normalizePhone(String(lead.phone).replace(/\D/g, '')),
-        buildUploadMessage(name)
+        buildUploadMessage(name, yearsFromAmount(amount))
       ).catch(() => {})
     }
 
