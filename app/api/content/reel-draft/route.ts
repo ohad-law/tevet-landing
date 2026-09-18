@@ -60,15 +60,57 @@ const SYSTEM = `אתה כותב תסריטים לרילים עבור עורך ה
 פרטית, ולכן הקריאה לפעולה שם היא להגיב במילת מפתח. בטיקטוק אין אפשרות
 כזאת, ולכן שם מפנים לקישור בביו ואסור להבטיח הודעה פרטית.
 
-החזר JSON בלבד, בלי טקסט לפניו ואחריו, במבנה:
-{
-  "hook": "string",
-  "hook_alternatives": ["string", "string"],
-  "beats": [{ "from_sec": 0, "to_sec": 3, "say": "string", "show": "string" }],
-  "shooting_notes": "string",
-  "editing_notes": "string",
-  "captions": { "instagram": "string", "tiktok": "string" }
-}`;
+מילות המפתח היחידות שהבוט מכיר הן "תלוש" ו"פנסיה". אסור לך להמציא
+מילת מפתח אחרת, גם אם היא מתאימה יותר לנושא: מי שיגיב במילה שלא קיימת
+יקבל שתיקה. בחר את הקרובה מבין השתיים, ואם הנושא לא מתאים לאף אחת
+מהן, כתוב קריאה לפעולה בלי מילת מפתח כלל (למשל לשמור את הסרטון או
+לכתוב שאלה בתגובות).
+
+החזר את התסריט דרך הכלי submit_reel_draft בלבד.`;
+
+/**
+ * הפלט נמסר דרך כלי ולא כטקסט חופשי. הסיבה מעשית: גרשיים בעברית
+ * ("עו"ד") שברו את ה-JSON כשביקשנו טקסט. דרך הכלי ה-SDK מחזיר אובייקט
+ * תקין תמיד, ואין מה לפרסר ידנית.
+ */
+const DRAFT_TOOL: Anthropic.Tool = {
+  name: "submit_reel_draft",
+  description: "מוסר את תסריט הריל המוגמר",
+  input_schema: {
+    type: "object",
+    properties: {
+      hook: { type: "string", description: "שלוש השניות הראשונות" },
+      hook_alternatives: {
+        type: "array", items: { type: "string" },
+        description: "שתי חלופות להוק, לא יותר",
+      },
+      beats: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            from_sec: { type: "number" },
+            to_sec: { type: "number" },
+            say: { type: "string", description: "מה נאמר בקול" },
+            show: { type: "string", description: "מה רואים על המסך" },
+          },
+          required: ["from_sec", "to_sec", "say", "show"],
+        },
+      },
+      shooting_notes: { type: "string" },
+      editing_notes: { type: "string" },
+      captions: {
+        type: "object",
+        properties: {
+          instagram: { type: "string" },
+          tiktok: { type: "string" },
+        },
+        required: ["instagram", "tiktok"],
+      },
+    },
+    required: ["hook", "hook_alternatives", "beats", "shooting_notes", "editing_notes", "captions"],
+  },
+};
 
 type ReelDraft = {
   hook: string;
@@ -79,12 +121,6 @@ type ReelDraft = {
   captions: { instagram: string; tiktok: string };
 };
 
-function extractJson(text: string): ReelDraft {
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start === -1 || end === -1) throw new Error("המודל לא החזיר JSON");
-  return JSON.parse(text.slice(start, end + 1)) as ReelDraft;
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -114,17 +150,19 @@ export async function POST(request: NextRequest) {
 
     const response = await anthropic.messages.create({
       model: "claude-opus-5",
-      max_tokens: 3000,
+      max_tokens: 4000,
       system: SYSTEM,
+      tools: [DRAFT_TOOL],
+      tool_choice: { type: "tool", name: "submit_reel_draft" },
       messages: [{ role: "user", content: userPrompt }],
     });
 
-    const text = response.content
-      .filter((b): b is Anthropic.TextBlock => b.type === "text")
-      .map((b) => b.text)
-      .join("");
+    const toolUse = response.content.find(
+      (b): b is Anthropic.ToolUseBlock => b.type === "tool_use",
+    );
+    if (!toolUse) throw new Error("המודל לא החזיר תסריט");
 
-    const draft = extractJson(text);
+    const draft = toolUse.input as ReelDraft;
 
     if (!draft.hook || !Array.isArray(draft.beats) || draft.beats.length === 0) {
       throw new Error("הטיוטה חזרה חסרה");
