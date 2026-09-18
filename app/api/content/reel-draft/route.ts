@@ -5,13 +5,15 @@ export const runtime = "nodejs";
 export const maxDuration = 120;
 
 /**
- * מייצר טיוטת תסריט לריל מתוך נושא אחד.
+ * מייצר טיוטת תוכן מתוך נושא אחד. שני סוגים: ריל וסטורי.
  *
- * נקרא מטאב "רילס" ב-tevet-crm, שהוא אפליקציה נפרדת ולכן יש כאן CORS.
- * המפתח של Anthropic לא יכול לשבת בצד לקוח, ולכן היצירה רצה כאן.
+ * הנתיב נשאר reel-draft מסיבה היסטורית (הריל נבנה ראשון) ומשרת גם
+ * סטוריז דרך השדה kind, כדי לא לשבור את הטאב שכבר חי בפרודקשן.
  *
- * הפלט הוא JSON בלבד, במבנה שהמסך יודע לקרוא. אם המודל יחזיר משהו
- * אחר, הראוט נכשל בגלוי ולא מחזיר טיוטה חלקית שתיראה תקינה.
+ * נקרא מ-tevet-crm שהיא אפליקציה נפרדת, ולכן CORS. המפתח של Anthropic
+ * לא יכול לשבת בצד לקוח ולכן היצירה רצה כאן.
+ *
+ * הפלט נמסר דרך כלי ולא כטקסט: גרשיים בעברית שברו JSON בפרודקשן.
  */
 
 const CORS_HEADERS: Record<string, string> = {
@@ -24,56 +26,170 @@ export async function OPTIONS() {
   return NextResponse.json(null, { headers: CORS_HEADERS });
 }
 
-const SYSTEM = `אתה כותב תסריטים לרילים עבור עורך הדין אוהד טבת, עורך דין
-לדיני עבודה ובודק שכר מוסמך בישראל. אתה כותב בקול שלו, לא בקול של
-קופירייטר.
+/** הכללים שחלים על כל סוג תוכן. הקול של אוהד, לא של קופירייטר. */
+const VOICE = `אתה כותב תוכן עבור עורך הדין אוהד טבת, עורך דין לדיני
+עבודה ובודק שכר מוסמך בישראל. אתה כותב בקול שלו.
 
 מי הקהל: עובדים שכירים בישראל שחושדים שמגיע להם כסף שלא קיבלו.
-פיצויים, פנסיה, שעות נוספות, דמי הבראה. לא מעסיקים.
-
-הפורמט שמנצח אצלו בפועל, וזו ברירת המחדל: תלוש שכר על המסך כרקע קבוע
-לאורך כל הסרטון, עם הדגשות זהב על המספרים שמדברים עליהם. הריל הזה
-הביא לו 5,600 צפיות והרבה פניות.
+פיצויים, פנסיה, שעות נוספות, דמי הבראה, דמי חגים. לא מעסיקים.
 
 כללי כתיבה מחייבים:
-- ההוק הוא שלוש השניות הראשונות ומכריע הכל. שלושת הכללים: לחשוף משהו
-  מיד, לחשוף אותו מהר, ולהציג סיכון מול תגמול. לא שאלה כללית ולא
-  הקדמה.
-- פנייה לצופה תמיד בלשון רבים. "אתם", "שלכם", "תבדקו". לעולם לא "אתה",
-  "שלך", "תבדוק".
+- פנייה לצופה תמיד בלשון רבים. "אתם", "שלכם", "תבדקו". לעולם לא
+  "אתה", "שלך", "תבדוק".
 - אסור מקף ארוך ומקף בינוני. רק מקף רגיל.
 - אסור לציין שכר טרחה, מחיר, סכום שהלקוח משלם, "ללא עלות" או "חינם".
-  זה אסור לפי כללי הפרסומת של לשכת עורכי הדין.
+  אסור לפי כללי הפרסומת של לשכת עורכי הדין.
 - אסור להבטיח תוצאה, ואסור להאשים מעסיקים בגניבה.
-- מספרים קונקרטיים עדיפים על הכללות, אבל אסור לך להמציא אותם. מותר
-  להשתמש רק במספרים שאוהד נתן לך בנושא או בזווית. אם אין לך מספר
-  אמיתי ואתה צריך אחד, כתוב אותו כסוגריים מרובעים למילוי, למשל
-  [ברוטו מהתלוש] או [בסיס הפנסיה], ואל תכתוב מספר שנראה אמיתי.
-  אותו כלל חל על אחוזים, על שיעורי הפרשה ועל סכומי תביעות.
-- אם אתה מסתמך על חישוב, כתוב אותו כך שאוהד יוכל לאמת אותו בשנייה.
-- אורך כולל 15 עד 30 שניות. מעל זה הצפיות שלו צונחות פי שלושה.
+- אסור להמציא מספרים. מותר להשתמש רק במספרים שאוהד נתן לך בנושא. אם
+  צריך מספר שאין לך, כתוב אותו כסוגריים מרובעים למילוי, למשל
+  [בסיס הפנסיה], ואל תכתוב מספר שנראה אמיתי. אותו כלל לאחוזים.
 
-מבנה התסריט: כל שורה היא פעימה עם טווח שניות, מה נאמר בקול, ומה רואים
-על המסך באותו רגע.
+מילות המפתח היחידות שהבוט באינסטגרם מכיר הן "תלוש" ו"פנסיה". אסור
+להמציא מילת מפתח אחרת: מי שיגיב במילה שלא קיימת יקבל שתיקה. אם הנושא
+לא מתאים לאף אחת מהן, אל תבקש תגובה בכלל.`;
 
-הכיתובים לפוסט: באינסטגרם יש בוט שמגיב לתגובות ושולח מדריך בהודעה
-פרטית, ולכן הקריאה לפעולה שם היא להגיב במילת מפתח. בטיקטוק אין אפשרות
-כזאת, ולכן שם מפנים לקישור בביו ואסור להבטיח הודעה פרטית.
+const REEL_SYSTEM = `${VOICE}
 
-מילות המפתח היחידות שהבוט מכיר הן "תלוש" ו"פנסיה". אסור לך להמציא
-מילת מפתח אחרת, גם אם היא מתאימה יותר לנושא: מי שיגיב במילה שלא קיימת
-יקבל שתיקה. בחר את הקרובה מבין השתיים, ואם הנושא לא מתאים לאף אחת
-מהן, כתוב קריאה לפעולה בלי מילת מפתח כלל (למשל לשמור את הסרטון או
-לכתוב שאלה בתגובות).
+אתה כותב עכשיו תסריט לריל.
 
-החזר את התסריט דרך הכלי submit_reel_draft בלבד.`;
+הפורמט שמנצח אצלו בפועל, וזו ברירת המחדל: תלוש שכר על המסך כרקע קבוע
+לאורך כל הסרטון, עם הדגשות זהב על המספרים. הריל הזה הביא לו 5,600
+צפיות והרבה פניות.
 
-/**
- * הפלט נמסר דרך כלי ולא כטקסט חופשי. הסיבה מעשית: גרשיים בעברית
- * ("עו"ד") שברו את ה-JSON כשביקשנו טקסט. דרך הכלי ה-SDK מחזיר אובייקט
- * תקין תמיד, ואין מה לפרסר ידנית.
- */
-const DRAFT_TOOL: Anthropic.Tool = {
+- ההוק הוא שלוש השניות הראשונות ומכריע הכל. שלושת הכללים: לחשוף משהו
+  מיד, לחשוף מהר, ולהציג סיכון מול תגמול.
+- אורך כולל 15 עד 30 שניות. מעל זה הצפיות צונחות פי שלושה.
+- כל פעימה היא טווח שניות, מה נאמר בקול, ומה רואים על המסך.
+- הכיתוב לאינסטגרם יכול לבקש תגובה במילת מפתח. בטיקטוק אין אוטומציה
+  של הודעה פרטית ולכן שם מפנים לקישור בביו בלבד.
+
+החזר דרך הכלי submit_reel_draft.`;
+
+const STORY_SYSTEM = `${VOICE}
+
+אתה כותב עכשיו רצף סטוריז ליום אחד.
+
+סטורי הוא לא ריל קצר. הכללים שונים לגמרי:
+- צופים בו שנייה או שתיים, הרבה פעמים בלי קול. הטקסט על המסך הוא
+  העיקר, והוא חייב להיות קצר מאוד. עד עשר מילים במסגרת, בשורות של עד
+  ארבע מילים.
+- הוא אישי ולא מופק. צילום מהטלפון, לא סטודיו. זה הערוץ שבו אוהד
+  נראה אנושי ולא ממותג.
+- רצף של שלוש עד חמש מסגרות, עם קשת: מסגרת שעוצרת את הגלילה, מסגרת
+  או שתיים שנותנות את התוכן, ומסגרת אחרונה עם קריאה לפעולה.
+- לכל מסגרת יש סטיקר: none, poll (סקר עם שתי אפשרויות), question
+  (שאלה פתוחה), link (קישור), quiz.
+- סקר או שאלה במסגרת הראשונה או השנייה מעלים דרמטית את המשך הצפייה,
+  כי הם דורשים נגיעה במסך.
+
+הכי חשוב: כשמישהו **מגיב** לסטורי, נפתח חלון של 24 שעות שבו הבוט
+יכול לשלוח לו הודעה פרטית. לכן קריאה לפעולה שמבקשת תגובה שווה יותר
+מקישור. במסגרת האחרונה תבחר: או link לקישור המדריך, או reply שמבקש
+לכתוב מילת מפתח קיימת.
+
+החזר דרך הכלי submit_story_draft.`;
+
+const WEEK_SYSTEM = `${VOICE}
+
+אתה בונה תוכנית תוכן לשבוע אחד.
+
+אוהד מצלם הכל בישיבה אחת, ולכן שני הרילים של השבוע צריכים להיות ניתנים
+לצילום ברצף, באותה חולצה ובאותו רקע. אל תציע רעיון שדורש יציאה למקום
+אחר.
+
+העומס השבועי הנכון עבורו:
+- שני רילים. יוצאים גם לאינסטגרם וגם לטיקטוק.
+- קרוסלה אחת. אינסטגרם בלבד.
+- שלושה רצפי סטוריז. אינסטגרם בלבד. זה הערוץ שהוא הכי מזניח והוא הכי
+  זול לייצור.
+
+ההבדל בין הפלטפורמות, וזה קריטי:
+- באינסטגרם יש בוט שמגיב לתגובות ושולח מדריך בהודעה פרטית, ולכן
+  הקריאה לפעולה שם היא מילת מפתח.
+- בטיקטוק אין אוטומציה כזאת בכלל. שם הקריאה לפעולה היא תמיד הקישור
+  בביו, ואסור להבטיח הודעה פרטית.
+
+נושאים שהוכחו בפועל בעברית בתחום שלו, עם מיליון צפיות ומעלה בטיקטוק:
+שימוע לפני פיטורים, ההבדל בין התפטרות לפיטורים, מלכודת השעות הנוספות,
+בונוסים ודמי אבטלה, ויחסי מעביד ועובד סביב המשכורת. תשען על משפחות
+הנושאים האלה, ותן להן זווית שהיא שלו: מה שרואים בתלוש עצמו.
+
+לכל פריט תן נושא ממוקד והוק אחד. אל תכתוב תסריט מלא, זה יקרה בשלב הבא.
+
+החזר דרך הכלי submit_week_plan.`;
+
+const WEEK_TOOL: Anthropic.Tool = {
+  name: "submit_week_plan",
+  description: "מוסר תוכנית תוכן לשבוע",
+  input_schema: {
+    type: "object",
+    properties: {
+      theme: { type: "string", description: "החוט המקשר של השבוע, משפט אחד" },
+      items: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            format: { type: "string", enum: ["reel", "carousel", "story"] },
+            platforms: {
+              type: "array",
+              items: { type: "string", enum: ["instagram", "tiktok"] },
+            },
+            day: {
+              type: "string",
+              enum: ["ראשון", "שני", "שלישי", "רביעי", "חמישי"],
+            },
+            topic: { type: "string", description: "הנושא הממוקד" },
+            hook: { type: "string", description: "ההוק המוצע" },
+            why: { type: "string", description: "למה זה אמור לעבוד, משפט אחד" },
+          },
+          required: ["format", "platforms", "day", "topic", "hook", "why"],
+        },
+      },
+    },
+    required: ["theme", "items"],
+  },
+};
+
+const CAROUSEL_SYSTEM = `${VOICE}
+
+אתה כותב עכשיו קרוסלה לאינסטגרם.
+
+- שקופית ראשונה היא ההוק ומכריעה אם גוללים בכלל.
+- שקופיות תוכן: משפט אחד עד שניים בכל אחת. קצר. קוראים אותן בגלילה
+  מהירה.
+- שש עד תשע שקופיות בסך הכל, כולל ההוק והקריאה לפעולה.
+- השקופית האחרונה היא הקריאה לפעולה.
+- קרוסלה מצליחה נמדדת בשמירות, לא בלייקים. תן לצופה סיבה לשמור: רשימה
+  לבדיקה, סדר פעולות, מספרים לזכור.
+
+החזר דרך הכלי submit_carousel_draft.`;
+
+const CAROUSEL_TOOL: Anthropic.Tool = {
+  name: "submit_carousel_draft",
+  description: "מוסר את הקרוסלה המוגמרת",
+  input_schema: {
+    type: "object",
+    properties: {
+      slides: {
+        type: "array",
+        description: "שש עד תשע שקופיות",
+        items: {
+          type: "object",
+          properties: {
+            kind: { type: "string", enum: ["hook", "body", "cta"] },
+            text: { type: "string" },
+          },
+          required: ["kind", "text"],
+        },
+      },
+      caption: { type: "string", description: "הכיתוב לפוסט באינסטגרם" },
+    },
+    required: ["slides", "caption"],
+  },
+};
+
+const REEL_TOOL: Anthropic.Tool = {
   name: "submit_reel_draft",
   description: "מוסר את תסריט הריל המוגמר",
   input_schema: {
@@ -112,23 +228,55 @@ const DRAFT_TOOL: Anthropic.Tool = {
   },
 };
 
-type ReelDraft = {
-  hook: string;
-  hook_alternatives: string[];
-  beats: Array<{ from_sec: number; to_sec: number; say: string; show: string }>;
-  shooting_notes: string;
-  editing_notes: string;
-  captions: { instagram: string; tiktok: string };
+const STORY_TOOL: Anthropic.Tool = {
+  name: "submit_story_draft",
+  description: "מוסר את רצף הסטוריז המוגמר",
+  input_schema: {
+    type: "object",
+    properties: {
+      frames: {
+        type: "array",
+        description: "שלוש עד חמש מסגרות",
+        items: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "הטקסט על המסך, קצר מאוד" },
+            visual: { type: "string", description: "מה מצלמים או מה רואים" },
+            sticker: {
+              type: "string",
+              enum: ["none", "poll", "question", "link", "quiz"],
+            },
+            sticker_config: {
+              type: "string",
+              description: "תוכן הסטיקר, למשל שתי אפשרויות הסקר או נוסח השאלה",
+            },
+          },
+          required: ["text", "visual", "sticker", "sticker_config"],
+        },
+      },
+      cta_kind: { type: "string", enum: ["link", "reply"] },
+      trigger_keyword: {
+        type: "string",
+        description: "מילת המפתח לתגובה, רק אם cta_kind הוא reply. אחרת ריק",
+      },
+      shooting_notes: { type: "string", description: "מה צריך כדי לצלם את הרצף" },
+    },
+    required: ["frames", "cta_kind", "trigger_keyword", "shooting_notes"],
+  },
 };
-
 
 export async function POST(request: NextRequest) {
   try {
-    const { topic, angle } = (await request.json()) as { topic?: string; angle?: string };
+    const { topic, angle, kind = "reel" } = (await request.json()) as {
+      topic?: string;
+      angle?: string;
+      kind?: "reel" | "story" | "carousel" | "week";
+    };
 
-    if (!topic?.trim()) {
+    /** תוכנית שבועית לא צריכה נושא, היא מציעה את הנושאים בעצמה */
+    if (kind !== "week" && !topic?.trim()) {
       return NextResponse.json(
-        { error: "חסר נושא לריל" },
+        { error: "חסר נושא" },
         { status: 400, headers: CORS_HEADERS },
       );
     }
@@ -142,36 +290,46 @@ export async function POST(request: NextRequest) {
 
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+    const BY_KIND = {
+      reel: { system: REEL_SYSTEM, tool: REEL_TOOL, ask: "כתוב תסריט ריל שלם לפי הכללים. שתי חלופות להוק, ולא יותר." },
+      story: { system: STORY_SYSTEM, tool: STORY_TOOL, ask: "בנה רצף סטוריז ליום אחד לפי הכללים." },
+      carousel: { system: CAROUSEL_SYSTEM, tool: CAROUSEL_TOOL, ask: "כתוב קרוסלה שלמה לפי הכללים." },
+      week: { system: WEEK_SYSTEM, tool: WEEK_TOOL, ask: "בנה תוכנית תוכן לשבוע הקרוב לפי הכללים." },
+    } as const;
+
+    const cfg = BY_KIND[kind] || BY_KIND.reel;
+
     const userPrompt = [
-      `הנושא: ${topic.trim()}`,
+      topic?.trim() ? `הנושא: ${topic.trim()}` : "",
       angle?.trim() ? `הזווית שאוהד רוצה: ${angle.trim()}` : "",
-      "כתוב תסריט ריל שלם לפי הכללים. שתי חלופות להוק, ולא יותר.",
+      cfg.ask,
     ].filter(Boolean).join("\n");
 
     const response = await anthropic.messages.create({
       model: "claude-opus-5",
       max_tokens: 4000,
-      system: SYSTEM,
-      tools: [DRAFT_TOOL],
-      tool_choice: { type: "tool", name: "submit_reel_draft" },
+      system: cfg.system,
+      tools: [cfg.tool],
+      tool_choice: { type: "tool", name: cfg.tool.name },
       messages: [{ role: "user", content: userPrompt }],
     });
 
     const toolUse = response.content.find(
       (b): b is Anthropic.ToolUseBlock => b.type === "tool_use",
     );
-    if (!toolUse) throw new Error("המודל לא החזיר תסריט");
+    if (!toolUse) throw new Error("המודל לא החזיר טיוטה");
 
-    const draft = toolUse.input as ReelDraft;
+    const draft = toolUse.input as Record<string, unknown>;
 
-    if (!draft.hook || !Array.isArray(draft.beats) || draft.beats.length === 0) {
-      throw new Error("הטיוטה חזרה חסרה");
-    }
+    const REQUIRED_ARRAY = { reel: "beats", story: "frames", carousel: "slides", week: "items" } as const;
+    const key = REQUIRED_ARRAY[kind] || "beats";
+    const arr = draft[key];
+    if (!Array.isArray(arr) || arr.length === 0) throw new Error("הטיוטה חזרה חסרה");
 
     return NextResponse.json({ draft }, { headers: CORS_HEADERS });
   } catch (error) {
     const message = error instanceof Error ? error.message : "שגיאה לא ידועה";
-    console.error("[reel-draft]", message);
+    console.error("[content-draft]", message);
     return NextResponse.json(
       { error: `יצירת הטיוטה נכשלה: ${message}` },
       { status: 500, headers: CORS_HEADERS },
