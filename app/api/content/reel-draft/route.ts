@@ -360,77 +360,64 @@ const SHORTS_SYSTEM = `${VOICE}
 
 החזר דרך הכלי submit_short_assets.`;
 
+/**
+ * סכימה שטוחה בכוונה.
+ *
+ * הגרסה הראשונה קיננה אובייקט לכל פורמט, ואחד השדות נקרא
+ * static. השילוב הזה גרם למודל להחזיר פלט פגום שדלף לתוכו
+ * תחביר פנימי. שדות שטוחים עם שמות מפורשים יציבים הרבה יותר,
+ * וההרכבה למבנה שהתבניות מצפות לו נעשית כאן בשרת.
+ */
 const SHORTS_TOOL: Anthropic.Tool = {
   name: "submit_short_assets",
   description: "מוסר את הנכסים הקצרים",
   input_schema: {
     type: "object",
     properties: {
-      static: {
-        type: "object",
-        properties: {
-          text: { type: "string" },
-          kicker: { type: "string" },
-        },
-        required: ["text", "kicker"],
+      image_kicker: { type: "string", description: "קיקר לתמונה, שתיים עד שלוש מילים" },
+      image_text: { type: "string", description: "משפט התמונה, עד שתים עשרה מילים" },
+
+      meme_top_label: { type: "string", description: "תווית החצי העליון, מה שרואים" },
+      meme_top_text: { type: "string", description: "עד שמונה מילים" },
+      meme_bottom_label: { type: "string", description: "תווית החצי התחתון, מה שבאמת" },
+      meme_bottom_text: { type: "string", description: "עד שמונה מילים" },
+
+      quote_text: { type: "string", description: "משפט אחד בגוף ראשון, כפי שאוהד אומר ללקוח" },
+
+      broll_hook: { type: "string", description: "ההוק שנצרב על הווידאו" },
+      broll_cta: { type: "string", description: "קריאה לפעולה קצרה" },
+
+      broll_lines: {
+        type: "array",
+        description: "שלוש עד חמש שורות קצרות לצריבה על הווידאו",
+        items: { type: "string" },
       },
-      /**
-       * שני החצאים הם אובייקטים ולא מחרוזות, כי התבנית מציירת
-       * תווית וטקסט בנפרד. מחרוזת מייצרת תמונה עם המילה
-       * undefined עליה, וזה כבר עלה לאוויר פעם אחת.
-       */
-      meme: {
-        type: "object",
-        properties: {
-          top: {
-            type: "object",
-            description: "מה שהעובד רואה או חושב",
-            properties: {
-              label: { type: "string", description: "שתיים עד שלוש מילים" },
-              text: { type: "string", description: "עד שמונה מילים" },
-            },
-            required: ["label", "text"],
-          },
-          bottom: {
-            type: "object",
-            description: "מה שקורה באמת",
-            properties: {
-              label: { type: "string", description: "שתיים עד שלוש מילים" },
-              text: { type: "string", description: "עד שמונה מילים" },
-            },
-            required: ["label", "text"],
-          },
-        },
-        required: ["top", "bottom"],
-      },
-      tweet_reel: {
-        type: "object",
-        properties: {
-          text: { type: "string" },
-          author: { type: "string", description: "תמיד: עו\"ד אוהד טבת" },
-        },
-        required: ["text", "author"],
-      },
-      broll: {
-        type: "object",
-        properties: {
-          hook: { type: "string" },
-          cta: { type: "string" },
-        },
-        required: ["hook", "cta"],
-      },
-      broll_text: {
-        type: "object",
-        properties: {
-          lines: { type: "array", items: { type: "string" } },
-          cta: { type: "string" },
-        },
-        required: ["lines", "cta"],
-      },
+      broll_text_cta: { type: "string", description: "קריאה לפעולה לגרסת הטקסט" },
     },
-    required: ["static", "meme", "tweet_reel", "broll", "broll_text"],
+    required: [
+      "image_kicker", "image_text",
+      "meme_top_label", "meme_top_text", "meme_bottom_label", "meme_bottom_text",
+      "quote_text", "broll_hook", "broll_cta", "broll_lines", "broll_text_cta",
+    ],
   },
 };
+
+/**
+ * מרכיב את השדות השטוחים למבנה שכל תבנית עיצוב קוראת בפועל.
+ * זה המקום היחיד שמכיר את שני הצדדים, ולכן כאן מתוחזק החוזה.
+ */
+function assembleShorts(flat: Record<string, unknown>) {
+  return {
+    static: { kicker: flat.image_kicker, text: flat.image_text },
+    meme: {
+      top: { label: flat.meme_top_label, text: flat.meme_top_text },
+      bottom: { label: flat.meme_bottom_label, text: flat.meme_bottom_text },
+    },
+    tweet_reel: { text: flat.quote_text, author: "עו\"ד אוהד טבת" },
+    broll: { hook: flat.broll_hook, cta: flat.broll_cta },
+    broll_text: { lines: flat.broll_lines, cta: flat.broll_text_cta },
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -517,7 +504,8 @@ export async function POST(request: NextRequest) {
     );
     if (!toolUse) throw new Error("המודל לא החזיר טיוטה");
 
-    const draft = toolUse.input as Record<string, unknown>;
+    const raw = toolUse.input as Record<string, unknown>;
+    const draft = kind === "shorts" ? assembleShorts(raw) as Record<string, unknown> : raw;
 
     /**
      * core ו-shorts מחזירים אובייקט ולא מערך, ולכן הבדיקה
