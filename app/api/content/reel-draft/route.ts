@@ -285,13 +285,135 @@ const STORY_TOOL: Anthropic.Tool = {
   },
 };
 
+// ══════════ מנוע השכפול ══════════
+
+/**
+ * פוסט הליבה.
+ *
+ * זה הצומת של כל השיטה: מסר אחד נכתב פעם אחת כמו שצריך, וכל
+ * שמונת הפורמטים נגזרים ממנו. בלי הצומת הזה כל פורמט ממציא
+ * מחדש את המסר, והפיד נשמע כמו שמונה אנשים שונים.
+ */
+const CORE_SYSTEM = `${VOICE}
+
+אתה מזקק עכשיו מסר גולמי לפוסט ליבה.
+
+הקלט יכול להיות תמלול של הקלטה, פסקה שאוהד כתב, או רעיון בשורה
+אחת. התפקיד שלך הוא למצוא בתוכו את הדבר האחד שכדאי להגיד, ולנסח
+אותו בצורה שאפשר לגזור ממנה כל פורמט.
+
+- ההוק הוא המשפט שעוצר גלילה. קונקרטי, לא כללי.
+- הגוף הוא ההסבר: מה קורה בפועל, ולמה זה משנה כסף לעובד.
+- נקודות המפתח הן העובדות שכל פורמט יכול לשאוב מהן. שלוש עד חמש.
+- מילת המפתח לקריאה לפעולה חייבת להיות אחת מאלה: תלוש, פנסיה.
+  אלה המילים היחידות שהבוט באינסטגרם יודע לענות להן.
+
+החזר דרך הכלי submit_core_post.`;
+
+const CORE_TOOL: Anthropic.Tool = {
+  name: "submit_core_post",
+  description: "מוסר את פוסט הליבה",
+  input_schema: {
+    type: "object",
+    properties: {
+      topic: { type: "string", description: "הנושא בשלוש עד שש מילים" },
+      hook: { type: "string", description: "המשפט שעוצר גלילה" },
+      body: { type: "string", description: "ההסבר המלא, שתיים עד ארבע פסקאות" },
+      key_points: {
+        type: "array",
+        description: "שלוש עד חמש עובדות שאפשר לגזור מהן פורמטים",
+        items: { type: "string" },
+      },
+      cta_keyword: { type: "string", enum: ["תלוש", "פנסיה"] },
+      offer: { type: "string", description: "מה מקבל מי שמגיב" },
+    },
+    required: ["topic", "hook", "body", "key_points", "cta_keyword", "offer"],
+  },
+};
+
+/**
+ * הפורמטים הקצרים, כולם בקריאה אחת.
+ *
+ * כל אחד מהם הוא מסך אחד או שניים, ולכן אין סיבה לחמש קריאות
+ * נפרדות. השדות כאן חייבים להתאים בדיוק למה שמנוע העיצוב קורא,
+ * אחרת נוצרת תמונה עם המילה undefined עליה. זה כבר קרה.
+ */
+const SHORTS_SYSTEM = `${VOICE}
+
+אתה גוזר עכשיו חמישה נכסים קצרים מאותו פוסט ליבה. כל אחד עומד
+בפני עצמו, וכולם אומרים את אותו דבר בדרך אחרת.
+
+- תמונה סטטית: משפט אחד חזק, עד שתים עשרה מילים, ומעליו קיקר
+  של שתיים עד שלוש מילים.
+- מם: שתי שורות, עליונה ותחתונה, בניגוד ביניהן. קצר וחד.
+- ציטוט: משפט אחד שאפשר לצטט, בגוף ראשון, כפי שאוהד היה אומר
+  אותו ללקוח.
+- בי-רול: הוק למסך וקריאה לפעולה קצרה.
+- בי-רול עם טקסט: שלוש עד חמש שורות קצרות שנצרבות על הווידאו,
+  שורה אחת לכל רעיון, וקריאה לפעולה.
+
+אף אחד מהם לא מזכיר מחיר, שכר טרחה או המילה חינם.
+
+החזר דרך הכלי submit_short_assets.`;
+
+const SHORTS_TOOL: Anthropic.Tool = {
+  name: "submit_short_assets",
+  description: "מוסר את הנכסים הקצרים",
+  input_schema: {
+    type: "object",
+    properties: {
+      static: {
+        type: "object",
+        properties: {
+          text: { type: "string" },
+          kicker: { type: "string" },
+        },
+        required: ["text", "kicker"],
+      },
+      meme: {
+        type: "object",
+        properties: {
+          top: { type: "string" },
+          bottom: { type: "string" },
+        },
+        required: ["top", "bottom"],
+      },
+      tweet_reel: {
+        type: "object",
+        properties: {
+          text: { type: "string" },
+          author: { type: "string", description: "תמיד: עו\"ד אוהד טבת" },
+        },
+        required: ["text", "author"],
+      },
+      broll: {
+        type: "object",
+        properties: {
+          hook: { type: "string" },
+          cta: { type: "string" },
+        },
+        required: ["hook", "cta"],
+      },
+      broll_text: {
+        type: "object",
+        properties: {
+          lines: { type: "array", items: { type: "string" } },
+          cta: { type: "string" },
+        },
+        required: ["lines", "cta"],
+      },
+    },
+    required: ["static", "meme", "tweet_reel", "broll", "broll_text"],
+  },
+};
+
 export async function POST(request: NextRequest) {
   try {
     const { topic, angle, kind = "reel", revision_note, current } =
       (await request.json()) as {
         topic?: string;
         angle?: string;
-        kind?: "reel" | "story" | "carousel" | "week";
+        kind?: "reel" | "story" | "carousel" | "week" | "core" | "shorts";
         /** מה אוהד ביקש לשנות בגרסה הקיימת, בעברית חופשית */
         revision_note?: string;
         /** הטיוטה הקיימת, כדי שהתיקון ישמור על מה שכבר טוב */
@@ -323,6 +445,8 @@ export async function POST(request: NextRequest) {
       story: { system: STORY_SYSTEM, tool: STORY_TOOL, ask: "בנה רצף סטוריז ליום אחד לפי הכללים." },
       carousel: { system: CAROUSEL_SYSTEM, tool: CAROUSEL_TOOL, ask: "כתוב קרוסלה שלמה לפי הכללים." },
       week: { system: WEEK_SYSTEM, tool: WEEK_TOOL, ask: "בנה תוכנית תוכן לשבוע הקרוב לפי הכללים." },
+      core: { system: CORE_SYSTEM, tool: CORE_TOOL, ask: "זקק את המסר הזה לפוסט ליבה." },
+      shorts: { system: SHORTS_SYSTEM, tool: SHORTS_TOOL, ask: "גזור את חמשת הנכסים הקצרים מפוסט הליבה." },
     } as const;
 
     const cfg = BY_KIND[kind] || BY_KIND.reel;
@@ -370,10 +494,18 @@ export async function POST(request: NextRequest) {
 
     const draft = toolUse.input as Record<string, unknown>;
 
-    const REQUIRED_ARRAY = { reel: "beats", story: "frames", carousel: "slides", week: "items" } as const;
-    const key = REQUIRED_ARRAY[kind] || "beats";
-    const arr = draft[key];
-    if (!Array.isArray(arr) || arr.length === 0) throw new Error("הטיוטה חזרה חסרה");
+    /**
+     * core ו-shorts מחזירים אובייקט ולא מערך, ולכן הבדיקה
+     * הזאת לא חלה עליהם.
+     */
+    const REQUIRED_ARRAY: Record<string, string> = {
+      reel: "beats", story: "frames", carousel: "slides", week: "items",
+    };
+    const key = REQUIRED_ARRAY[kind];
+    if (key) {
+      const arr = draft[key];
+      if (!Array.isArray(arr) || arr.length === 0) throw new Error("הטיוטה חזרה חסרה");
+    }
 
     return NextResponse.json({ draft }, { headers: CORS_HEADERS });
   } catch (error) {
