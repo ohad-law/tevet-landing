@@ -287,14 +287,22 @@ const STORY_TOOL: Anthropic.Tool = {
 
 export async function POST(request: NextRequest) {
   try {
-    const { topic, angle, kind = "reel" } = (await request.json()) as {
-      topic?: string;
-      angle?: string;
-      kind?: "reel" | "story" | "carousel" | "week";
-    };
+    const { topic, angle, kind = "reel", revision_note, current } =
+      (await request.json()) as {
+        topic?: string;
+        angle?: string;
+        kind?: "reel" | "story" | "carousel" | "week";
+        /** מה אוהד ביקש לשנות בגרסה הקיימת, בעברית חופשית */
+        revision_note?: string;
+        /** הטיוטה הקיימת, כדי שהתיקון ישמור על מה שכבר טוב */
+        current?: Record<string, unknown>;
+      };
 
-    /** תוכנית שבועית לא צריכה נושא, היא מציעה את הנושאים בעצמה */
-    if (kind !== "week" && !topic?.trim()) {
+    /**
+     * תוכנית שבועית לא צריכה נושא, היא מציעה את הנושאים בעצמה,
+     * ותיקון לפי הערה לא צריך נושא כי הטיוטה הקיימת כבר בידיים.
+     */
+    if (kind !== "week" && !topic?.trim() && !revision_note?.trim()) {
       return NextResponse.json(
         { error: "חסר נושא" },
         { status: 400, headers: CORS_HEADERS },
@@ -319,11 +327,32 @@ export async function POST(request: NextRequest) {
 
     const cfg = BY_KIND[kind] || BY_KIND.reel;
 
-    const userPrompt = [
-      topic?.trim() ? `הנושא: ${topic.trim()}` : "",
-      angle?.trim() ? `הזווית שאוהד רוצה: ${angle.trim()}` : "",
-      cfg.ask,
-    ].filter(Boolean).join("\n");
+    /**
+     * תיקון לפי הערה, במקום כתיבה מאפס.
+     *
+     * כשאוהד כותב "השקף השלישי משעמם, תחליף אותו" הוא לא מבקש
+     * תוכן חדש. הוא מבקש את אותו תוכן עם תיקון אחד. לכן הטיוטה
+     * הקיימת נמסרת למודל, והבקשה המפורשת היא לשנות רק את מה
+     * שההערה נוגעת בו.
+     */
+    const isRevision = Boolean(revision_note?.trim() && current);
+    const NL = "\n";
+
+    const userPrompt = isRevision
+      ? [
+          topic?.trim() ? `הנושא: ${topic.trim()}` : "",
+          "זו הטיוטה הקיימת:",
+          JSON.stringify(current, null, 1),
+          `ההערה של אוהד: ${revision_note!.trim()}`,
+          "תקן את הטיוטה לפי ההערה בלבד. כל מה שההערה לא נוגעת בו",
+          "נשאר בדיוק כמו שהוא, מילה במילה. החזר את הטיוטה המלאה",
+          "אחרי התיקון, לא רק את החלק ששונה.",
+        ].filter(Boolean).join(NL)
+      : [
+          topic?.trim() ? `הנושא: ${topic.trim()}` : "",
+          angle?.trim() ? `הזווית שאוהד רוצה: ${angle.trim()}` : "",
+          cfg.ask,
+        ].filter(Boolean).join(NL);
 
     const response = await anthropic.messages.create({
       model: "claude-opus-5",
