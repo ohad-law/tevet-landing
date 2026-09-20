@@ -419,13 +419,146 @@ function assembleShorts(flat: Record<string, unknown>) {
   };
 }
 
+// ══════════ מדריכים ══════════
+
+/**
+ * המדריך הוא מה שהבוט שולח, ולכן הוא הרגע שבו עוקב הופך לליד.
+ *
+ * המבנה נלקח מהמדריך שכבר עובד: לכל רכיב אומרים מה לחפש בתלוש,
+ * מה מעיד שמשהו לא בסדר, ומה העובדה עם המקור שלה.
+ *
+ * 🚨 מספרים ותעריפים לא נכתבים מתוך ידע המודל. זה דף פומבי של
+ * עורך דין, ותעריף ישן שם הוא חשיפה מקצועית ולא רק טעות. כל
+ * מספר שנדרש נרשם בנפרד ברשימת האימות, ואוהד מאמת אותו לפני
+ * שהמדריך עולה.
+ */
+const GUIDE_SYSTEM = `${VOICE}
+
+אתה כותב עכשיו מדריך שנשלח בהודעה פרטית למי שהגיב בתגובות.
+
+המדריך הזה הוא הרגע שבו עוקב הופך לליד, ולכן הוא חייב לתת ערך
+אמיתי שאפשר לפעול לפיו תוך חמש דקות, ולא להיות פרסומת.
+
+המבנה שעובד, רכיב אחרי רכיב:
+- **מה לחפש**: איפה בדיוק בתלוש או במסמך, בשפה של מי שלא קרא
+  תלוש מימיו. לא מונחים מקצועיים.
+- **מה מעיד על בעיה**: הסימן הקונקרטי שמשהו חסר או שגוי.
+- **העובדה**: הכלל המשפטי, בניסוח שאפשר לסמוך עליו.
+- **המקור**: שם החוק, צו ההרחבה או הפסיקה. שם מלא, לא קיצור.
+
+ארבעה עד שישה רכיבים. לא יותר, כי מדריך ארוך לא נקרא.
+
+🚨 אסור לכתוב תעריף, אחוז או סכום מתוך זיכרון. אם רכיב דורש
+מספר, נסח את העובדה בלי המספר, ורשום את המספר הנדרש ברשימת
+needs_verification עם שם המקור שצריך לבדוק מולו. אוהד מאמת ואז
+משלים. עדיף מדריך בלי מספר מאשר מדריך עם מספר ישן.
+
+החזר דרך הכלי submit_guide.`;
+
+const GUIDE_TOOL: Anthropic.Tool = {
+  name: "submit_guide",
+  description: "מוסר את המדריך המוגמר",
+  input_schema: {
+    type: "object",
+    properties: {
+      title: { type: "string", description: "שם המדריך, עד שמונה מילים" },
+      subtitle: { type: "string", description: "מה מקבלים ממנו, משפט אחד" },
+      intro: { type: "string", description: "פסקה אחת שמסבירה למה זה חשוב" },
+      items: {
+        type: "array",
+        description: "ארבעה עד שישה רכיבים",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            look: { type: "string", description: "מה לחפש ואיפה" },
+            flag: { type: "string", description: "מה מעיד על בעיה" },
+            fact: { type: "string", description: "הכלל המשפטי, בלי מספרים שלא אומתו" },
+            source: { type: "string", description: "שם החוק או צו ההרחבה, מלא" },
+          },
+          required: ["title", "look", "flag", "fact", "source"],
+        },
+      },
+      needs_verification: {
+        type: "array",
+        description: "מספרים ותעריפים שאוהד צריך לאמת לפני פרסום",
+        items: {
+          type: "object",
+          properties: {
+            what: { type: "string", description: "איזה מספר חסר" },
+            where: { type: "string", description: "באיזה רכיב" },
+            source: { type: "string", description: "מול איזה מקור לאמת" },
+          },
+          required: ["what", "where", "source"],
+        },
+      },
+      cta_keyword: { type: "string", enum: ["תלוש", "פנסיה"] },
+      cta_text: { type: "string", description: "המשפט שמזמין לפנות, בלי אזכור מחיר" },
+    },
+    required: ["title", "subtitle", "intro", "items", "needs_verification", "cta_keyword", "cta_text"],
+  },
+};
+
+/**
+ * הצעות למדריכים חדשים.
+ *
+ * ההצעות נשענות על התוכן שאוהד כבר מפרסם, כי מדריך שממשיך נושא
+ * שהקהל כבר הגיב אליו ממיר הרבה יותר טוב ממדריך על נושא חדש
+ * שאיש לא ביקש.
+ */
+const GUIDE_IDEAS_SYSTEM = `${VOICE}
+
+אתה מציע עכשיו מדריכים חדשים שאוהד יכול לשלוח בהודעה פרטית.
+
+המדריך הוא מה שהופך עוקב לליד, ולכן ההצעה נמדדת בשאלה אחת: האם
+מי שיקרא אותו יגלה שמגיע לו כסף, ויבין שהוא צריך עורך דין כדי
+לקבל אותו.
+
+הקלט הוא הנושאים שאוהד כבר מפרסם עליהם. הצעה טובה ממשיכה נושא
+שהקהל כבר מגיב אליו, ולא פותחת נושא חדש שאיש לא ביקש.
+
+לכל הצעה:
+- שם המדריך
+- למי הוא מדבר, סוג העובד או המצב
+- מה הוא מגלה לקורא, בשורה אחת
+- למה הוא מוביל לשיחת מכירה, ולא רק לידע
+
+ארבע הצעות. שונות זו מזו, לא וריאציות על אותו נושא.
+
+החזר דרך הכלי submit_guide_ideas.`;
+
+const GUIDE_IDEAS_TOOL: Anthropic.Tool = {
+  name: "submit_guide_ideas",
+  description: "מוסר הצעות למדריכים",
+  input_schema: {
+    type: "object",
+    properties: {
+      ideas: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            audience: { type: "string" },
+            reveals: { type: "string" },
+            why_sells: { type: "string" },
+          },
+          required: ["title", "audience", "reveals", "why_sells"],
+        },
+      },
+    },
+    required: ["ideas"],
+  },
+};
+
 export async function POST(request: NextRequest) {
   try {
     const { topic, angle, kind = "reel", revision_note, current } =
       (await request.json()) as {
         topic?: string;
         angle?: string;
-        kind?: "reel" | "story" | "carousel" | "week" | "core" | "shorts";
+        kind?: "reel" | "story" | "carousel" | "week" | "core" | "shorts"
+          | "guide" | "guide_ideas";
         /** מה אוהד ביקש לשנות בגרסה הקיימת, בעברית חופשית */
         revision_note?: string;
         /** הטיוטה הקיימת, כדי שהתיקון ישמור על מה שכבר טוב */
@@ -459,6 +592,8 @@ export async function POST(request: NextRequest) {
       week: { system: WEEK_SYSTEM, tool: WEEK_TOOL, ask: "בנה תוכנית תוכן לשבוע הקרוב לפי הכללים." },
       core: { system: CORE_SYSTEM, tool: CORE_TOOL, ask: "זקק את המסר הזה לפוסט ליבה." },
       shorts: { system: SHORTS_SYSTEM, tool: SHORTS_TOOL, ask: "גזור את חמשת הנכסים הקצרים מפוסט הליבה." },
+      guide: { system: GUIDE_SYSTEM, tool: GUIDE_TOOL, ask: "כתוב את המדריך לפי הכללים." },
+      guide_ideas: { system: GUIDE_IDEAS_SYSTEM, tool: GUIDE_IDEAS_TOOL, ask: "הצע ארבעה מדריכים חדשים." },
     } as const;
 
     const cfg = BY_KIND[kind] || BY_KIND.reel;
