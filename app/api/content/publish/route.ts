@@ -57,8 +57,8 @@ async function graph(path: string, body: Record<string, string>) {
  * קונטיינר מוכן לפרסום רק אחרי שפייסבוק סיימה להוריד את התמונות.
  * פרסום מוקדם מדי נכשל, ולכן בודקים עד שהמצב הוא FINISHED.
  */
-async function waitReady(containerId: string, token: string) {
-  for (let i = 0; i < 20; i++) {
+async function waitReady(containerId: string, token: string, tries = 20) {
+  for (let i = 0; i < tries; i++) {
     const res = await fetch(
       `${GRAPH}/${containerId}?fields=status_code,status&access_token=${encodeURIComponent(token)}`,
     );
@@ -103,11 +103,20 @@ export async function POST(request: NextRequest) {
       return fail("אפשר לפרסם רק נכס שאושר בלוח");
     }
 
-    const images: string[] = asset.media_urls?.length
+    const media: string[] = asset.media_urls?.length
       ? asset.media_urls
       : [asset.media_url].filter(Boolean);
-    if (!images.length) return fail("אין קבצים מרונדרים לנכס הזה");
-    if (images.length > 10) return fail("אינסטגרם מגבילה קרוסלה לעשר תמונות");
+    if (!media.length) return fail("אין קבצים מרונדרים לנכס הזה");
+
+    /**
+     * ריל ותמונה עולים בשני מסלולים שונים לגמרי באינסטגרם.
+     * הסיומת היא מה שקובע, כי היא מה שבאמת נמצא באחסון.
+     */
+    const video = media.find((u) => /\.(mp4|mov)(\?|$)/i.test(u));
+    const images = media.filter((u) => !/\.(mp4|mov)(\?|$)/i.test(u));
+
+    if (!video && !images.length) return fail("אין קבצים מרונדרים לנכס הזה");
+    if (!video && images.length > 10) return fail("אינסטגרם מגבילה קרוסלה לעשר תמונות");
 
     const payload = (asset.payload || {}) as Record<string, unknown>;
     const caption =
@@ -144,7 +153,19 @@ export async function POST(request: NextRequest) {
     try {
       let creationId: string;
 
-      if (images.length === 1) {
+      if (video) {
+        /*
+         * ריל. אינסטגרם מורידה את הקובץ מהכתובת שלנו ומעבדת אותו,
+         * ולכן ההמתנה כאן ארוכה יותר מזו של תמונה.
+         */
+        const c = await graph(`${igId}/media`, {
+          media_type: "REELS",
+          video_url: video,
+          caption,
+          access_token: token,
+        });
+        creationId = c.id;
+      } else if (images.length === 1) {
         const c = await graph(`${igId}/media`, {
           image_url: images[0],
           caption,
@@ -170,7 +191,7 @@ export async function POST(request: NextRequest) {
         creationId = c.id;
       }
 
-      await waitReady(creationId, token);
+      await waitReady(creationId, token, video ? 60 : 20);
 
       const published = await graph(`${igId}/media_publish`, {
         creation_id: creationId,
