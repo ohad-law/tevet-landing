@@ -462,6 +462,12 @@ const GUIDE_TOOL: Anthropic.Tool = {
     type: "object",
     properties: {
       title: { type: "string", description: "שם המדריך, עד שמונה מילים" },
+      slug: {
+        type: "string",
+        description:
+          "מזהה לכתובת באנגלית בלבד, אותיות קטנות ומקפים, שתיים עד ארבע מילים. " +
+          "כתובת בעברית נשברת בשיתוף בוואטסאפ ובאינסטגרם. לדוגמה pension-vs-payslip",
+      },
       subtitle: { type: "string", description: "מה מקבלים ממנו, משפט אחד" },
       intro: { type: "string", description: "פסקה אחת שמסבירה למה זה חשוב" },
       items: {
@@ -495,7 +501,7 @@ const GUIDE_TOOL: Anthropic.Tool = {
       cta_keyword: { type: "string", enum: ["תלוש", "פנסיה"] },
       cta_text: { type: "string", description: "המשפט שמזמין לפנות, בלי אזכור מחיר" },
     },
-    required: ["title", "subtitle", "intro", "items", "needs_verification", "cta_keyword", "cta_text"],
+    required: ["title", "slug", "subtitle", "intro", "items", "needs_verification", "cta_keyword", "cta_text"],
   },
 };
 
