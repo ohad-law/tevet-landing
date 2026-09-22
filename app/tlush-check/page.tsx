@@ -10,6 +10,7 @@ import {
   DOCS,
 } from "./copy";
 import StickyCta from "./StickyCta";
+import ViewPixel from "./ViewPixel";
 import s from "./tlush-check.module.css";
 
 /**
@@ -423,6 +424,7 @@ export default function Page() {
         </div>
       </div>
 
+      <ViewPixel />
       <StickyCta />
     </div>
   );

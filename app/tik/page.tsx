@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Upload from "./Upload";
+import PaidPixel from "./PaidPixel";
 
 export const metadata: Metadata = {
   title: 'העלאת מסמכים | אוהד טבת עו"ד',
@@ -8,5 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <Upload />;
+  return (
+    <>
+      <PaidPixel />
+      <Upload />
+    </>
+  );
 }
