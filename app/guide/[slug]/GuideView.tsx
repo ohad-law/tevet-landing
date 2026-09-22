@@ -1,3 +1,5 @@
+import GuideCta from "./GuideCta";
+
 export type GuideItem = {
   title: string;
   look: string;
@@ -97,12 +99,20 @@ export default function GuideView({ guide, isDraft }: { guide: Guide; isDraft: b
 
         {guide.cta_text && (
           <section style={{
-            background: NAVY, color: "#fff", borderRadius: 16,
-            padding: "28px 24px", marginTop: 32,
+            background: "#fff", border: "1px solid #e8e4dc", borderRadius: 16,
+            padding: "22px 24px", marginTop: 32,
           }}>
-            <p style={{ fontSize: 17, lineHeight: 1.7, margin: 0 }}>{guide.cta_text}</p>
+            <p style={{ fontSize: 17, lineHeight: 1.7, margin: 0, color: "#2b2b2b" }}>
+              {guide.cta_text}
+            </p>
           </section>
         )}
+
+        {/*
+          הצעד שהופך קורא ללקוח. קבוע בכל מדריך, כי מדריך שנגמר
+          בלי המשך הוא בדיוק מה שהביא שני לידים בחודשיים.
+        */}
+        <GuideCta slug={guide.slug} />
 
         <footer style={{ marginTop: 32, fontSize: 12, color: "#8a8578", lineHeight: 1.7 }}>
           <p style={{ margin: 0 }}>
