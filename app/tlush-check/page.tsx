@@ -181,6 +181,32 @@ export default function Page() {
           </p>
 
           {/*
+            התלוש עצמו. פתיחה בלשונית חדשה במקום לייטבוקס: מי שרוצה
+            להתקרב לשורה מתקרב, ומי שלא נשאר בדף ולא נתקע במודאל.
+          */}
+          <a
+            className={s.docWrap}
+            href="/proof/tlush-course-2025-04.jpg"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/proof/tlush-course-2025-04.jpg"
+              alt="תלוש שכר אמיתי מאפריל 2025. סך תשלומים 14,053 שקלים, והשכר שממנו הופרשה פנסיה 6,000 שקלים"
+              width={1372}
+              height={1702}
+              loading="lazy"
+            />
+          </a>
+          <p className={s.docNote}>
+            <span>
+              התלוש המקורי. הפרטים המזהים של העובד ושל המעסיק הוסתרו.
+            </span>
+            <span className={s.docZoom}>לחיצה פותחת בגודל מלא</span>
+          </p>
+
+          {/*
             CTA מוקדם. הסורק: "צריך לגלול הרבה עד הכפתור הראשון.
             להוסיף כפתור מיד אחרי בלוק הדוגמה, כשהכאב הכי חד".
             הוא גם העוגן של הסרגל הצף, ולכן הסרגל לא יכול להופיע
