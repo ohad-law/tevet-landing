@@ -19,6 +19,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { sendWhatsApp } from '@/lib/whatsapp'
 import { normalizePhone } from '@/lib/base44'
+import { sendTikTokEvent } from '@/lib/tiktok-events'
 
 const OHAD_WA = '972542274497' // hard-coded, אסור לשנות דרך env var למניעת דליפה
 
@@ -303,6 +304,24 @@ export async function POST(req: NextRequest) {
         normalizePhone(String(lead.phone).replace(/\D/g, '')),
         buildUploadMessage(name, yearsFromAmount(amount))
       ).catch(() => {})
+    }
+
+    // ── אירוע הרכישה לטיקטוק, מהשרת ──
+    // 🚨 זה המקום היחיד שבו אנחנו יודעים בוודאות שהתקבל כסף.
+    // התשלום קורה ב-UPAY, מחוץ לאתר, ולכן הפיקסל שבדפדפן לא
+    // רואה אותו. `event_id` בנוי מהאסמכתה כדי שאם הלקוח בכל
+    // זאת יגיע ל-/tik עם ?y=, טיקטוק תאחד את שני הדיווחים
+    // במקום לספור רכישה פעמיים.
+    if (tahshiv || amount) {
+      await sendTikTokEvent({
+        event: 'CompletePayment',
+        eventId: ref ? `upay-${ref}` : undefined,
+        phone: lead.phone,
+        value: amount,
+        currency: 'ILS',
+        contentName: tahshiv ? 'תחשיב חוסרים' : undefined,
+        url: 'https://tevet-landing.vercel.app/tahshiv',
+      }).catch(() => {})
     }
 
     return NextResponse.json({ ok: true, matched: true, lead_id: lead.id })
