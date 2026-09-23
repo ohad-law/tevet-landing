@@ -78,11 +78,18 @@ function fileNameFor(mime: string, index: number): string {
 /**
  * מוריד קובץ מטוויליו. בניגוד לגרין אפיי, הקישורים של טוויליו
  * מוגנים ודורשים את פרטי החשבון, אחרת חוזר 401.
+ *
+ * מזהה החשבון נגזר מתוך הכתובת עצמה, שנראית כך:
+ * https://api.twilio.com/2010-04-01/Accounts/ACxxxx/Messages/MMxxxx/Media/MExxxx
+ * כך לא נדרש משתנה סביבה נוסף שאם יישכח יפיל שמירת תלושים בשקט.
  */
 async function downloadTwilioMedia(url: string): Promise<Buffer | null> {
-  const sid = process.env.TWILIO_ACCOUNT_SID
+  const sid = (url.match(/\/Accounts\/(AC[0-9a-f]{32})\//i) || [])[1] || process.env.TWILIO_ACCOUNT_SID
   const token = process.env.TWILIO_AUTH_TOKEN
-  if (!sid || !token) return null
+  if (!sid || !token) {
+    console.error('[twilio-wa] לא נמצאו פרטי חשבון להורדת הקובץ')
+    return null
+  }
   try {
     const auth = Buffer.from(`${sid}:${token}`).toString('base64')
     const res = await fetch(url, {
