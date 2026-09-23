@@ -17,12 +17,9 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { sendWhatsApp } from '@/lib/whatsapp'
 import { normalizePhone } from '@/lib/base44'
 import { isOptOut } from '@/lib/followup-templates'
+import { attachToLead, storeLeadFile } from '@/lib/lead-files'
 
 const OHAD_WA = '972542274497' // hard-coded, אסור לשנות דרך env var למניעת דליפה
-
-const PAYSLIP_BUCKET = 'lead-payslips'
-const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24 * 365
-const MAX_FILE_BYTES = 20 * 1024 * 1024 // מעבר לזה לא מורידים, כדי לא להפיל את הפונקציה
 
 type LeadTable = 'leads' | 'leads_talush'
 type Supa = ReturnType<typeof createServiceClient>
@@ -100,24 +97,6 @@ function extractMessage(messageData: Record<string, unknown>) {
 }
 
 /**
- * מנקה שם קובץ לשם שאחסון סופאבייס מקבל.
- *
- * 🚨 אסור להשאיר עברית בנתיב. סופאבייס מחזיר InvalidKey ומסרב לשמור,
- * ואומת בפועל 29/08/2026. השם המקורי נשמר בגוף ההודעה, ולכן
- * שום מידע לא הולך לאיבוד כשהאותיות מוחלפות כאן.
- */
-function safeStorageName(name: string): string {
-  const ext = (name.match(/\.[A-Za-z0-9]{1,8}$/) || [''])[0]
-  const base = name
-    .slice(0, name.length - ext.length)
-    .replace(/[^A-Za-z0-9._-]/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/^_|_$/g, '')
-    .slice(0, 60)
-  return (base || 'file') + ext.toLowerCase()
-}
-
-/**
  * מוריד קובץ מ-Green API ושומר אותו באחסון הפרטי.
  * מחזיר את הנתיב ואת הקישור החתום, או null אם נכשל.
  *
@@ -135,51 +114,12 @@ async function storeFile(
       console.error('[whatsapp] הורדת הקובץ נכשלה:', res.status)
       return null
     }
-
     const buf = Buffer.from(await res.arrayBuffer())
-    if (buf.byteLength > MAX_FILE_BYTES) {
-      console.warn('[whatsapp] קובץ גדול מדי, לא נשמר:', buf.byteLength)
-      return null
-    }
-
-    const stamp = new Date().toISOString().replace(/[:.]/g, '-')
-    const path = `${folder}/wa_${stamp}_${safeStorageName(file.name)}`
-
-    const { error } = await supabase.storage
-      .from(PAYSLIP_BUCKET)
-      .upload(path, buf, { contentType: file.mime, upsert: true })
-    if (error) {
-      console.error('[whatsapp] העלאת הקובץ נכשלה:', error)
-      return null
-    }
-
-    const { data: signed } = await supabase.storage
-      .from(PAYSLIP_BUCKET)
-      .createSignedUrl(path, SIGNED_URL_TTL_SECONDS)
-
-    return { path, url: signed?.signedUrl ?? null }
+    return storeLeadFile(supabase, folder, buf, file.name, file.mime, '[whatsapp]')
   } catch (e) {
     console.error('[whatsapp] שמירת הקובץ נכשלה:', e)
     return null
   }
-}
-
-/** מצרף קובץ שהגיע בוואטסאפ לרשימת הקבצים של הליד */
-async function attachToLead(
-  supabase: Supa,
-  table: LeadTable,
-  leadId: string,
-  existing: unknown,
-  stored: { path: string; url: string | null }
-) {
-  const current = Array.isArray(existing) ? existing : []
-  await supabase
-    .from(table)
-    .update({
-      uploaded_files: [...current, { path: stored.path, url: stored.url, source: 'וואטסאפ' }],
-      payslips_received_at: new Date().toISOString(),
-    })
-    .eq('id', leadId)
 }
 
 export async function POST(req: NextRequest) {
