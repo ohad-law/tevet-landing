@@ -99,7 +99,17 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (!asset) return fail("הנכס לא נמצא", 404);
-    if (asset.status !== "approved") {
+
+    /*
+     * 🚨 גם approved וגם scheduled. נכס מגיע ל-scheduled רק דרך
+     * המתזמן הלילי, והמתזמן לוקח אך ורק נכסים מאושרים, ולכן
+     * scheduled פירושו "אושר וגם שובץ".
+     *
+     * ב-23.9 הקרוסלה לא עלתה בגלל זה בדיוק: אוהד אישר ותזמן,
+     * המתזמן הלילי סימן אותה scheduled ב-02:00, ובשבע בבוקר
+     * הנתיב הזה סירב לפרסם נכס שהוא עצמו אישר.
+     */
+    if (!["approved", "scheduled"].includes(asset.status)) {
       return fail("אפשר לפרסם רק נכס שאושר בלוח");
     }
 
@@ -143,9 +153,9 @@ export async function POST(request: NextRequest) {
      */
     const { data: locked } = await supabase
       .from("viral_assets")
-      .update({ status: "scheduled", updated_at: new Date().toISOString() })
+      .update({ status: "publishing", updated_at: new Date().toISOString() })
       .eq("id", assetId)
-      .eq("status", "approved")
+      .in("status", ["approved", "scheduled"])
       .select("id");
 
     if (!locked?.length) return fail("פרסום של הנכס הזה כבר רץ", 409);
@@ -203,17 +213,38 @@ export async function POST(request: NextRequest) {
       );
       const permalink = (await permalinkRes.json().catch(() => ({})))?.permalink || null;
 
-      await supabase.from("viral_schedule").insert({
-        asset_id: assetId,
-        platform: "instagram",
-        surface: "feed",
-        scheduled_at: new Date().toISOString(),
+      /*
+       * 🚨 מעדכנים שורה קיימת, ורק אם אין כזו יוצרים חדשה.
+       * הוספה עיוורת יצרה שתי שורות "פורסם" לאותו פוסט: אחת
+       * מהשיבוץ המקורי ואחת מכאן. בלוח זה נראה כמו פרסום כפול.
+       */
+      const { data: pending } = await supabase
+        .from("viral_schedule")
+        .select("id")
+        .eq("asset_id", assetId)
+        .neq("status", "published")
+        .order("scheduled_at")
+        .limit(1);
+
+      const done = {
         status: "published",
-        approved_by: "board",
-        approved_at: new Date().toISOString(),
         external_id: published.id,
         published_url: permalink,
-      });
+      };
+
+      if (pending?.length) {
+        await supabase.from("viral_schedule").update(done).eq("id", pending[0].id);
+      } else {
+        await supabase.from("viral_schedule").insert({
+          asset_id: assetId,
+          platform: "instagram",
+          surface: "feed",
+          scheduled_at: new Date().toISOString(),
+          approved_by: "board",
+          approved_at: new Date().toISOString(),
+          ...done,
+        });
+      }
 
       await supabase.from("viral_assets")
         .update({ status: "published", updated_at: new Date().toISOString() })
