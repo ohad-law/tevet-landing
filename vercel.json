@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/followup-report",
       "schedule": "0 8 */4 * *"
+    },
+    {
+      "path": "/api/cron/reactivation",
+      "schedule": "0 8 * * 0-4"
     }
   ]
 }
