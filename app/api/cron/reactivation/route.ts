@@ -91,11 +91,10 @@ export async function GET(req: NextRequest) {
   if (req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
     return new NextResponse('unauthorized', { status: 401 })
   }
-  if (!twilioConfigured()) {
-    return NextResponse.json({ error: 'twilio_not_configured' }, { status: 500 })
-  }
-
-  const live = process.env.REACTIVATION_ENABLED === '1'
+  // הרצה יבשה עובדת גם בלי טוויליו, כדי שאפשר יהיה לבדוק את בחירת
+  // הקהל ואת גודל המנה לפני שמחברים את השליחה בפועל
+  const live = process.env.REACTIVATION_ENABLED === '1' && twilioConfigured()
+  const twilioMissing = !twilioConfigured()
   const now = new Date()
   const win = insideSendWindow(now)
   if (!win.ok) return NextResponse.json({ skipped: true, reason: win.reason })
@@ -175,7 +174,10 @@ export async function GET(req: NextRequest) {
   if (!live) {
     return NextResponse.json({
       dryRun: true,
-      note: 'REACTIVATION_ENABLED אינו 1, לא נשלח דבר',
+      note: twilioMissing
+        ? 'חסר TWILIO_ACCOUNT_SID בוורסל, אי אפשר לשלוח'
+        : 'REACTIVATION_ENABLED אינו 1, לא נשלח דבר',
+      twilioMissing,
       contacted,
       remaining: queue.length,
       wouldSend: batch.length,
