@@ -25,6 +25,30 @@ const OHAD_WA = '972542274497' // hard-coded, אסור דרך env var למניע
 /** התבנית שאוהד אישר 23/09/2026. בלי כפתורים, אחרת ההודעה מקופלת בנייד */
 const CONTENT_SID = 'HX39b9532f0443bbb182ed636ad05f1940'
 
+/**
+ * הנוסח של התבנית, לשמירה בכרטיס הליד.
+ *
+ * 🚨 חייב להיות זהה לגוף התבנית שאושרה אצל מטא. טוויליו לא מחזירה
+ * את הטקסט שנשלח כשמשתמשים ב-ContentSid, ולכן הוא משוכפל כאן.
+ * בלי זה השיחה בכרטיס מציגה תווית פנימית במקום מה שהליד באמת קיבל,
+ * ואוהד קורא את הכרטיס כדי לדעת מה נאמר. קרה בפועל 25/09/2026.
+ */
+function renderTemplate(name: string, topic: string): string {
+  return [
+    `שלום ${name},`,
+    'מדברים ממשרד עו"ד טבת.',
+    '',
+    `פנית אלינו בעניין ${topic}, ולזכויות שלך יש תאריך תפוגה. כל חודש שעובר מוחק חודש.`,
+    '',
+    'נעזור לך להבין מה מסתתר בתלוש וכמה כסף חסר, שנה אחר שנה.',
+    '',
+    'מתחילים כאן:',
+    'https://tevet-landing.vercel.app/tlush-check',
+    '',
+    'להסרה השיבו הסר.',
+  ].join('\n')
+}
+
 /** מנות עולות. מתחילים קטן כדי לראות איך הקהל מגיב לפני שמרחיבים */
 const RAMP = [20, 40, 60, 80, 85]
 
@@ -75,11 +99,31 @@ function topicOf(notes: string | null): string {
   return TOPICS[(m?.[1] || '').trim()] || 'זכויות בעבודה'
 }
 
-/** ימים א' עד ה', בין 10:00 ל-16:00 שעון ישראל */
+/**
+ * ימי טוב וערבי חג בלוח ישראל, שבהם לא שולחים דיוור שיווקי.
+ * חול המועד אינו ברשימה, כי הוא יום עבודה לכל דבר.
+ *
+ * 🚨 הרשימה ידנית ומכסה את תשרי ה-5787 ואת המועדים שאחריו.
+ * להאריך אותה לפני פסח. עדיף רשימה קצרה שמובנת בעין מאשר
+ * תלות בשירות חיצוני שיכול ליפול בדיוק ברגע שהקרון רץ.
+ */
+const NO_SEND_DATES = new Set([
+  '2026-09-25', // ערב סוכות
+  '2026-09-26', // סוכות א
+  '2026-10-02', // הושענא רבה, ערב חג
+  '2026-10-03', // שמיני עצרת
+  '2026-10-04', // שמחת תורה בתפוצות, נשמר ליתר ביטחון
+])
+
+/** ימים א' עד ה', בין 10:00 ל-16:00 שעון ישראל, ולא בחג */
 function insideSendWindow(now: Date): { ok: boolean; reason?: string } {
   const il = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jerusalem' }))
   const day = il.getDay() // 0 ראשון, 5 שישי, 6 שבת
   if (day === 5 || day === 6) return { ok: false, reason: 'סוף שבוע' }
+
+  const iso = `${il.getFullYear()}-${String(il.getMonth() + 1).padStart(2, '0')}-${String(il.getDate()).padStart(2, '0')}`
+  if (NO_SEND_DATES.has(iso)) return { ok: false, reason: `חג, ${iso}` }
+
   const hour = il.getHours()
   if (hour < 10 || hour >= 16) return { ok: false, reason: `מחוץ לשעות, ${hour}:00` }
   return { ok: true }
@@ -195,7 +239,7 @@ export async function GET(req: NextRequest) {
       await supabase.from('whatsapp_messages').insert({
         phone: item.phone,
         direction: 'יוצאת',
-        body: `החייאה: פנייה בעניין ${item.topic}`,
+        body: renderTemplate(item.name, item.topic),
         provider_message_id: res.sid || null,
         is_read: true,
       })
