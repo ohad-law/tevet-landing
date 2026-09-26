@@ -153,6 +153,18 @@ function insideSendWindow(now: Date): { ok: boolean; reason?: string } {
   return { ok: true }
 }
 
+/**
+ * המתג שמפעיל שליחה בפועל.
+ *
+ * מקבל כמה כתיבים ולא רק "1", כי המשתנה מוזן ידנית בוורסל ונשמר שם
+ * כסוד, כלומר אי אפשר לקרוא אותו חזרה כדי לוודא. ערך כמו "true"
+ * היה משאיר את המנוע כבוי בשקט עד שמישהו היה שם לב.
+ */
+function reactivationEnabled(): boolean {
+  const v = String(process.env.REACTIVATION_ENABLED || '').trim().toLowerCase()
+  return ['1', 'true', 'yes', 'on'].includes(v)
+}
+
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
 
 export async function GET(req: NextRequest) {
@@ -161,7 +173,7 @@ export async function GET(req: NextRequest) {
   }
   // הרצה יבשה עובדת גם בלי טוויליו, כדי שאפשר יהיה לבדוק את בחירת
   // הקהל ואת גודל המנה לפני שמחברים את השליחה בפועל
-  const live = process.env.REACTIVATION_ENABLED === '1' && twilioConfigured()
+  const live = reactivationEnabled() && twilioConfigured()
   const twilioMissing = !twilioConfigured()
   const now = new Date()
   const win = insideSendWindow(now)
