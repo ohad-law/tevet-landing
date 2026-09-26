@@ -22,32 +22,56 @@ import {
 
 const OHAD_WA = '972542274497' // hard-coded, אסור דרך env var למניעת דליפה
 
-/** התבנית שאוהד אישר 23/09/2026. בלי כפתורים, אחרת ההודעה מקופלת בנייד */
-const CONTENT_SID = 'HX39b9532f0443bbb182ed636ad05f1940'
-
 /**
- * הנוסח של התבנית, לשמירה בכרטיס הליד.
+ * שתי גרסאות נוסח שרצות במקביל, כדי שנדע מה באמת עובד.
+ * בלי פיצול אי אפשר להשוות בדיעבד: מספר אחד בלי קבוצת ייחוס.
  *
- * 🚨 חייב להיות זהה לגוף התבנית שאושרה אצל מטא. טוויליו לא מחזירה
- * את הטקסט שנשלח כשמשתמשים ב-ContentSid, ולכן הוא משוכפל כאן.
- * בלי זה השיחה בכרטיס מציגה תווית פנימית במקום מה שהליד באמת קיבל,
- * ואוהד קורא את הכרטיס כדי לדעת מה נאמר. קרה בפועל 25/09/2026.
+ * 🚨 הנוסח בקוד חייב להיות זהה לגוף התבנית שאושרה אצל מטא.
+ * טוויליו לא מחזירה את הטקסט כשמשתמשים ב-ContentSid, ולכן הוא
+ * משוכפל כאן ונשמר בכרטיס הליד. בלי זה השיחה בכרטיס מציגה תווית
+ * פנימית במקום מה שהליד קיבל, ואוהד קורא את הכרטיס כדי לדעת מה
+ * נאמר. קרה בפועל 25/09/2026.
+ *
+ * הסיווג לניתוח נעשה לפי הטקסט עצמו, ולכן אין צורך בעמודה נוספת.
  */
-function renderTemplate(name: string, topic: string): string {
-  return [
-    `שלום ${name},`,
-    'מדברים ממשרד עו"ד טבת.',
-    '',
-    `פנית אלינו בעניין ${topic}, ולזכויות שלך יש תאריך תפוגה. כל חודש שעובר מוחק חודש.`,
-    '',
-    'נעזור לך להבין מה מסתתר בתלוש וכמה כסף חסר, שנה אחר שנה.',
-    '',
-    'מתחילים כאן:',
-    'https://tevet-landing.vercel.app/tlush-check',
-    '',
-    'להסרה השיבו הסר.',
-  ].join('\n')
-}
+const VARIANTS = [
+  {
+    key: 'תפוגה',
+    contentSid: 'HX39b9532f0443bbb182ed636ad05f1940',
+    render: (name: string, topic: string) =>
+      [
+        `שלום ${name},`,
+        'מדברים ממשרד עו"ד טבת.',
+        '',
+        `פנית אלינו בעניין ${topic}, ולזכויות שלך יש תאריך תפוגה. כל חודש שעובר מוחק חודש.`,
+        '',
+        'נעזור לך להבין מה מסתתר בתלוש וכמה כסף חסר, שנה אחר שנה.',
+        '',
+        'מתחילים כאן:',
+        'https://tevet-landing.vercel.app/tlush-check',
+        '',
+        'להסרה השיבו הסר.',
+      ].join('\n'),
+  },
+  {
+    key: 'היקף',
+    contentSid: 'HX50ae078c210287c18bd65ddfd4acc5d4',
+    render: (name: string, topic: string) =>
+      [
+        `שלום ${name},`,
+        'מדברים ממשרד עו"ד טבת.',
+        '',
+        `פנית אלינו בעניין ${topic}, ומאז לא בדקנו את התלושים שלך.`,
+        '',
+        'בבדיקות שאנחנו עושים מתגלים חוסרים של עשרות ואף מאות אלפי שקלים, שמצטברים שנה אחר שנה בלי שהעובד יודע.',
+        '',
+        'מתחילים כאן:',
+        'https://tevet-landing.vercel.app/tlush-check',
+        '',
+        'להסרה השיבו הסר.',
+      ].join('\n'),
+  },
+]
 
 /** מנות עולות. מתחילים קטן כדי לראות איך הקהל מגיב לפני שמרחיבים */
 const RAMP = [20, 40, 60, 80, 85]
@@ -229,24 +253,33 @@ export async function GET(req: NextRequest) {
     })
   }
 
-  // ── שליחה ──────────────────────────────────────────────────
+  // ── שליחה, לסירוגין בין שתי הגרסאות ────────────────────────
+  // החלוקה לפי מיקום בתור ולא אקראית, כדי ששתי הקבוצות יקבלו
+  // את אותו תמהיל ותק ונושא ולא תיווצר הטיה
   let sent = 0
   const failures: string[] = []
-  for (const item of batch) {
-    const res = await sendTemplate(item.phone, CONTENT_SID, { '1': item.name, '2': item.topic })
+  const perVariant: Record<string, number> = {}
+  for (let i = 0; i < batch.length; i++) {
+    const item = batch[i]
+    const variant = VARIANTS[i % VARIANTS.length]
+    const res = await sendTemplate(item.phone, variant.contentSid, {
+      '1': item.name,
+      '2': item.topic,
+    })
     if (res.ok) {
       sent++
+      perVariant[variant.key] = (perVariant[variant.key] || 0) + 1
       await supabase.from('whatsapp_messages').insert({
         phone: item.phone,
         direction: 'יוצאת',
-        body: renderTemplate(item.name, item.topic),
+        body: variant.render(item.name, item.topic),
         provider_message_id: res.sid || null,
         is_read: true,
       })
     } else {
-      failures.push(`${item.name}: ${res.error}`)
+      failures.push(`${item.name} [${variant.key}]: ${res.error}`)
     }
-    if (sent < batch.length) await sleep(PACE_MS)
+    if (i < batch.length - 1) await sleep(PACE_MS)
   }
 
   const report = [
@@ -256,6 +289,9 @@ export async function GET(req: NextRequest) {
     `נותרו ברשימה: ${queue.length - sent}`,
     `סך הכל קיבלו עד היום: ${contacted + sent}`,
     `ביקשו הסרה: ${optedOut}`,
+    '',
+    'לפי גרסה:',
+    ...VARIANTS.map(v => `  ${v.key}: ${perVariant[v.key] || 0}`),
     failures.length ? `\nכשלונות (${failures.length}):\n${failures.slice(0, 5).join('\n')}` : '',
   ]
     .filter(Boolean)
