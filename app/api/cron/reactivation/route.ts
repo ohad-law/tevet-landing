@@ -20,6 +20,12 @@ import {
   twilioConfigured,
 } from '@/lib/twilio-whatsapp'
 
+/**
+ * תקרת זמן הריצה בוורסל. 300 שניות היא המקסימום בתוכנית Hobby.
+ * מוגדר במפורש ולא נשען על ברירת מחדל, כי המנה הגדולה מתקרבת לגבול.
+ */
+export const maxDuration = 300
+
 const OHAD_WA = '972542274497' // hard-coded, אסור דרך env var למניעת דליפה
 
 /**
@@ -76,7 +82,31 @@ const VARIANTS = [
 /** מנות עולות. מתחילים קטן כדי לראות איך הקהל מגיב לפני שמרחיבים */
 const RAMP = [20, 40, 60, 80, 85]
 
-const PACE_MS = 3000 // רווח בין הודעות, כדי לא להיראות כמו מכונה
+/**
+ * תקציב זמן לשליחה, מתוך 300 השניות שיש לפונקציה. מותיר מרווח
+ * לשליפות ולדוח בסוף.
+ */
+const SEND_BUDGET_MS = 230000
+const PACE_MIN_MS = 2500
+const PACE_MAX_MS = 8000
+
+/** בדיקת שפיות כל כמה הודעות, כדי שהבלם יוכל לעצור באמצע ולא רק בהתחלה */
+const CHECK_EVERY = 10
+const MID_BATCH_FAIL_RATE = 0.25 // רבע מהניסיונות נכשלו, עוצרים
+const MID_BATCH_FAIL_MIN = 5 // או חמישה כשלונות מוחלטים
+
+/**
+ * מרווח בין הודעות, נגזר מגודל המנה.
+ *
+ * מנה קטנה מקבלת קצב איטי ואנושי. מנה גדולה מאיצה בדיוק כמה שצריך
+ * כדי להיכנס בתקציב הזמן. בלי זה מנה של 83 הודעות בקצב קבוע הייתה
+ * נקטעת באמצע על ידי וורסל, וחצי מהאנשים לא היו מקבלים כלום.
+ */
+function paceFor(batchSize: number): number {
+  if (batchSize <= 1) return PACE_MIN_MS
+  const perMessage = Math.floor(SEND_BUDGET_MS / batchSize)
+  return Math.min(PACE_MAX_MS, Math.max(PACE_MIN_MS, perMessage))
+}
 const MIN_AGE_DAYS = 14 // לידים טריים מטופלים על ידי רובוט הפולואפ
 const OPT_OUT_LIMIT = 0.08 // מעל 8 אחוז הסרות עוצרים ובודקים
 const DELIVERY_FLOOR = 0.7 // מתחת ל-70 אחוז מסירה עוצרים
@@ -271,7 +301,21 @@ export async function GET(req: NextRequest) {
   let sent = 0
   const failures: string[] = []
   const perVariant: Record<string, number> = {}
+  const pace = paceFor(batch.length)
+  let abortReason = ''
   for (let i = 0; i < batch.length; i++) {
+    // בלם אמצע מנה: אם ההודעות מתחילות להיכשל, עוצרים מיד ולא
+    // ממשיכים לשרוף את הרשימה. הבלם בתחילת הריצה לא מספיק כי
+    // המנה כולה יוצאת לפניו
+    if (i > 0 && i % CHECK_EVERY === 0) {
+      const attempted = sent + failures.length
+      const rate = attempted > 0 ? failures.length / attempted : 0
+      if (failures.length >= MID_BATCH_FAIL_MIN || rate > MID_BATCH_FAIL_RATE) {
+        abortReason = `${failures.length} כשלונות מתוך ${attempted}`
+        console.error('[reactivation] ABORTED mid batch:', abortReason)
+        break
+      }
+    }
     const item = batch[i]
     const variant = VARIANTS[i % VARIANTS.length]
     const res = await sendTemplate(item.phone, variant.contentSid, {
@@ -291,7 +335,7 @@ export async function GET(req: NextRequest) {
     } else {
       failures.push(`${item.name} [${variant.key}]: ${res.error}`)
     }
-    if (i < batch.length - 1) await sleep(PACE_MS)
+    if (i < batch.length - 1) await sleep(pace)
   }
 
   const report = [
@@ -301,6 +345,9 @@ export async function GET(req: NextRequest) {
     `נותרו ברשימה: ${queue.length - sent}`,
     `סך הכל קיבלו עד היום: ${contacted + sent}`,
     `ביקשו הסרה: ${optedOut}`,
+    abortReason ? `
+🛑 המנה נעצרה באמצע: ${abortReason}` : '',
+    `קצב: ${Math.round(pace / 1000)} שניות בין הודעות`,
     '',
     'לפי גרסה:',
     ...VARIANTS.map(v => `  ${v.key}: ${perVariant[v.key] || 0}`),
