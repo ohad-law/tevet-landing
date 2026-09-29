@@ -21,8 +21,15 @@ function normalizePhone(raw: string): string | null {
 }
 
 export async function POST(req: NextRequest) {
-  const secret = process.env.BOT_ROUTES_SECRET
-  if (!secret || req.headers.get('x-bot-secret') !== secret) {
+  // 🚨 אימות מול המשתמש המחובר ל-CRM, לא מול סוד משותף.
+  // סוד משותף היה נצרב בקוד הפומבי של האפליקציה, וכל מי שמוצא
+  // אותו יכול לשלוח הודעות מהמספר הרשמי של המשרד.
+  const token = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '')
+  if (!token) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+
+  const auth = createServiceClient()
+  const { data: userData, error: authError } = await auth.auth.getUser(token)
+  if (authError || !userData?.user) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   }
   if (!twilioConfigured()) {
@@ -61,8 +68,7 @@ export async function POST(req: NextRequest) {
 
   // נשמר בשיחה של הליד, כדי שהכרטיס ימשיך לשקף את מה שנאמר בפועל
   try {
-    const supabase = createServiceClient()
-    await supabase.from('whatsapp_messages').insert({
+    await auth.from('whatsapp_messages').insert({
       phone,
       direction: 'יוצאת',
       body,
