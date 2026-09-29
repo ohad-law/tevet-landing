@@ -60,6 +60,37 @@ export async function sendTemplate(
 }
 
 /**
+ * שולח טקסט חופשי, בלי תבנית.
+ *
+ * 🚨 עובד רק בתוך 24 שעות מההודעה האחרונה של הנמען. מחוץ לחלון מטא
+ * מחזירה שגיאה 63016 ודורשת תבנית מאושרת. זו הסיבה שהקמפיין עצמו
+ * משתמש בתבניות, וזה נשמר לתשובות לשיחה פתוחה בלבד.
+ */
+export async function sendFreeform(toPhone972: string, body: string): Promise<SendResult> {
+  if (!twilioConfigured()) return { ok: false, error: 'twilio_not_configured' }
+  const form = new URLSearchParams({
+    From: WA_SENDER,
+    To: `whatsapp:+${toPhone972}`,
+    Body: body,
+  })
+  try {
+    const res = await fetch(`${API}/Accounts/${ACCOUNT_SID}/Messages.json`, {
+      method: 'POST',
+      headers: { Authorization: authHeader(), 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: form,
+      signal: AbortSignal.timeout(20000),
+    })
+    const data = (await res.json()) as { sid?: string; message?: string; code?: number }
+    if (!res.ok || !data.sid) {
+      return { ok: false, error: `${data.code || res.status} ${data.message || ''}`.trim() }
+    }
+    return { ok: true, sid: data.sid }
+  } catch (e) {
+    return { ok: false, error: String(e) }
+  }
+}
+
+/**
  * מושך את כל ההודעות שנשלחו מהמספר הרשמי ומחזיר את הנמענים.
  *
  * זהו מקור האמת לשאלה "למי כבר שלחנו". עדיף על סימון בבסיס הנתונים
