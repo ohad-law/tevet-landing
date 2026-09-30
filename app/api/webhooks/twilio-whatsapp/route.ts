@@ -69,6 +69,19 @@ async function findLead(supabase: Supa, phone972: string) {
   return null
 }
 
+/**
+ * תווית עברית לפי סוג הקובץ.
+ * "[קובץ]" סתמי הסתיר מאוהד שליד שלח הודעה קולית ולא תלוש,
+ * והוא חיפש תלוש שלא היה (30/09/2026).
+ */
+function kindLabel(mime: string): string {
+  if (mime.startsWith('audio/')) return 'הודעה קולית'
+  if (mime.startsWith('image/')) return 'תמונה'
+  if (mime.startsWith('video/')) return 'סרטון'
+  if (mime.includes('pdf')) return 'מסמך PDF'
+  return 'קובץ'
+}
+
 /** טוויליו לא שולחת שם קובץ, ולכן גוזרים סיומת מסוג התוכן */
 function fileNameFor(mime: string, index: number): string {
   const ext = (mime.split('/')[1] || 'bin').split(';')[0].replace(/[^a-z0-9]/gi, '').slice(0, 8)
@@ -142,7 +155,7 @@ export async function POST(req: NextRequest) {
 
   // הקבצים נשמרים תחת מזהה הליד, כדי שיישבו עם התלושים מדף הנחיתה
   const folder = lead ? String(lead.id) : `unknown/${senderPhone}`
-  const savedFiles: string[] = []
+  const savedFiles: { path: string; url: string | null; label: string }[] = []
   let uploadedFiles = lead?.uploaded_files
 
   for (let i = 0; i < mediaCount; i++) {
@@ -156,7 +169,7 @@ export async function POST(req: NextRequest) {
     const stored = await storeLeadFile(supabase, folder, buf, fileNameFor(mime, i), mime, '[twilio-wa]')
     if (!stored) continue
 
-    savedFiles.push(stored.path)
+    savedFiles.push({ ...stored, label: kindLabel(mime) })
     if (lead) {
       await attachToLead(supabase, lead.table, String(lead.id), uploadedFiles, stored)
       // מעדכנים מקומית, אחרת קובץ שני באותה הודעה ידרוס את הראשון
@@ -167,12 +180,13 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const stored = savedFiles.length > 0 ? ` [${savedFiles.length} קבצים]` : ''
+  const kinds = savedFiles.map((f) => f.label).join(', ')
+  const suffix = kinds ? ` [${kinds}]` : ''
   try {
     await supabase.from('whatsapp_messages').insert({
       phone: senderPhone,
       direction: 'נכנסת',
-      body: (body || '[קובץ]') + stored,
+      body: (body || '') + suffix || '[קובץ]',
       provider_message_id: params.MessageSid || null,
       is_read: false,
     })
@@ -195,8 +209,12 @@ export async function POST(req: NextRequest) {
         '💬 וואטסאפ חדש למספר הרשמי',
         '',
         `מאת: ${who}`,
-        body || '[קובץ]',
-        savedFiles.length > 0 ? `נשמרו ${savedFiles.length} קבצים.` : '',
+        body || `[${kinds || 'קובץ'}]`,
+        // 🚨 הקישור חייב להיות בהתראה עצמה. בלעדיו אוהד יודע שהגיע קובץ
+        // אבל אין לו איך להגיע אליו, וזה קרה בפועל 30/09/2026
+        ...savedFiles.map((f, i) =>
+          f.url ? `📎 ${f.label}: ${f.url}` : `📎 ${f.label} נשמר בכרטיס.`
+        ),
         '',
         lead ? 'נשמר בכרטיס הליד.' : 'המספר לא נמצא כליד במערכת.',
       ]
