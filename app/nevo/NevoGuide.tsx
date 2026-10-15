@@ -239,8 +239,11 @@ export default function NevoGuide() {
                 <span>פסקי דין שונים מבתי הדין האזוריים לעבודה</span>
               </div>
               <div className="nv-stat">
-                <b>7</b>
-                <span>סעיפי חקיקה, כולל סעיף 11(א) לחוק פיצויי פיטורים</span>
+                <b>11(א)</b>
+                <span>
+                  הסעיף המרכזי בחוק פיצויי פיטורים חזר במלואו. עוד שש הוראות
+                  חזרו, חלקן משניות
+                </span>
               </div>
               <div className="nv-stat">
                 <b>1999 עד 8/2026</b>
